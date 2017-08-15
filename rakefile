@@ -6,6 +6,9 @@ require "pathname"
 NAME = "clare"
 DYN_LIB = "bin/#{NAME}.dll"
 
+# build files to use as extra file dependencies
+BUILD_FILES = [ "rakefile", "rakefile-base.rb" ]
+
 # enumerate compiler source and object files
 SRCS = FileList["src/**/*.c"]
 OBJS = SRCS.pathmap("out/%X.o")
