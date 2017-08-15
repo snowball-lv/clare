@@ -19,7 +19,7 @@ DYN_CFLAGS = CFLAGS + [ "-fPIC" ]
 
 # create compile tasks for the compiler source
 SRCS.zip(OBJS).each do |src, obj|
-    make_compile_task(src, obj, DYN_CFLAGS)
+    make_compile_task(src, obj, DYN_CFLAGS, BUILD_FILES)
 end
 
 # different link flags
@@ -28,7 +28,7 @@ DYN_LFLAGS = LFLAGS + [ "-shared" ]
 DEV_LFLAGS = LFLAGS + [ "-L bin", "-l #{NAME}" ]
 
 # create linking task
-make_link_task(DYN_LIB, OBJS, DYN_LFLAGS)
+make_link_task(DYN_LIB, OBJS, DYN_LFLAGS, BUILD_FILES)
 
 # enumerate source and object files for development tests
 DEV_SRCS = FileList["dev/**/*.c"]
@@ -40,13 +40,13 @@ end
 
 # create compile tasks for development test source files
 DEV_SRCS.zip(DEV_OBJS).each do |src, obj|
-    make_compile_task(src, obj, CFLAGS)
+    make_compile_task(src, obj, CFLAGS, BUILD_FILES)
 end
 
 # create link tasks for development tests
 DEV_BINS.zip(DEV_OBJS).each do |bin, obj|
     file(bin => DYN_LIB)
-    make_link_task(bin, [ obj ], DEV_LFLAGS)
+    make_link_task(bin, [ obj ], DEV_LFLAGS, BUILD_FILES)
 end
 
 # task :default => DYN_LIB

@@ -9,7 +9,7 @@ def src_deps(src, flags)
 end
 
 
-def make_compile_task(src, obj, flags)
+def make_compile_task(src, obj, flags, extra_deps = [])
 
     obj_dir = File.dirname(obj)
 
@@ -18,6 +18,7 @@ def make_compile_task(src, obj, flags)
     file(obj => src)
 
     file(obj => src_deps(src, flags))
+    file(obj => extra_deps)
 
     file(obj) do
         sh "gcc #{flags.join(" ")} #{src} -o #{obj}"
@@ -25,13 +26,15 @@ def make_compile_task(src, obj, flags)
 end
 
 
-def make_link_task(bin, objs, flags)
+def make_link_task(bin, objs, flags, extra_deps = [])
 
     bin_dir = File.dirname(bin)
 
     file(bin => bin_dir)
     directory(bin_dir)
     file(bin => objs)
+
+    file(bin => extra_deps)
 
     file(bin) do
         sh "gcc #{flags.join(" ")} #{objs.join(" ")} -o #{bin}"
