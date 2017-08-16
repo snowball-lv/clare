@@ -14,7 +14,15 @@ SRCS = FileList["src/**/*.c"]
 OBJS = SRCS.pathmap("out/%X.o")
 
 # different compile flags
-CFLAGS = [ "-c", "-I inc" ]
+CFLAGS = [
+    "-c",
+    "-I inc",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror"
+]
 DYN_CFLAGS = CFLAGS + [ "-fPIC" ]
 
 # create compile tasks for the compiler source
