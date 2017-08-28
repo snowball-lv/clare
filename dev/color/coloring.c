@@ -9,6 +9,8 @@
 
 int main() {
 
+    MemEnableRecycling();
+
     RIG *rig = NewRIG();
     Set *colors = NewSet();
     Map *precoloring = NewMap();
@@ -63,6 +65,12 @@ int main() {
     DeleteSet(colors);
     DeleteRIG(rig);
 
+    MemDisableRecycling();
+
     assert(MemEmpty());
+
+    printf("allocations: %zu\n", MemAllocations());
+    printf("allocation size: %zu\n", MemAllocationSize());
+
 	return 0;
 }
