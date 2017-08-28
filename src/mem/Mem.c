@@ -8,6 +8,8 @@ static intptr_t counter = 0;
 static size_t allocations = 0;
 static size_t allocation_size = 0;
 
+static int recycling_enabled = 0;
+
 static void Add(void *ptr) {
     counter += (intptr_t) ptr;
 }
@@ -17,7 +19,7 @@ static void Remove(void *ptr) {
 }
 
 void *MemAlloc(size_t size) {
-    
+
     void *ptr = malloc(size);
     Add(ptr);
 
@@ -45,9 +47,9 @@ size_t MemAllocationSize() {
 }
 
 void MemEnableRecycling() {
-    // TODO
+    recycling_enabled = 1;
 }
 
 void MemDisableRecycling() {
-    // TODO
+    recycling_enabled = 0;
 }
