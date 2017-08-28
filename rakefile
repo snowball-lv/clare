@@ -65,4 +65,5 @@ end
 task :clean do
     rm_rf "out"
     rm_rf "bin"
+    rm_rf Dir["*.exe.stackdump"]
 end
