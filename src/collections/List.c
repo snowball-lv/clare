@@ -4,56 +4,64 @@
 
 #include <assert.h>
 
-typedef struct Link Link;
-struct Link {
-    void *value;
-    Link *next;
-};
-
-static Link *NewLink(void *value) {
-    Link *link = ALLOC(Link);
-    link->value = value;
-    link->next = 0;
-    return link;
-}
-
-static void DeleteLink(Link *link) {
-    MemFree(link);
-}
-
 struct List {
+    int capacity;
     int size;
-    Link *head;
-    Link *tail;
+    void **values;
 };
+
+#define VALIDATE_INDEX(list, index) assert(index >= 0 && index < list->size)
+
+static List *NewUninitializedList() {
+    return ALLOC(List);
+}
 
 List *NewList() {
-    List *list = ALLOC(List);
+    List *list = NewUninitializedList();
+    list->capacity = 4;
     list->size = 0;
-    list->head = 0;
-    list->tail = 0;
+    list->values = MemAlloc(list->capacity * sizeof(void *));
     return list;
 }
 
 void DeleteList(List *list) {
-    Link *curr = list->head;
-    while (curr != 0) {
-        Link *link = curr;
-        curr = link->next;
-        DeleteLink(link);
-    }
+    MemFree(list->values);
     MemFree(list);
 }
 
-void ListAdd(List *list, void *value) {
-    Link *link = NewLink(value);
-    if (list->tail != 0) {
-        list->tail->next = link;
-        list->tail = list->tail->next;
-    } else {
-        list->head = list->tail = link;
+static void PrepareForSizeIncrement(List *list) {
+    int nsize = list->size + 1;
+    if (nsize > list->capacity) {
+
+        list->capacity = list->capacity * 2;
+
+        void **nvalues = MemAlloc(list->capacity * sizeof(void *));
+        for (int i = 0; i < list->size; i++) {
+            nvalues[i] = list->values[i];
+        }
+
+        MemFree(list->values);
+        list->values = nvalues;
     }
-    list->size += 1;
+}
+
+void ListAdd(List *list, void *value) {
+    PrepareForSizeIncrement(list);
+    list->values[list->size] = value;
+    list->size++;
+}
+
+static void ShiftRight(List *list) {
+    PrepareForSizeIncrement(list);
+    for (int i = list->size; i > 0; i--) {
+        list->values[i] = list->values[i - 1];
+    }
+}
+
+void ListPrepend(List *list, void *value) {
+    ShiftRight(list);
+    list->values[0] = value;
+    list->size++;
 }
 
 int ListSize(List *list) {
@@ -61,35 +69,28 @@ int ListSize(List *list) {
 }
 
 void *ListGet(List *list, int index) {
-    assert(0 <= index && index < ListSize(list));
-    Link *link = list->head;
-    for (int i = 0; i < index; i++) {
-        link = link->next;
-    }
-    return link->value;
+    VALIDATE_INDEX(list, index);
+    return list->values[index];
 }
 
 List *ListCopy(List *list) {
-    List *copy = NewList();
+
+    List *copy = NewUninitializedList();
+
+    copy->capacity = list->capacity;
+    copy->size = list->size;
+    copy->values = MemAlloc(list->capacity * sizeof(void *));
+
     LIST_EACH(list, void *, value, {
-        ListAdd(copy, value);
+        copy->values[INDEX(value)] = value;
     });
+
     return copy;
 }
 
-static Link *ListGetLink(List *list, int index) {
-    assert(0 <= index && index < ListSize(list));
-    Link *link = list->head;
-    for (int i = 0; i < index; i++) {
-        link = link->next;
-    }
-    return link;
-}
-
 void ListSet(List *list, int index, void *value) {
-    assert(0 <= index && index < ListSize(list));
-    Link *link = ListGetLink(list, index);
-    link->value = value;
+    VALIDATE_INDEX(list, index);
+    list->values[index] = value;
 }
 
 int ListIndexOf(List *list, void *value) {
@@ -102,29 +103,9 @@ int ListIndexOf(List *list, void *value) {
 }
 
 void ListRemove(List *list, int index) {
-    assert(0 <= index && index < ListSize(list));
-    Link *link = ListGetLink(list, index);
-    Link *prev = index > 0 ? ListGetLink(list, index - 1) : 0;
-    if (prev != 0) {
-        prev->next = link->next;
+    VALIDATE_INDEX(list, index);
+    for (int i = index; i < list->size; i++) {
+        list->values[i] = list->values[i + 1];
     }
-    if (link == list->head) {
-        list->head = link->next;
-    }
-    if (link == list->tail) {
-        list->tail = prev;
-    }
-    list->size -= 1;
-    DeleteLink(link);
-}
-
-void ListPrepend(List *list, void *value) {
-    Link *link = NewLink(value);
-    if (list->head != 0) {
-        link->next = list->head;
-        list->head = link;
-    } else {
-        list->head = list->tail = link;
-    }
-    list->size += 1;
+    list->size--;
 }
