@@ -28,6 +28,10 @@ void SetAdd(Set *set, void *value) {
     }
 }
 
+List *_SetInternalList(Set *set) {
+    return set->list;
+}
+
 List *SetToList(Set *set) {
     return ListCopy(set->list);
 }
