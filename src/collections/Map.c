@@ -2,60 +2,109 @@
 
 #include <mem/Mem.h>
 #include <collections/List.h>
+#include <collections/Set.h>
 
 #include <assert.h>
+#include <string.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct {
+    void *key;
+    void *value;
+    int used;
+} MapEntry;
 
 struct Map {
-    List *keys;
-    List *values;
+    int capacity;
+    int size;
+    MapEntry *entries;
 };
 
 Map *NewMap() {
+
     Map *map = ALLOC(Map);
-    map->keys = NewList();
-    map->values = NewList();
+    map->capacity = 16;
+    map->size = 0;
+
+    size_t size = map->capacity * sizeof(MapEntry);
+    map->entries = MemAlloc(size);
+    memset(map->entries, 0, size);
+
     return map;
 }
 
 void DeleteMap(Map *map) {
-    DeleteList(map->keys);
-    DeleteList(map->values);
+    MemFree(map->entries);
     MemFree(map);
 }
 
+static int HashKey(void *key) {
+    return (intptr_t) key;
+}
+
+static int KeyIndex(Map *map, void *key) {
+    return HashKey(key) % map->capacity;
+}
+
+static MapEntry *GetEntry(Map *map, void *key) {
+    int index = KeyIndex(map, key);
+    return &map->entries[index];
+}
+
 void MapPut(Map *map, void *key, void *value) {
-    int index = ListIndexOf(map->keys, key);
-    if (index >= 0) {
-        ListSet(map->values, index, value);
+    MapEntry *entry = GetEntry(map, key);
+    if (entry->used) {
+        if (entry->key != key) {
+            fprintf(stderr, "collision\n");
+            exit(1);
+        } else {
+            entry->value = value;
+        }
     } else {
-        ListAdd(map->keys, key);
-        ListAdd(map->values, value);
+
+        entry->key = key;
+        entry->value = value;
+        entry->used = 1;
+
+        map->size++;
     }
 }
 
 void *MapGet(Map *map, void *key) {
-    int index = ListIndexOf(map->keys, key);
-    if (index >= 0) {
-        return ListGet(map->values, index);
+    MapEntry *entry = GetEntry(map, key);
+    if (entry->used && entry->key == key) {
+        return entry->value;
     }
     return 0;
 }
 
 void MapRemove(Map *map, void *key) {
-    int index = ListIndexOf(map->keys, key);
-    if (index >= 0) {
-        ListRemove(map->keys, index);
-        ListRemove(map->values, index);
+    MapEntry *entry = GetEntry(map, key);
+    if (entry->used) {
+
+        entry->key = 0;
+        entry->value = 0;
+        entry->used = 0;
+
+        map->size--;
     }
 }
 
 Set *MapKeys(Map *map) {
-    return ListToSet(map->keys);
+    Set *keys = NewSet();
+    for (int i = 0; i < map->capacity; i++) {
+        MapEntry *entry = &map->entries[i];
+        if (entry->used) {
+            SetAdd(keys, entry->key);
+        }
+    }
+    return keys;
 }
 
 int MapSize(Map *map) {
-    assert(ListSize(map->keys) == ListSize(map->values));
-    return ListSize(map->keys);
+    return map->size;
 }
 
 Map *MapCopy(Map *map) {
@@ -67,5 +116,6 @@ Map *MapCopy(Map *map) {
 }
 
 int MapContains(Map *map, void *key) {
-    return ListIndexOf(map->keys, key) >= 0;
+    MapEntry *entry = GetEntry(map, key);
+    return entry->used && entry->key == key;
 }
