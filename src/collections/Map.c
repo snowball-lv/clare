@@ -22,10 +22,10 @@ struct Map {
     MapEntry *entries;
 };
 
-Map *NewMap() {
+static Map *MapFromCapacity(int capacity) {
 
     Map *map = ALLOC(Map);
-    map->capacity = 16;
+    map->capacity = capacity;
     map->size = 0;
 
     size_t size = map->capacity * sizeof(MapEntry);
@@ -33,6 +33,10 @@ Map *NewMap() {
     memset(map->entries, 0, size);
 
     return map;
+}
+
+Map *NewMap() {
+    return MapFromCapacity(8);
 }
 
 void DeleteMap(Map *map) {
@@ -53,12 +57,35 @@ static MapEntry *GetEntry(Map *map, void *key) {
     return &map->entries[index];
 }
 
+static void GrowMap(Map *map) {
+
+    int ncapacity = map->capacity * 2;
+    Map *tmp = MapFromCapacity(ncapacity);
+
+    for (int i = 0; i < map->capacity; i++) {
+        MapEntry *entry = &map->entries[i];
+        if (entry->used) {
+            MapPut(tmp, entry->key, entry->value);
+        }
+    }
+
+    map->capacity = tmp->capacity;
+    map->size = tmp->size;
+
+    MemFree(map->entries);
+    map->entries = tmp->entries;
+
+    MemFree(tmp);
+}
+
 void MapPut(Map *map, void *key, void *value) {
     MapEntry *entry = GetEntry(map, key);
     if (entry->used) {
         if (entry->key != key) {
-            fprintf(stderr, "collision\n");
-            exit(1);
+
+            GrowMap(map);
+            MapPut(map, key, value);
+
         } else {
             entry->value = value;
         }
