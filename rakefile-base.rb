@@ -51,8 +51,10 @@ def run_tests(bins)
     some_failed = false
 
     bins.each do |bin|
-        puts "#{bin}".colorize(:yellow)
-        unless system(bin)
+        if system(bin)
+            puts "#{bin}".colorize(:yellow)
+        else
+            puts "#{bin}".colorize(:red)
             some_failed = true
         end
     end
