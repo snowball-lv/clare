@@ -19,8 +19,8 @@ int main() {
     SetAdd(colors, "green");
     SetAdd(colors, "blue");
 
-    // MapPut(precoloring, "a", "red");
-    // MapPut(precoloring, "b", "green");
+    MapPut(precoloring, "a", "red");
+    MapPut(precoloring, "b", "green");
 
     RIGAdd(rig, "a");
     RIGAdd(rig, "b");
@@ -54,6 +54,11 @@ int main() {
     SET_EACH(colors, char *, color, {
         assert(ColoringGetColor(coloring, color) == color);
     });
+
+    // printf("%s -> %s\n", "a", ColoringGetColor(coloring, "a"));
+    // printf("%s -> %s\n", "b", ColoringGetColor(coloring, "b"));
+    // printf("%s -> %s\n", "c", ColoringGetColor(coloring, "c"));
+    // printf("%s -> %s\n", "d", ColoringGetColor(coloring, "d"));
 
     assert(ColoringGetColor(coloring, "a") == (void *)"red");
     assert(ColoringGetColor(coloring, "b") == (void *)"green");
