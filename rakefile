@@ -1,7 +1,11 @@
 
 
 # generate source files
-require_relative "rakefile-gen"
+if ARGV.include? "clean"
+    sh "rake -f rakefile-gen.rb clean"
+else
+    sh "rake -f rakefile-gen.rb"
+end
 
 # run the build already with the generated source
 require_relative "rakefile-main"

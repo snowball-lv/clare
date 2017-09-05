@@ -1,0 +1,36 @@
+
+require "erb"
+
+def render(template, output)
+    renderer = ERB.new(File.read(template))
+    File.write(output, renderer.result())
+end
+
+def make_task(tmpl, rndr)
+
+    dir = File.dirname(rndr)
+
+    file(rndr => dir)
+    directory(dir)
+    file(rndr => tmpl)
+
+    file(rndr) do
+        render(tmpl, rndr)
+    end
+
+    task :default => rndr
+end
+
+FileList["templates/**/*.h.erb"].each do |tmpl|
+    rndr = tmpl.pathmap("%{^templates/,output/}X")
+    make_task(tmpl, rndr)
+end
+
+FileList["templates/**/*.c.erb"].each do |tmpl|
+    rndr = tmpl.pathmap("%{^templates/,output/}X")
+    make_task(tmpl, rndr)
+end
+
+task :clean do
+    rm_rf "output/"
+end
