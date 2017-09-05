@@ -14,13 +14,14 @@ BUILD_FILES = [
     "rakefile-gen.rb" ]
 
 # enumerate compiler source and object files
-SRCS = FileList["src/**/*.c"]
+SRCS = FileList["src/**/*.c"] + FileList["gen/**/*.c"]
 OBJS = SRCS.pathmap("out/%X.o")
 
 # different compile flags
 CFLAGS = [
     "-c",
     "-I inc",
+    "-I gen/inc",
     "-O2",
     "-Wall",
     "-Wextra",
