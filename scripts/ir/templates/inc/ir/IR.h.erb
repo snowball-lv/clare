@@ -1,3 +1,23 @@
 #pragma once
 
+#include <stdint.h>
+
 void ir_dummy();
+
+typedef struct Tmp Tmp;
+typedef struct Exp Exp;
+
+typedef struct {
+
+    int dummy;
+
+    Tmp *(*NewTmp)();
+    void (*DeleteTmp)(Tmp *tmp);
+
+    Exp *(*Asgn)(Tmp *dst, Exp *src);
+    Exp *(*Add)(Exp *left, Exp *right);
+    Exp *(*I32)(int32_t i32);
+
+} _IR;
+
+extern _IR IR;

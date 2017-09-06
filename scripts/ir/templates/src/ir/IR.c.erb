@@ -5,3 +5,50 @@
 void ir_dummy() {
     printf("in IR dummy func.\n");
 }
+
+struct Tmp {
+    int dummy;
+};
+
+static Tmp *NewTmp() {
+    return 0;
+}
+
+static void DeleteTmp(Tmp *tmp) {
+    tmp = tmp;
+}
+
+struct Exp {
+    int dummy;
+};
+
+#define UNUSED(param) (void)(param)
+
+static Exp *Asgn(Tmp *dst, Exp *src) {
+    UNUSED(dst);
+    UNUSED(src);
+    return 0;
+}
+
+static Exp *Add(Exp *left, Exp *right) {
+    UNUSED(left);
+    UNUSED(right);
+    return 0;
+}
+
+static Exp *I32(int32_t i32) {
+    UNUSED(i32);
+    return 0;
+}
+
+_IR IR = {
+
+    .dummy = 1337,
+
+    .NewTmp = NewTmp,
+    .DeleteTmp = DeleteTmp,
+
+    .Asgn = Asgn,
+    .Add = Add,
+    .I32 = I32
+};

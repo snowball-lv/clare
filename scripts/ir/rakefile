@@ -1,9 +1,12 @@
 
 require "erb"
+require_relative "ir-defs"
+require_relative "ir-binding"
 
 def render(template, output)
     renderer = ERB.new(File.read(template))
-    File.write(output, renderer.result())
+    binding = IRBinding.new.get_binding
+    File.write(output, renderer.result(binding))
 end
 
 def make_task(tmpl, rndr)
