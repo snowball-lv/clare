@@ -12,7 +12,7 @@ int main() {
 
     printf("ir dummy value: %d\n", IR.dummy);
 
-    Exp *e = IR.Asgn(
+    Exp *e = IR.Mov(
         IR.NewTmp(),
         IR.Add(
             IR.I32(2),
