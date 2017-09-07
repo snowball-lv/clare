@@ -18,6 +18,8 @@ typedef struct {
     Exp *(*Add)(Exp *left, Exp *right);
     Exp *(*I32)(int32_t i32);
 
+    void (*DeleteTree)(Exp *root);
+
 } _IR;
 
 extern _IR IR;

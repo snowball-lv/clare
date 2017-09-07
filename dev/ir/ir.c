@@ -12,15 +12,15 @@ int main() {
 
     printf("ir dummy value: %d\n", IR.dummy);
 
-    Tmp *tmp = IR.NewTmp();
-
-    IR.Asgn(
-        tmp,
+    Exp *e = IR.Asgn(
+        IR.NewTmp(),
         IR.Add(
             IR.I32(2),
-            IR.I32(3)));
+            IR.Add(
+                IR.I32(3),
+                IR.I32(4))));
 
-    IR.DeleteTmp(tmp);
+    IR.DeleteTree(e);
 
     assert(MemEmpty());
 	return 0;

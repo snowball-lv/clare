@@ -1,6 +1,9 @@
 #include <ir/IR.h>
 
 #include <stdio.h>
+#include <stdint.h>
+
+#include <mem/Mem.h>
 
 void ir_dummy() {
     printf("in IR dummy func.\n");
@@ -11,34 +14,95 @@ struct Tmp {
 };
 
 static Tmp *NewTmp() {
-    return 0;
+    Tmp *tmp = ALLOC(Tmp);
+    tmp->dummy = 0;
+    return tmp;
 }
 
 static void DeleteTmp(Tmp *tmp) {
-    tmp = tmp;
+    MemFree(tmp);
 }
-
-struct Exp {
-    int dummy;
-};
 
 #define UNUSED(param) (void)(param)
 
+struct Exp {
+    int dummy;
+    int type;
+    union {
+
+        // asgn
+        struct {
+            Tmp *dst;
+            Exp *src;
+        };
+
+        // add
+        struct {
+            Exp *left;
+            Exp *right;
+        };
+
+        // i32
+        int32_t i32;
+    };
+};
+
+#define EXP_TYPE_NONE   1
+#define EXP_TYPE_ASGN   2
+#define EXP_TYPE_ADD    3
+#define EXP_TYPE_I32    4
+
+static Exp *NewExp() {
+    Exp *e = ALLOC(Tmp);
+    e->dummy = 0;
+    e->type = EXP_TYPE_NONE;
+    return e;
+}
+
+static void DeleteExp(Exp *e) {
+    MemFree(e);
+}
+
+static Exp *ExpFromType(int type) {
+    Exp *e = NewExp();
+    e->type = type;
+    return e;
+}
+
 static Exp *Asgn(Tmp *dst, Exp *src) {
-    UNUSED(dst);
-    UNUSED(src);
-    return 0;
+    Exp *e = ExpFromType(EXP_TYPE_ASGN);
+    e->dst = dst;
+    e->src = src;
+    return e;
 }
 
 static Exp *Add(Exp *left, Exp *right) {
-    UNUSED(left);
-    UNUSED(right);
-    return 0;
+    Exp *e = ExpFromType(EXP_TYPE_ADD);
+    e->left = left;
+    e->right = right;
+    return e;
 }
 
 static Exp *I32(int32_t i32) {
-    UNUSED(i32);
-    return 0;
+    Exp *e = ExpFromType(EXP_TYPE_I32);
+    e->i32 = i32;
+    return e;
+}
+
+static void DeleteTree(Exp *root) {
+    switch (root->type) {
+        case EXP_TYPE_ASGN:
+            DeleteTmp(root->dst);
+            DeleteTree(root->src);
+            break;
+        case EXP_TYPE_ADD:
+            DeleteTree(root->left);
+            DeleteTree(root->right);
+            break;
+        case EXP_TYPE_I32:
+            break;
+    }
+    DeleteExp(root);
 }
 
 _IR IR = {
@@ -50,5 +114,7 @@ _IR IR = {
 
     .Asgn = Asgn,
     .Add = Add,
-    .I32 = I32
+    .I32 = I32,
+
+    .DeleteTree = DeleteTree
 };
