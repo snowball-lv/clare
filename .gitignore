@@ -1,7 +1,5 @@
 
 out/
 bin/
-gen/
-scripts/**/output/
 
 *.exe.stackdump
