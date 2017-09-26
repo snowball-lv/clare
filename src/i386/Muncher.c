@@ -3,18 +3,9 @@
 #include <helpers/Unused.h>
 #include <stdio.h>
 
-static void Munch(Node *root) {
-
-    #define RULE(pattern, action)           \
-        if (NodeMatches(root, pattern)) {   \
-            action;                         \
-            return;                         \
-        }
-
-        #include <i386/munch.rules>
-
-    #undef RULE
-}
+#define RULES_FILE <i386/munch.rules>
+    #include <ir/Muncher.tmpl>
+#undef RULES_FILE
 
 void I386_Munch(Node *root) {
     Munch(root);

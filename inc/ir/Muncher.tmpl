@@ -1,0 +1,15 @@
+
+
+
+static void Munch(Node *root) {
+
+    #define RULE(pattern, action)           \
+        if (NodeMatches(root, pattern)) {   \
+            action;                         \
+            return;                         \
+        }
+
+        #include RULES_FILE
+
+    #undef RULE
+}

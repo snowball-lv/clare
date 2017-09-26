@@ -1,5 +1,0 @@
-
-
-RULE(Mov(Const(),Add(Const(), Const())), {
-    printf("matched\n");
-})
