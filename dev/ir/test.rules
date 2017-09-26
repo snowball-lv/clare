@@ -1,0 +1,20 @@
+
+
+// RULE(IR.Any(), {
+//     printf("matched a node!\n");
+// })
+
+RULE(IR.Mov(IR.Tmp(), 0), {
+    Tile(root->right);
+    printf("store\n");
+})
+
+RULE(IR.Add(0, 0), {
+    Tile(root->left);
+    Tile(root->right);
+    printf("add\n");
+})
+
+RULE(IR.I32(0), {
+    printf("push i32\n");
+})
