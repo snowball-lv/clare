@@ -4,24 +4,7 @@
 #include <ir/IR.h>
 
 #include <stdio.h>
-
-#define UNUSED(x) (void)(x)
-
-void Tile(Node *root) {
-
-    #define RULE(pattern, action)           \
-        if (NodeMatches(root, pattern)) {   \
-            action;                         \
-            return;                         \
-        }
-
-        #include "test.rules"
-
-    #undef RULE
-
-    printf("No rules match node: %s\n", NodeTypeName(root));
-    assert(0);
-}
+#include <i386/Muncher.h>
 
 int main() {
     assert(MemEmpty());
@@ -36,7 +19,7 @@ int main() {
                 IR.I32(2),
                 IR.I32(3))));
 
-    Tile(tree);
+    I386_Munch(tree);
 
     assert(MemEmpty());
 	return 0;

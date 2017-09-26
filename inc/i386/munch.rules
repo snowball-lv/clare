@@ -1,17 +1,13 @@
 
 
-// RULE(IR.Any(), {
-//     printf("matched a node!\n");
-// })
-
 RULE(IR.Mov(IR.Tmp(), 0), {
-    Tile(root->right);
+    Munch(root->right);
     printf("store\n");
 })
 
 RULE(IR.Add(0, 0), {
-    Tile(root->left);
-    Tile(root->right);
+    Munch(root->left);
+    Munch(root->right);
     printf("add\n");
 })
 
