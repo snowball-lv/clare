@@ -1,11 +1,14 @@
 #pragma once
 
 #include <ir/IR.h>
+#include <helpers/Type.h>
 
-typedef struct VReg VReg;
+TYPE_DECL(VReg)
 
-VReg *NewVReg();
-void DeleteVReg(VReg *vreg);
+// typedef struct VReg VReg;
+// 
+// VReg *NewVReg();
+// void DeleteVReg(VReg *vreg);
 
 typedef struct Op Op;
 

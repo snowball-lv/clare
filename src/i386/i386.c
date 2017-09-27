@@ -3,19 +3,21 @@
 #include <helpers/Unused.h>
 #include <mem/Mem.h>
 
-struct VReg {
-    int dummy;
-};
+TYPE_DEF(VReg, { int dummy; }, {}, {})
 
-VReg *NewVReg() {
-    VReg *vreg = ALLOC(VReg);
-    vreg->dummy = 0;
-    return vreg;
-}
-
-void DeleteVReg(VReg *vreg) {
-    MemFree(vreg);
-}
+// struct VReg {
+//     int dummy;
+// };
+// 
+// VReg *NewVReg() {
+//     VReg *vreg = ALLOC(VReg);
+//     vreg->dummy = 0;
+//     return vreg;
+// }
+// 
+// void DeleteVReg(VReg *vreg) {
+//     MemFree(vreg);
+// }
 
 struct Op {
     int dummy;
