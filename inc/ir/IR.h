@@ -31,3 +31,4 @@ extern _IR IR;
 int NodeMatches(Node *root, Node *pattern);
 
 const char *NodeTypeName(Node *node);
+void DeleteNodeTree(Node *root);

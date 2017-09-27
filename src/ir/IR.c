@@ -20,7 +20,7 @@
 
 Node *NewNode() {
     // Node *node = ALLOC(Node);
-    Node *node = malloc(sizeof(Node));
+    Node *node = ALLOC(Node);
     node->dummy = 0;
     node->type = NODE_TYPE_NONE;
     node->type_name = AS_STR(NODE_TYPE_NONE);
@@ -131,4 +131,12 @@ int NodeMatches(Node *root, Node *pattern) {
 
 const char *NodeTypeName(Node *node) {
     return node->type_name;
+}
+
+void DeleteNodeTree(Node *root) {
+    if (root != 0) {
+        DeleteNodeTree(root->left);
+        DeleteNodeTree(root->right);
+        MemFree(root);
+    }
 }

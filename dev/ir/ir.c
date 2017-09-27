@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <i386/Muncher.h>
+#include <helpers/Unused.h>
 
 int main() {
     assert(MemEmpty());
@@ -18,8 +19,10 @@ int main() {
             IR.Add(
                 IR.I32(2),
                 IR.I32(3))));
-
-    I386_Munch(tree);
+    
+    DeleteNodeTree(tree);
+    
+    // I386_Munch(tree);
 
     assert(MemEmpty());
 	return 0;
