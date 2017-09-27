@@ -22,7 +22,7 @@ int main() {
                 
     Isel *isel = NewIsel();
     
-    IselSelect(tree);
+    IselSelect(isel, tree);
     
     DeleteIsel(isel);
     DeleteNodeTree(tree);
