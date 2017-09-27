@@ -4,15 +4,7 @@
 #include <helpers/Type.h>
 
 TYPE_DECL(VReg)
-
-// typedef struct VReg VReg;
-// 
-// VReg *NewVReg();
-// void DeleteVReg(VReg *vreg);
-
-typedef struct Op Op;
-
-void DeleteOp(Op *op);
+TYPE_DECL(Op)
 
 typedef struct {
     int dummy;
