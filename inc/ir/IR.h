@@ -22,7 +22,7 @@ typedef struct {
     Node *(*Add)(Node *left, Node *right);
     Node *(*I32)(int32_t i32);
 
-    Node *(*Any)();
+    Node *(*Exp)();
 
 } _IR;
 

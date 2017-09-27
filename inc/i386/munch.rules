@@ -1,11 +1,11 @@
 
 
-RULE(IR.Mov(IR.Tmp(), 0), {
+RULE(IR.Mov(IR.Tmp(), IR.Exp()), {
     Munch(root->right);
     printf("store\n");
 })
 
-RULE(IR.Add(0, 0), {
+RULE(IR.Add(IR.Exp(), IR.Exp()), {
     Munch(root->left);
     Munch(root->right);
     printf("add\n");

@@ -6,13 +6,14 @@
 #include <stdio.h>
 
 #include <mem/Mem.h>
+#include <helpers/Unused.h>
 
 #define NODE_TYPE_TMP   1
 #define NODE_TYPE_MOV   2
 #define NODE_TYPE_ADD   3
 #define NODE_TYPE_I32   4
 
-#define NODE_TYPE_ANY   5
+#define NODE_TYPE_EXP   5
 #define NODE_TYPE_NONE  6
 
 #define AS_STR(v) # v
@@ -47,17 +48,12 @@ Node *NodeFromType(int type) {
             node->type_name = AS_STR(NODE_TYPE_I32);
             break;
 
-        case NODE_TYPE_ANY:
-            node->type_name = AS_STR(NODE_TYPE_ANY);
-            break;
         case NODE_TYPE_NONE:
             node->type_name = AS_STR(NODE_TYPE_NONE);
             break;
     }
     return node;
 }
-
-#define UNUSED(x) (void)(x)
 
 Node *Tmp() {
     return NodeFromType(NODE_TYPE_TMP);
@@ -82,8 +78,8 @@ Node *I32(int32_t i32) {
     return NodeFromType(NODE_TYPE_I32);
 }
 
-Node *Any() {
-    return NodeFromType(NODE_TYPE_ANY);
+Node *Exp() {
+    return NodeFromType(NODE_TYPE_EXP);
 }
 
 _IR IR = {
@@ -95,9 +91,26 @@ _IR IR = {
     .Add = Add,
     .I32 = I32,
 
-    .Any = Any
+    .Exp = Exp
 
 };
+
+static int NodeIs(Node *node, int type) {
+    switch (type) {
+        
+        case NODE_TYPE_EXP:
+        switch (node->type) {
+            case NODE_TYPE_TMP:
+            case NODE_TYPE_MOV:
+            case NODE_TYPE_ADD:
+            case NODE_TYPE_I32:
+                return 1;
+        }
+        break;
+        
+    }
+    return node->type == type;
+}
 
 int NodeMatches(Node *root, Node *pattern) {
 
@@ -107,7 +120,7 @@ int NodeMatches(Node *root, Node *pattern) {
         return 0;
     }
 
-    if (root->type == pattern->type) {
+    if (NodeIs(root, pattern->type)) {
         return
             NodeMatches(root->left, pattern->left) &&
             NodeMatches(root->right, pattern->right);
