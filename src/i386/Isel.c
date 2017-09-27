@@ -34,9 +34,6 @@ void DeleteIsel(Isel *isel) {
 
 static void IselMunch(Isel *isel, Node *root) {
     
-    UNUSED(isel);
-    UNUSED(root);
-    
     int index = 0;
     
     #define Munch(root) IselMunch(isel, root)
