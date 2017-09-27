@@ -1,8 +1,10 @@
 
 
 RULE(IR.Mov(IR.Tmp(), IR.Exp()), {
-    Munch(root->right);
-    printf("store\n");
+    VReg *dst = NewVReg();
+    VReg *src = Munch(root->right);
+    Emit(i386.Mov(dst, src));
+    return 0;
 })
 
 RULE(IR.Add(IR.Exp(), IR.Exp()), {
