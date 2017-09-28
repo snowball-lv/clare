@@ -10,7 +10,6 @@
 struct Isel {
     int dummy;
     List *list;
-    List *ops;
 };
 
 Isel *NewIsel() {
@@ -18,7 +17,6 @@ Isel *NewIsel() {
     Isel *isel = ALLOC(Isel);
     isel->dummy = 0;
     isel->list = NewList();
-    isel->ops = NewList();
     
     #define RULE(pattern, action) ListAdd(isel->list, pattern);
         #include <i386/munch.rules>
@@ -33,25 +31,17 @@ void DeleteIsel(Isel *isel) {
         DeleteNodeTree(pattern);
     });
     DeleteList(isel->list);
-        
-    LIST_EACH(isel->ops, Op *, op, {
-        DeleteOp(op);
-    });
-    DeleteList(isel->ops);
     
     MemFree(isel);
 }
 
-static void IselEmit(Isel *isel, Op *op) {
-    ListAdd(isel->ops, op);
-}
-
-static VReg *IselMunch(Isel *isel, Node *root) {
+static VReg *IselMunch(Isel *isel, List *ops, Node *root) {
     
     int index = 0;
     
-    #define Emit(op)    IselEmit(isel, op)
-    #define Munch(root) IselMunch(isel, root)
+    #define Emit(op)    ListAdd(ops, op);
+    #define Munch(root) IselMunch(isel, ops, root)
+    
     #define RULE(pattern, action) {                 \
             Node *p = ListGet(isel->list, index);   \
             if (NodeMatches(root, p)) {             \
@@ -70,6 +60,8 @@ static VReg *IselMunch(Isel *isel, Node *root) {
     return 0;
 } 
 
-void IselSelect(Isel *isel, Node *root) {
-    IselMunch(isel, root);
+List *IselSelect(Isel *isel, Node *root) {
+    List *ops = NewList();
+    IselMunch(isel, ops, root);
+    return ops;
 }

@@ -1,10 +1,11 @@
 #pragma once
 
 #include <ir/IR.h>
+#include <collections/List.h>
 
 typedef struct Isel Isel;
 
 Isel *NewIsel();
 void DeleteIsel(Isel *isel);
 
-void IselSelect(Isel *isel, Node *root);
+List *IselSelect(Isel *isel, Node *root);

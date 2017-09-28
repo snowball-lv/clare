@@ -4,6 +4,7 @@
 #include <ir/IR.h>
 #include <helpers/Unused.h>
 #include <i386/Isel.h>
+#include <i386/i386.h>
 
 #include <stdio.h>
 
@@ -22,7 +23,14 @@ int main() {
                 
     Isel *isel = NewIsel();
     
-    IselSelect(isel, tree);
+    List *ops = IselSelect(isel, tree);
+    
+    
+    
+    LIST_EACH(ops, void *, op, {
+        DeleteOp(op);
+    });
+    DeleteList(ops);
     
     DeleteIsel(isel);
     DeleteNodeTree(tree);
