@@ -5,6 +5,7 @@
 #include <helpers/Unused.h>
 #include <i386/Isel.h>
 #include <i386/i386.h>
+#include <collections/Set.h>
 
 #include <stdio.h>
 
@@ -25,12 +26,21 @@ int main() {
     
     List *ops = IselSelect(isel, tree);
     
+    i386.Print(ops);
     
-    
+    Set *vregs = NewSet();
     LIST_EACH(ops, void *, op, {
+        SetAdd(vregs, OpDst(op));
+        SetAdd(vregs, OpSrc(op));
         DeleteOp(op);
     });
     DeleteList(ops);
+    SET_EACH(vregs, VReg *, vreg, {
+        if (vreg != 0) {
+            DeleteVReg(vreg);
+        }
+    });
+    DeleteSet(vregs);
     
     DeleteIsel(isel);
     DeleteNodeTree(tree);

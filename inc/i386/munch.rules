@@ -4,15 +4,17 @@ RULE(IR.Mov(IR.Tmp(), IR.Exp()), {
     VReg *dst = NewVReg();
     VReg *src = Munch(root->right);
     Emit(i386.Mov(dst, src));
-    return 0;
 })
 
 RULE(IR.Add(IR.Exp(), IR.Exp()), {
-    Munch(root->left);
-    Munch(root->right);
-    printf("add\n");
+    VReg *dst = Munch(root->left);
+    VReg *src = Munch(root->right);
+    Emit(i386.Add(dst, src));
+    return dst;
 })
 
 RULE(IR.I32(0), {
-    printf("push i32\n");
+    VReg *dst = NewVReg();
+    Emit(i386.MovI32(dst, root->i32));
+    return dst;
 })

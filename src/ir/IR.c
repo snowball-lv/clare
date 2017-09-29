@@ -26,6 +26,7 @@ Node *NewNode() {
     node->type_name = AS_STR(NODE_TYPE_NONE);
     node->left = 0;
     node->right = 0;
+    node->i32 = 0;
     return node;
 }
 
@@ -74,8 +75,9 @@ Node *Add(Node *left, Node *right) {
 }
 
 Node *I32(int32_t i32) {
-    UNUSED(i32);
-    return NodeFromType(NODE_TYPE_I32);
+    Node *node = NodeFromType(NODE_TYPE_I32);
+    node->i32 = i32;
+    return node;
 }
 
 Node *Exp() {

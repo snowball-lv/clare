@@ -10,6 +10,7 @@ struct Node {
     char *type_name;
     Node *left;
     Node *right;
+    int32_t i32;
 };
 
 typedef struct {
