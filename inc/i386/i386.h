@@ -1,7 +1,7 @@
 #pragma once
 
 #include <ir/IR.h>
-#include <helpers/Type.h>
+#include <helpers/Types.h>
 #include <collections/List.h>
 
 #include <stdint.h>
