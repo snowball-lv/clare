@@ -7,6 +7,7 @@
 
 #include <mem/Mem.h>
 #include <helpers/Unused.h>
+#include <collections/Set.h>
 
 #define NODE_TYPE_TMP   1
 #define NODE_TYPE_MOV   2
@@ -26,6 +27,7 @@ Node *NewNode() {
     node->type_name = AS_STR(NODE_TYPE_NONE);
     node->left = 0;
     node->right = 0;
+    node->aux = 0;
     node->i32 = 0;
     return node;
 }
@@ -85,21 +87,24 @@ Node *Exp() {
 }
 
 Node *Branch(Node *cond, Node *t, Node *f) {
-    UNUSED(cond);
-    UNUSED(t);
-    UNUSED(f);
-    return 0;
+    RET(Node, {
+        self->left = t;
+        self->right = f;
+        self->aux = cond;
+    });
 }
 
 Node *Eq(Node *a, Node *b) {
-    UNUSED(a);
-    UNUSED(b);
-    return 0;
+    RET(Node, {
+        self->left = a;
+        self->right = b;
+    });
 }
 
 Node *Ret(Node *n) {
-    UNUSED(n);
-    return 0;
+    RET(Node, {
+        self->left = n;
+    });
 }
 
 Node *Call(IRFunc *func) {
@@ -162,12 +167,22 @@ const char *NodeTypeName(Node *node) {
     return node->type_name;
 }
 
-void DeleteNodeTree(Node *root) {
+static void FillNodeSet(Set *nodes, Node *root) {
     if (root != 0) {
-        DeleteNodeTree(root->left);
-        DeleteNodeTree(root->right);
-        MemFree(root);
+        FillNodeSet(nodes, root->left);
+        FillNodeSet(nodes, root->right);
+        FillNodeSet(nodes, root->aux);
+        SetAdd(nodes, root);
     }
+}
+
+void DeleteNodeTree(Node *root) {
+    Set *nodes = NewSet();
+    FillNodeSet(nodes, root);
+    SET_EACH(nodes, Node *, n, {
+        MemFree(n);
+    });
+    DeleteSet(nodes);
 }
 
 TYPE_DEF(IRModule, {
@@ -178,11 +193,6 @@ TYPE_DEF(IRFunc, {
     int dummy;
     const char *name;
 }, {}, {})
-
-#define RET(type, body)             \
-    type *self = New ## type();     \
-    body;                           \
-    return self;
 
 IRFunc *FuncFromName(const char *name) {
     RET(IRFunc, {

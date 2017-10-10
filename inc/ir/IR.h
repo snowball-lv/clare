@@ -12,6 +12,7 @@ struct Node {
     char *type_name;
     Node *left;
     Node *right;
+    Node *aux;
     int32_t i32;
 };
 
