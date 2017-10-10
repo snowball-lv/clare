@@ -25,19 +25,19 @@ int main() {
     IRModule *mod = NewIRModule();
     IRFunc *fib = FuncFromName("Fibonacci");
     
-    Node *n = IR.Tmp();
-    
-    Node *body = IR.Branch(
-        IR.Eq(n, IR.I32(0)),
-        IR.Ret(IR.I32(0)),
-        IR.Branch(
-            IR.Eq(n, IR.I32(1)),
-            IR.Ret(IR.I32(1)),
-            IR.Ret(IR.Add(
-                IR.Call(fib),
-                IR.Call(fib)))));
-            
-    UNUSED(body);
+    // Node *n = IR.Tmp();
+    // 
+    // Node *body = IR.Branch(
+    //     IR.Eq(n, IR.I32(0)),
+    //     IR.Ret(IR.I32(0)),
+    //     IR.Branch(
+    //         IR.Eq(n, IR.I32(1)),
+    //         IR.Ret(IR.I32(1)),
+    //         IR.Ret(IR.Add(
+    //             IR.Call(fib),
+    //             IR.Call(fib)))));
+    //         
+    // UNUSED(body);
     
     DeleteIRFunc(fib);
     DeleteIRModule(mod);
