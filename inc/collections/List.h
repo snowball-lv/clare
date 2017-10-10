@@ -47,3 +47,7 @@ void ListRemove(List *list, int index);
     }                                               \
 }
 
+List *_ListInternalFromVA(int marker, ...);
+extern int _ListInternalEndMarker; 
+
+#define TO_LIST(...) _ListInternalFromVA(0, __VA_ARGS__, &_ListInternalEndMarker);

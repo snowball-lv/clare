@@ -1,8 +1,10 @@
 #include <collections/List.h>
 
 #include <mem/Mem.h>
+#include <helpers/Unused.h>
 
 #include <assert.h>
+#include <stdarg.h>
 
 struct List {
     int capacity;
@@ -108,4 +110,25 @@ void ListRemove(List *list, int index) {
         list->values[i] = list->values[i + 1];
     }
     list->size--;
+}
+
+int _ListInternalEndMarker;
+
+List *_ListInternalFromVA(int marker, ...) {
+    
+    List *list = NewList();
+    
+    va_list args;
+    va_start(args, marker);
+    while (1) {
+        void *item = va_arg(args, void *);
+        if (item == &_ListInternalEndMarker) {
+            break;
+        } else {
+            ListAdd(list, item);
+        }
+    }
+    va_end(args);
+    
+    return list;
 }
