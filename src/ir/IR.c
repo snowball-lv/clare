@@ -84,6 +84,29 @@ Node *Exp() {
     return NodeFromType(NODE_TYPE_EXP);
 }
 
+Node *Branch(Node *cond, Node *t, Node *f) {
+    UNUSED(cond);
+    UNUSED(t);
+    UNUSED(f);
+    return 0;
+}
+
+Node *Eq(Node *a, Node *b) {
+    UNUSED(a);
+    UNUSED(b);
+    return 0;
+}
+
+Node *Ret(Node *n) {
+    UNUSED(n);
+    return 0;
+}
+
+Node *Call(IRFunc *func) {
+    UNUSED(func);
+    return 0;
+}
+
 _IR IR = {
 
     .dummy = 1337,
@@ -93,8 +116,12 @@ _IR IR = {
     .Add = Add,
     .I32 = I32,
 
-    .Exp = Exp
+    .Exp = Exp,
 
+    .Branch = Branch,
+    .Eq = Eq,
+    .Ret = Ret,
+    .Call = Call,
 };
 
 static int NodeIs(Node *node, int type) {
@@ -142,3 +169,25 @@ void DeleteNodeTree(Node *root) {
         MemFree(root);
     }
 }
+
+TYPE_DEF(IRModule, {
+    int dummy;
+}, {}, {})
+
+TYPE_DEF(IRFunc, {
+    int dummy;
+    const char *name;
+}, {}, {})
+
+#define RET(type, body)             \
+    type *self = New ## type();     \
+    body;                           \
+    return self;
+
+IRFunc *FuncFromName(const char *name) {
+    RET(IRFunc, {
+        self->name = name;
+    });
+}
+
+#undef RET

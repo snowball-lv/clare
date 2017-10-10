@@ -2,6 +2,8 @@
 
 #include <stdint.h>
 
+#include <helpers/Types.h>
+
 typedef struct Node Node;
 
 struct Node {
@@ -12,6 +14,11 @@ struct Node {
     Node *right;
     int32_t i32;
 };
+
+TYPE_DECL(IRModule)
+TYPE_DECL(IRFunc)
+
+IRFunc *FuncFromName(const char *name);
 
 typedef struct {
 
@@ -24,6 +31,11 @@ typedef struct {
     Node *(*I32)(int32_t i32);
 
     Node *(*Exp)();
+    
+    Node *(*Branch)(Node *cond, Node *t, Node *f);
+    Node *(*Eq)(Node *a, Node *b);
+    Node *(*Ret)(Node *n);
+    Node *(*Call)(IRFunc *func);
 
 } _IR;
 
