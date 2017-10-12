@@ -34,8 +34,12 @@ int main() {
             IR.Eq(n, IR.I32(1)),
             IR.Ret(IR.I32(1)),
             IR.Ret(IR.Add(
-                IR.Call(fib),
-                IR.Call(fib)))));
+                IR.Call(fib, TO_LIST(IR.Add(
+                    n,
+                    IR.I32(-1)))),
+                IR.Call(fib, TO_LIST(IR.Add(
+                    n,
+                    IR.I32(-2))))))));
             
     DeleteNodeTree(body);
     

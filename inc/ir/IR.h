@@ -3,8 +3,12 @@
 #include <stdint.h>
 
 #include <helpers/Types.h>
+#include <collections/List.h>
 
 typedef struct Node Node;
+
+TYPE_DECL(IRModule)
+TYPE_DECL(IRFunc)
 
 struct Node {
     int dummy;
@@ -14,10 +18,9 @@ struct Node {
     Node *right;
     Node *aux;
     int32_t i32;
+    IRFunc *func;
+    List *args;
 };
-
-TYPE_DECL(IRModule)
-TYPE_DECL(IRFunc)
 
 IRFunc *FuncFromName(const char *name);
 
@@ -36,7 +39,7 @@ typedef struct {
     Node *(*Branch)(Node *cond, Node *t, Node *f);
     Node *(*Eq)(Node *a, Node *b);
     Node *(*Ret)(Node *n);
-    Node *(*Call)(IRFunc *func);
+    Node *(*Call)(IRFunc *func, List *args);
 
 } _IR;
 

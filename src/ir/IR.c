@@ -29,6 +29,8 @@ Node *NewNode() {
     node->right = 0;
     node->aux = 0;
     node->i32 = 0;
+    node->func = 0;
+    node->args = 0;
     return node;
 }
 
@@ -107,9 +109,11 @@ Node *Ret(Node *n) {
     });
 }
 
-Node *Call(IRFunc *func) {
-    UNUSED(func);
-    return 0;
+Node *Call(IRFunc *func, List *args) {
+    RET(Node, {
+        self->func = func;
+        self->args = args;
+    });
 }
 
 _IR IR = {
@@ -169,9 +173,17 @@ const char *NodeTypeName(Node *node) {
 
 static void FillNodeSet(Set *nodes, Node *root) {
     if (root != 0) {
+        
         FillNodeSet(nodes, root->left);
         FillNodeSet(nodes, root->right);
         FillNodeSet(nodes, root->aux);
+        
+        if (root->args != 0) {
+            LIST_EACH(root->args, Node *, arg, {
+                FillNodeSet(nodes, arg);
+            });
+        }
+        
         SetAdd(nodes, root);
     }
 }
@@ -180,6 +192,11 @@ void DeleteNodeTree(Node *root) {
     Set *nodes = NewSet();
     FillNodeSet(nodes, root);
     SET_EACH(nodes, Node *, n, {
+        
+        if (n->args != 0) {
+            DeleteList(n->args);
+        }
+        
         MemFree(n);
     });
     DeleteSet(nodes);
