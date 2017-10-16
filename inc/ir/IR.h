@@ -13,7 +13,6 @@ TYPE_DECL(IRFunc)
 struct Node {
     int dummy;
     int type;
-    char *type_name;
     Node *left;
     Node *right;
     Node *aux;
@@ -47,5 +46,4 @@ extern _IR IR;
 
 int NodeMatches(Node *root, Node *pattern);
 
-const char *NodeTypeName(Node *node);
 void DeleteNodeTree(Node *root);

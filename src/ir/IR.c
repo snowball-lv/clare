@@ -17,14 +17,11 @@
 #define NODE_TYPE_EXP   5
 #define NODE_TYPE_NONE  6
 
-#define AS_STR(v) # v
-
 Node *NewNode() {
     // Node *node = ALLOC(Node);
     Node *node = ALLOC(Node);
     node->dummy = 0;
     node->type = NODE_TYPE_NONE;
-    node->type_name = AS_STR(NODE_TYPE_NONE);
     node->left = 0;
     node->right = 0;
     node->aux = 0;
@@ -37,26 +34,6 @@ Node *NewNode() {
 Node *NodeFromType(int type) {
     Node *node = NewNode();
     node->type = type;
-    switch (type) {
-
-        case NODE_TYPE_TMP:
-            node->type_name = AS_STR(NODE_TYPE_TMP);
-            break;
-
-        case NODE_TYPE_MOV:
-            node->type_name = AS_STR(NODE_TYPE_MOV);
-            break;
-        case NODE_TYPE_ADD:
-            node->type_name = AS_STR(NODE_TYPE_ADD);
-            break;
-        case NODE_TYPE_I32:
-            node->type_name = AS_STR(NODE_TYPE_I32);
-            break;
-
-        case NODE_TYPE_NONE:
-            node->type_name = AS_STR(NODE_TYPE_NONE);
-            break;
-    }
     return node;
 }
 
@@ -165,10 +142,6 @@ int NodeMatches(Node *root, Node *pattern) {
     }
 
     return 0;
-}
-
-const char *NodeTypeName(Node *node) {
-    return node->type_name;
 }
 
 static void FillNodeSet(Set *nodes, Node *root) {
