@@ -189,5 +189,3 @@ IRFunc *FuncFromName(const char *name) {
         self->name = name;
     });
 }
-
-#undef RET
