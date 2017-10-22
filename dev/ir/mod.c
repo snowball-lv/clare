@@ -23,7 +23,9 @@ int main() {
     assert(MemEmpty());
 
     IRModule *mod = NewIRModule();
-    IRFunc *fib = FuncFromName("Fibonacci");
+    
+    IRModuleAddFunc(mod, FuncFromName("Fibonacci"));
+    IRFunc *fib = IRModuleGetFunc(mod, "Fibonacci");
     
     Node *n = IR.Tmp();
     

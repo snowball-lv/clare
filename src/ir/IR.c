@@ -8,6 +8,7 @@
 #include <mem/Mem.h>
 #include <helpers/Unused.h>
 #include <collections/Set.h>
+#include <collections/StringMap.h>
 
 #define NODE_TYPE_TMP   1
 #define NODE_TYPE_MOV   2
@@ -177,7 +178,12 @@ void DeleteNodeTree(Node *root) {
 
 TYPE_DEF(IRModule, {
     int dummy;
-}, {}, {})
+    StringMap *funcs;
+}, {
+    self->funcs = NewStringMap();
+}, {
+    DeleteStringMap(self->funcs);
+})
 
 TYPE_DEF(IRFunc, {
     int dummy;
@@ -188,4 +194,19 @@ IRFunc *FuncFromName(const char *name) {
     RET(IRFunc, {
         self->name = name;
     });
+}
+
+const char *IRFuncGetName(IRFunc *func) {
+    return func->name;
+}
+
+void IRModuleAddFunc(IRModule *mod, IRFunc *func) {
+    StringMapPut(
+        mod->funcs,
+        IRFuncGetName(func),
+        func);
+}
+
+IRFunc *IRModuleGetFunc(IRModule *mod, const char *name) {
+    return StringMapGet(mod->funcs, name);
 }

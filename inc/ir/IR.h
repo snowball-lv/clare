@@ -47,3 +47,8 @@ extern _IR IR;
 int NodeMatches(Node *root, Node *pattern);
 
 void DeleteNodeTree(Node *root);
+
+const char *IRFuncGetName(IRFunc *func);
+
+void IRModuleAddFunc(IRModule *mod, IRFunc *func);
+IRFunc *IRModuleGetFunc(IRModule *mod, const char *name);
