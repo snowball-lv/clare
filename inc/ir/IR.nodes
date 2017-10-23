@@ -1,0 +1,61 @@
+
+
+// #define FUNC(type, name, params, body)
+
+FUNC(Node *, Dummy, (), {
+    return 0;
+})
+
+FUNC(Node *, I32, (int32_t i32), {
+    RET(Node, {
+        self->node_type = NT(I32);
+        self->i32 = i32;
+    });
+})
+
+FUNC(Node *, Arg, (int index), {
+    RET(Node, {
+        self->node_type = NT(Arg);
+        self->arg_index = index;
+    });
+})
+
+FUNC(Node *, Ret, (Node *n), {
+    RET(Node, {
+        self->node_type = NT(Ret);
+        self->kids[0] = n;
+    });
+})
+
+FUNC(Node *, Branch, (Node *cond, Node *t, Node *f), {
+    RET(Node, {
+        self->node_type = NT(Branch);
+        self->kids[0] = cond;
+        self->kids[1] = t;
+        self->kids[2] = f;
+    });
+})
+
+FUNC(Node *, Eq, (Node *left, Node *right), {
+    RET(Node, {
+        self->node_type = NT(Eq);
+        self->kids[0] = left;
+        self->kids[1] = right;
+    });
+})
+
+FUNC(Node *, Add, (Node *left, Node *right), {
+    RET(Node, {
+        self->node_type = NT(Add);
+        self->kids[0] = left;
+        self->kids[1] = right;
+    });
+})
+
+FUNC(Node *, Call, (const char *name, List *args), {
+    RET(Node, {
+        self->node_type = NT(Call);
+        self->name = name;
+        self->args = args;
+    });
+})

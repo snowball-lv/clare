@@ -20,7 +20,7 @@ Isel *NewIsel() {
     isel->list = NewList();
     
     #define RULE(pattern, action) ListAdd(isel->list, pattern);
-        // #include <i386/munch.rules>
+        #include <i386/munch.rules>
     #undef RULE
     
     return isel;
@@ -57,11 +57,15 @@ static VReg *IselMunch(Isel *isel, List *ops, Node *root) {
             index++;                                \
         }
     
-        // #include <i386/munch.rules>
+        #include <i386/munch.rules>
         
     #undef RULE
     #undef Munch
     #undef Emit
+    
+    printf("no match for node: ");
+    NodePrint(root);
+    printf("\n");
     
     return 0;
 } 

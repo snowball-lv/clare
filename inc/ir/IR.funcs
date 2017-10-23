@@ -1,0 +1,7 @@
+
+
+// #define FUNC(type, name, params, body)
+
+FUNC(int32_t, GetI32, (Node *i32), {
+    return i32->i32;
+})

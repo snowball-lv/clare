@@ -2,10 +2,11 @@
 
 #include <mem/Mem.h>
 
-#define RET(type, body)             \
-    type *self = New ## type();     \
-    body;                           \
-    return self;
+#define RET(type, body) {       \
+    type *self = New ## type(); \
+    body;                       \
+    return self;                \
+}
 
 #define CAT(a, ...) a ## __VA_ARGS__
 

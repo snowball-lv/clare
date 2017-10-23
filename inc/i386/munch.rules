@@ -1,20 +1,5 @@
 
 
-RULE(IR.Mov(IR.Tmp(), IR.Exp()), {
-    VReg *dst = NewVReg();
-    VReg *src = Munch(root->right);
-    Emit(i386.Mov(dst, src));
-})
-
-RULE(IR.Add(IR.Exp(), IR.Exp()), {
-    VReg *dst = Munch(root->left);
-    VReg *src = Munch(root->right);
-    Emit(i386.Add(dst, src));
-    return dst;
-})
-
-RULE(IR.I32(0), {
-    VReg *dst = NewVReg();
-    Emit(i386.MovI32(dst, root->i32));
-    return dst;
+RULE(IR.Dummy(), {
+    printf("dummy\n");
 })
