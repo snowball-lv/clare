@@ -4,6 +4,7 @@
 #include <helpers/Unused.h>
 #include <collections/List.h>
 #include <i386/i386.h>
+#include <helpers/Unused.h>
 
 #include <stdio.h>
 
@@ -19,7 +20,7 @@ Isel *NewIsel() {
     isel->list = NewList();
     
     #define RULE(pattern, action) ListAdd(isel->list, pattern);
-        #include <i386/munch.rules>
+        // #include <i386/munch.rules>
     #undef RULE
     
     return isel;
@@ -39,6 +40,11 @@ static VReg *IselMunch(Isel *isel, List *ops, Node *root) {
     
     int index = 0;
     
+    UNUSED(index);
+    UNUSED(isel);
+    UNUSED(ops);
+    UNUSED(root);
+    
     #define Emit(op)    ListAdd(ops, op);
     #define Munch(root) IselMunch(isel, ops, root)
     
@@ -51,7 +57,7 @@ static VReg *IselMunch(Isel *isel, List *ops, Node *root) {
             index++;                                \
         }
     
-        #include <i386/munch.rules>
+        // #include <i386/munch.rules>
         
     #undef RULE
     #undef Munch
