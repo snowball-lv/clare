@@ -3,7 +3,9 @@
 // #define FUNC(type, name, params, body)
 
 FUNC(Node *, Dummy, (), {
-    return 0;
+    RET(Node, {
+        self->node_type = NT(Dummy);
+    });
 })
 
 FUNC(Node *, I32, (int32_t i32), {
