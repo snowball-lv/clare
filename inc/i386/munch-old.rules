@@ -1,0 +1,52 @@
+
+
+RULE(IR.Dummy(), {
+    printf("dummy\n");
+})
+
+RULE(IR.Branch(0, 0 ,0), {
+    printf("if ("); 
+    Munch(NodeChild(root, 0));
+    printf(") {\n");
+    Munch(NodeChild(root, 1));
+    printf("} else {\n");
+    Munch(NodeChild(root, 2));
+    printf("}\n");
+})
+
+RULE(IR.Eq(0, 0), {
+    Munch(NodeChild(root, 0));
+    printf(" == ");
+    Munch(NodeChild(root, 1));
+})
+
+RULE(IR.I32(0), {
+    printf("%d", IR.GetI32(root));
+})
+
+RULE(IR.Arg(0), {
+    printf("arg(%d)", IR.GetArgIndex(root));
+})
+
+RULE(IR.Ret(0), {
+    printf("return ");
+    Munch(NodeChild(root, 0));
+    printf(";\n");
+})
+
+RULE(IR.Add(0, 0), {
+    printf("(");
+    Munch(NodeChild(root, 0));
+    printf(" + ");
+    Munch(NodeChild(root, 1));
+    printf(")");  
+})
+
+RULE(IR.Call(0, 0), {
+    printf("%s", IR.GetFuncName(root));
+    printf("(");
+    LIST_EACH(IR.GetArgs(root), Node *, arg, {
+        Munch(arg);
+    });
+    printf(")");
+})

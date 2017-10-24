@@ -5,48 +5,83 @@ RULE(IR.Dummy(), {
 })
 
 RULE(IR.Branch(0, 0 ,0), {
-    printf("if ("); 
-    Munch(NodeChild(root, 0));
-    printf(") {\n");
+    
+    Label *t = NewLabel();
+    Label *f = NewLabel();
+    Label *end = NewLabel();
+    
+    MunchTF(NodeChild(root, 0), t, f);
+    
+    printf("%s:\n", t);
     Munch(NodeChild(root, 1));
-    printf("} else {\n");
+    printf("jmp %s\n", end);
+    
+    printf("%s:\n", f);
     Munch(NodeChild(root, 2));
-    printf("}\n");
+    printf("jmp %s\n", end);
+    
+    printf("%s:\n", end);
 })
 
 RULE(IR.Eq(0, 0), {
-    Munch(NodeChild(root, 0));
-    printf(" == ");
-    Munch(NodeChild(root, 1));
+    VReg *a = Munch(NodeChild(root, 0));
+    VReg *b = Munch(NodeChild(root, 1));
+    printf(
+        "cmp $vr%d, $vr%d\n",
+        a->index,
+        b->index);
+    printf("je %s\n", tl);
+    printf("jmp %s\n", fl);
 })
 
 RULE(IR.I32(0), {
-    printf("%d", IR.GetI32(root));
+    VReg *vreg = NewVReg();
+    printf(
+        "mov $vr%d, %d\n",
+        vreg->index,
+        IR.GetI32(root));
+    return vreg;
 })
 
 RULE(IR.Arg(0), {
-    printf("arg(%d)", IR.GetArgIndex(root));
+    VReg *vreg = NewVReg();
+    int index = IR.GetArgIndex(root);
+    printf(
+        "mov $vr%d, [ebp + %d]\n",
+        vreg->index,
+        8 + index * 4);
+    return vreg;
 })
 
 RULE(IR.Ret(0), {
-    printf("return ");
-    Munch(NodeChild(root, 0));
-    printf(";\n");
+    VReg *vreg = Munch(NodeChild(root, 0));
+    printf("mov eax, $vr%d\n", vreg->index);
+    printf("ret\n");
 })
 
 RULE(IR.Add(0, 0), {
-    printf("(");
-    Munch(NodeChild(root, 0));
-    printf(" + ");
-    Munch(NodeChild(root, 1));
-    printf(")");  
+    VReg *left = Munch(NodeChild(root, 0));
+    VReg *right = Munch(NodeChild(root, 1));
+    printf(
+        "add $vr%d, $vr%d\n",
+        left->index,
+        right->index);
+    return left;
 })
 
 RULE(IR.Call(0, 0), {
-    printf("%s", IR.GetFuncName(root));
-    printf("(");
-    LIST_EACH(IR.GetArgs(root), Node *, arg, {
-        Munch(arg);
+    
+    List *args = IR.GetArgs(root);
+    
+    LIST_EACH(IR.GetArgs(root), Node *, arg_node, {
+        VReg *arg = Munch(arg_node);
+        printf("push $vr%d\n", arg->index);
     });
-    printf(")");
+    
+    printf("call %s\n", IR.GetFuncName(root));
+    printf("add esp, %d\n", ListSize(args) * 4);
+    
+    VReg *vreg = NewVReg();
+    printf("mov $vr%d, eax\n", vreg->index);
+    return vreg;
 })

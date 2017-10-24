@@ -6,22 +6,22 @@
 
 #include <stdint.h>
 
-TYPE_DECL(VReg)
-TYPE_DECL(Op)
-
-VReg *OpDst(Op *op);
-VReg *OpSrc(Op *op);
+#define OP_TYPE_NONE    1
 
 typedef struct {
-    
     int dummy;
-    
-    Op *(*Mov)(VReg *dst, VReg *src);
-    Op *(*MovI32)(VReg *dst, int32_t i32);
-    Op *(*Add)(VReg *dst, VReg *src);
-    
-    void (*Print)(List *ops);
-    
-} _i386;
+    int op_type;
+} Op;
 
-extern _i386 i386;
+Op *MkOp(Op op);
+
+typedef const char Label;
+
+Label *NewLabel();
+
+typedef struct {
+    int dummy;
+    int index;
+} VReg;
+
+VReg *NewVReg();

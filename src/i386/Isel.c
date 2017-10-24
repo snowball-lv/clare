@@ -36,7 +36,7 @@ void DeleteIsel(Isel *isel) {
     MemFree(isel);
 }
 
-static VReg *IselMunch(Isel *isel, List *ops, Node *root) {
+static void *IselMunch(Isel *isel, List *ops, Node *root, Label *tl, Label *fl) {
     
     int index = 0;
     
@@ -44,9 +44,12 @@ static VReg *IselMunch(Isel *isel, List *ops, Node *root) {
     UNUSED(isel);
     UNUSED(ops);
     UNUSED(root);
+    UNUSED(tl);
+    UNUSED(fl);
     
-    #define Emit(op)    ListAdd(ops, op);
-    #define Munch(root) IselMunch(isel, ops, root)
+    #define Emit(op)            ListAdd(ops, op);
+    #define Munch(root)         IselMunch(isel, ops, root, 0, 0)
+    #define MunchTF(root, t, f) IselMunch(isel, ops, root, t, f)
     
     #define RULE(pattern, action) {                 \
             Node *p = ListGet(isel->list, index);   \
@@ -72,6 +75,6 @@ static VReg *IselMunch(Isel *isel, List *ops, Node *root) {
 
 List *IselSelect(Isel *isel, Node *root) {
     List *ops = NewList();
-    IselMunch(isel, ops, root);
+    IselMunch(isel, ops, root, 0, 0);
     return ops;
 }
