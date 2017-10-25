@@ -13,11 +13,23 @@ RULE(IR.Branch(0, 0 ,0), {
     MunchTF(NodeChild(root, 0), t, f);
     
     printf("%s:\n", t);
+    Emit(HEAP(Op, {
+        .fmt = "$l:\n",
+        .oprs = { (void *)t }
+    }));
+    
     Munch(NodeChild(root, 1));
+    
     printf("jmp %s\n", end);
+    Emit(HEAP(Op, {
+        .fmt = "jmp $l\n",
+        .oprs = { (void *)end }
+    }));
     
     printf("%s:\n", f);
+    
     Munch(NodeChild(root, 2));
+    
     printf("jmp %s\n", end);
     
     printf("%s:\n", end);

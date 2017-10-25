@@ -26,3 +26,16 @@
         dtor;                               \
         MemFree(self);                      \
     }
+    
+#define HEAP_DECL(type)             \
+    type *Heap ## type(type val);
+
+#define HEAP_DEF(type)              \
+    type *Heap ## type(type val) {  \
+        type *ptr = ALLOC(type);    \
+        *ptr = val;                 \
+        return ptr;                 \
+    }
+
+#define HEAP(type, ...)                 \
+    Heap ## type((type) __VA_ARGS__)

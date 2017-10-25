@@ -8,11 +8,8 @@
 #include <stdint.h>
 #include <string.h>
 
-Op *MkOp(Op op) {
-    Op *ptr = ALLOC(Op);
-    memcpy(ptr, &op, sizeof(Op));
-    return ptr;
-}
+HEAP_DEF(Op)
+HEAP_DEF(Opr)
 
 static int _Label_Counter = 1;
 
@@ -26,4 +23,43 @@ VReg *NewVReg() {
     VReg *ptr = ALLOC(VReg);
     ptr->index = _VReg_Counter++;
     return ptr;
+}
+
+/*
+    $l - label
+*/
+void OpPrintf(Op *op) {
+    
+    const char *fmt = op->fmt;
+    
+    do {
+        
+        const char *ptr = strchr(fmt, '$');
+        if (ptr != 0) {
+            
+            size_t spn = strcspn(fmt, "$");
+            printf("%.*s", (int)spn, fmt);
+            
+            #define FMT(specifier, block) {                     \
+                size_t slen = strlen(specifier);                \
+                if (strncmp(ptr + 1, specifier, slen) == 0) {   \
+                    block;                                      \
+                    fmt = ptr + 1 + slen;                       \
+                    continue;                                   \
+                }                                               \
+            }
+            
+                #include <i386/op.fmt>
+            
+            #undef FMT
+            
+            printf("$");
+            fmt = ptr + 1;
+            
+        } else {
+            printf("%s", fmt);
+            return;
+        }
+        
+    } while (1);
 }

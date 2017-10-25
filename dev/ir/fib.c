@@ -6,6 +6,7 @@
 #include <i386/Isel.h>
 #include <i386/i386.h>
 #include <collections/Set.h>
+#include <collections/List.h>
 
 #include <stdio.h>
 
@@ -40,7 +41,14 @@ int main() {
     UNUSED(body);
     
     Isel *isel = NewIsel();
-    IselSelect(isel, body);
+    List *ops = IselSelect(isel, body);
+    
+    printf("-----------------------------\n");
+    
+    printf("op count: %d\n", ListSize(ops));
+    LIST_EACH(ops, Op *, op, {
+        OpPrintf(op);
+    });
     
     assert(MemEmpty());
 	return 0;
