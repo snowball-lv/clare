@@ -14,7 +14,11 @@ HEAP_DEF(Opr)
 static int _Label_Counter = 1;
 
 Label *NewLabel() {
-    return ToString("_label_%d", _Label_Counter++);
+    return ToString("L%d", _Label_Counter++);
+}
+
+Label *NewLabelNamed(const char *name) {
+    return ToString("L%d_%s", _Label_Counter++, name);
 }
 
 static int _VReg_Counter = 1;
@@ -25,9 +29,6 @@ VReg *NewVReg() {
     return ptr;
 }
 
-/*
-    $l - label
-*/
 void OpPrintf(Op *op) {
     
     const char *fmt = op->fmt;

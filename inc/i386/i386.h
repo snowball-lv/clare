@@ -9,19 +9,22 @@
 typedef const char Label;
 
 Label *NewLabel();
+Label *NewLabelNamed(const char *name);
 
-typedef struct {
+typedef union {
     Label *label;
+    int index;
+    int32_t i32;
 } Opr;
 
 HEAP_DECL(Opr)
 
-#define MAX_OPRS 1
+#define MAX_OPRS 2
 
 typedef struct {
     int dummy;
     const char *fmt;
-    void *oprs[MAX_OPRS];
+    Opr oprs[MAX_OPRS];
 } Op;
 
 HEAP_DECL(Op)

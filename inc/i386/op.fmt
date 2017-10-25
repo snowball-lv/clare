@@ -1,5 +1,13 @@
 
 
 FMT("l", {
-    printf("%s", (char *)ARG);
+    printf("%s", ARG.label);
+})
+
+FMT("vr", {
+    printf("vr%d", ARG.index);
+})
+
+FMT("i32", {
+    printf("%d", ARG.i32);
 })
