@@ -1,5 +1,5 @@
 
 
 FMT("l", {
-    printf("[label]");
+    printf("%s", (char *)ARG);
 })

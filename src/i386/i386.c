@@ -31,6 +31,7 @@ VReg *NewVReg() {
 void OpPrintf(Op *op) {
     
     const char *fmt = op->fmt;
+    int opt_counter = 0;
     
     do {
         
@@ -40,11 +41,13 @@ void OpPrintf(Op *op) {
             size_t spn = strcspn(fmt, "$");
             printf("%.*s", (int)spn, fmt);
             
+            #define ARG op->oprs[opt_counter]
             #define FMT(specifier, block) {                     \
                 size_t slen = strlen(specifier);                \
                 if (strncmp(ptr + 1, specifier, slen) == 0) {   \
                     block;                                      \
                     fmt = ptr + 1 + slen;                       \
+                    opt_counter++;                              \
                     continue;                                   \
                 }                                               \
             }
@@ -52,6 +55,7 @@ void OpPrintf(Op *op) {
                 #include <i386/op.fmt>
             
             #undef FMT
+            #undef ARG
             
             printf("$");
             fmt = ptr + 1;
