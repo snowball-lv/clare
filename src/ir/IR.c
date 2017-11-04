@@ -50,7 +50,7 @@ static Node *NewNode() {
 }
 
 void DeleteNodeTree(Node *root) {
-    UNUSED(root);
+    MemFree(root);
 }
 
 #define FUNC(type, name, params, body)  \
@@ -96,6 +96,11 @@ int NodeMatches(Node *root, Node *pattern) {
 }
 
 static const char *NodeName(Node *node) {
+    
+    if (node == 0) {
+        return "{null node}";
+    }
+    
     switch (node->node_type) {
         
         #define FUNC(type, name, params, body)  \
@@ -106,6 +111,7 @@ static const char *NodeName(Node *node) {
         #undef FUNC
         
     }
+    
     return "{invalid node type}";
 }
 

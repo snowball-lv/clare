@@ -8,12 +8,12 @@
 
 #include <stdio.h>
 
-struct Isel {
+typedef struct {
     int dummy;
     List *list;
-};
+} Isel;
 
-Isel *NewIsel() {
+static Isel *NewIsel() {
     
     Isel *isel = ALLOC(Isel);
     isel->dummy = 0;
@@ -26,7 +26,7 @@ Isel *NewIsel() {
     return isel;
 }
 
-void DeleteIsel(Isel *isel) {
+static void DeleteIsel(Isel *isel) {
     
     LIST_EACH(isel->list, Node *, pattern, {
         DeleteNodeTree(pattern);
@@ -36,20 +36,15 @@ void DeleteIsel(Isel *isel) {
     MemFree(isel);
 }
 
-static void *IselMunch(Isel *isel, List *ops, Node *root, Label *tl, Label *fl) {
+static void *IselMunch(Isel *isel, List *ops, Node *root) {
+    
+    UNUSED(ops);
+    UNUSED(root);
     
     int index = 0;
     
-    UNUSED(index);
-    UNUSED(isel);
-    UNUSED(ops);
-    UNUSED(root);
-    UNUSED(tl);
-    UNUSED(fl);
-    
-    #define Emit(op)            ListAdd(ops, op);
-    #define Munch(root)         IselMunch(isel, ops, root, 0, 0)
-    #define MunchTF(root, t, f) IselMunch(isel, ops, root, t, f)
+    #define Emit(op)        ListAdd(ops, op);
+    #define Munch(root)     IselMunch(isel, ops, root)
     
     #define RULE(pattern, action) {                 \
             Node *p = ListGet(isel->list, index);   \
@@ -73,8 +68,10 @@ static void *IselMunch(Isel *isel, List *ops, Node *root, Label *tl, Label *fl) 
     return 0;
 } 
 
-List *IselSelect(Isel *isel, Node *root) {
+List *IselSelect(Node *ir) {
     List *ops = NewList();
-    IselMunch(isel, ops, root, 0, 0);
+    Isel *isel = NewIsel();
+    IselMunch(isel, ops, ir);
+    DeleteIsel(isel);
     return ops;
 }

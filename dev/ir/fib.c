@@ -20,7 +20,7 @@ int Fibonacci(int n) {
     }
 } 
 
-static Node *FiBBody() {
+Node *FiBBody() {
     return IR.Branch(IR.Eq(IR.Arg(0), IR.I32(0)),
         IR.Ret(IR.I32(0)),
         IR.Branch(IR.Eq(IR.Arg(0), IR.I32(1)),
@@ -36,19 +36,6 @@ static Node *FiBBody() {
 
 int main() {
     assert(MemEmpty());
-
-    Node *body = FiBBody();
-    UNUSED(body);
-    
-    Isel *isel = NewIsel();
-    List *ops = IselSelect(isel, body);
-    
-    printf("-----------------------------\n");
-    
-    printf("op count: %d\n", ListSize(ops));
-    LIST_EACH(ops, Op *, op, {
-        OpPrintf(op);
-    });
     
     assert(MemEmpty());
 	return 0;
