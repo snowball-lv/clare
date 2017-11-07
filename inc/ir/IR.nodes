@@ -2,11 +2,23 @@
 
 // #define FUNC(type, name, params, body)
 
-FUNC(Node *, Dummy, (), {
-    RET(Node, {
-        self->node_type = NT(Dummy);
-    });
-})
+#define NODE(name, init)                    \
+    FUNC(Node *, name, (), {                \
+        RET(Node, {                         \
+            self->node_type = NT(name);     \
+            init;                           \
+        });                                 \
+    })
+
+NODE(Dummy, {})
+
+#undef NODE
+
+// FUNC(Node *, Dummy, (), {
+//     RET(Node, {
+//         self->node_type = NT(Dummy);
+//     });
+// })
 
 FUNC(Node *, I32, (int32_t i32), {
     RET(Node, {

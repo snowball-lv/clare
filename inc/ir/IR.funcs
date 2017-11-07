@@ -17,3 +17,10 @@ FUNC(const char *, GetFuncName, (Node *node), {
 FUNC(List *, GetArgs, (Node *node), {
     return node->args;
 })
+
+FUNC(void, DeleteNodeTree, (Node *root), {
+    Set *set = NewSet();
+    CollectNodes(set, root);
+    DeleteNodeSet(set);
+    DeleteSet(set);
+})

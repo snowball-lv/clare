@@ -1,14 +1,11 @@
 #include <assert.h>
 
-#include <mem/Mem.h>
 #include <ir/IR.h>
 #include <helpers/Unused.h>
-#include <i386/Isel.h>
-#include <i386/i386.h>
-#include <collections/Set.h>
-#include <collections/List.h>
 
 #include <stdio.h>
+
+#include <Backends.h>
 
 int Fibonacci(int n) {
     if (n == 0) {

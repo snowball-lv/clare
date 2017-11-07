@@ -74,8 +74,8 @@ int main() {
 
     assert(MemEmpty());
 
-    printf("allocations: %zu\n", MemAllocations());
-    printf("allocation size: %zu\n", MemAllocationSize());
+    // printf("allocations: %zu\n", MemAllocations());
+    // printf("allocation size: %zu\n", MemAllocationSize());
 
 	return 0;
 }

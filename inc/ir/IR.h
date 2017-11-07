@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include <collections/List.h>
+#include <collections/Set.h>
 
 typedef struct Node Node;
 

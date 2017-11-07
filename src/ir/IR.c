@@ -53,6 +53,17 @@ void DeleteNodeTree(Node *root) {
     MemFree(root);
 }
 
+static void CollectNodes(Set *set, Node *root) {
+    UNUSED(set);
+    UNUSED(root);
+}
+
+static void DeleteNodeSet(Set *nodes) {
+    SET_EACH(nodes, Node *, node, {
+        UNUSED(node);
+    });
+}
+
 #define FUNC(type, name, params, body)  \
     static type _ ## name params body
     
