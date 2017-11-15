@@ -40,3 +40,18 @@ int NodeMatch(Node *root, Node *pattern) {
     
     return 0;
 }
+
+#define NODE(name) static Node *_ ## name() {   \
+    return HEAP(Node, { .type = NT(name) });    \
+}
+    #include <ir/nodes.def>
+#undef NODE
+
+_Nodes Nodes = {
+
+    .dummy = 0,    
+    
+    #define NODE(name)      .name = _ ## name,
+        #include <ir/nodes.def>
+    #undef NODE
+};

@@ -25,3 +25,14 @@ enum {
 
 int NodeCmp(Node *a, Node *b);
 int NodeMatch(Node *root, Node *pattern);
+
+typedef struct {
+    
+    int dummy;
+    
+    #define NODE(name)      Node *(*name)();
+        #include <ir/nodes.def>
+    #undef NODE
+} _Nodes;
+
+extern _Nodes Nodes;

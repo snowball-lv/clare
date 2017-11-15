@@ -3,5 +3,13 @@
 // #define RULE(pattern, action)
 
 RULE(Nodes.Any(), {
-    printf("matched node: %s\n", );
+    printf("matched any 1\n");
+})
+
+RULE(Nodes.Any(), {
+    printf("matched any 2\n");
+})
+
+RULE(Nodes.Any(), {
+    printf("matched any 2\n");
 })

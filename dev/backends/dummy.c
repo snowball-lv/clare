@@ -3,15 +3,15 @@
 #include <mem/Mem.h>
 #include <helpers/Types.h>
 #include <ir/IR.h>
-
-#define NODE(...)   HEAP(Node, __VA_ARGS__)
+#include <backends/dummy/Dummy.h>
 
 int main() {
     assert(MemEmpty());
     
-    NODE({ .type = NT(None) });
-    NODE({ .type = NT(Any) });
+    Node *root = Nodes.Any();
+    DummyMunch(root);
+    MemFree(root);
     
-    // assert(MemEmpty());
+    assert(MemEmpty());
 	return 0;
 }
