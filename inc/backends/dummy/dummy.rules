@@ -1,0 +1,7 @@
+
+
+// #define RULE(pattern, action)
+
+RULE(Nodes.Any(), {
+    printf("matched node: %s\n", );
+})
