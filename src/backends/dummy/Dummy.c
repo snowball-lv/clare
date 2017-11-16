@@ -8,6 +8,52 @@
 
 int dummy;
 
+#define MAX_STACK       16
+#define MAX_LOCALS      16
+
+typedef union {
+    int32_t i32;
+} VMValue;
+
+struct {
+    int sp;
+    VMValue stack[MAX_STACK];
+    VMValue locals[MAX_LOCALS];
+} VM;
+
+#define INC     VM.sp++
+#define DEC     VM.sp--
+#define TOP     VM.stack[VM.sp]
+
+static void vm_push(int32_t i32) {
+    printf("push %d\n", i32);
+    INC;
+    TOP.i32 = i32;
+}
+
+static void vm_add() {
+    printf("add\n");
+    int32_t i = TOP.i32;
+    DEC;
+    TOP.i32 += i;
+}
+
+static void vm_store(int index) {
+    printf("store %d\n", index);
+    VM.locals[index] = TOP;
+    DEC;
+}
+
+static void vm_load(int index) {
+    printf("load %d\n", index);
+    INC;
+    TOP = VM.locals[index];
+}
+
+int32_t DummyVMTop() {
+    return TOP.i32;
+}
+
 void _DummyMunch(Node *root, List *patterns) {
     
     int _index = 0;

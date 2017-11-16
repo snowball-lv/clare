@@ -1,6 +1,7 @@
 #include <ir/IR.h>
 
 #include <helpers/Unused.h>
+#include <collections/Set.h>
 
 #include <assert.h>
 
@@ -45,6 +46,11 @@ int NodeMatch(Node *root, Node *pattern) {
     return 0;
 }
 
+static int TmpIndexCounter = 0;
+
+static int NextTmpIndex() {
+    return ++TmpIndexCounter;
+}
 
 #define NODE(name, params, init)                    \
 static Node *_ ## name params {                     \
@@ -73,12 +79,25 @@ const char *NodeName(Node *node) {
     assert(0 && "Unknown node type");
 }
 
-void NodeDeleteTree(Node *root) {
+static void _NodeDeleteTree(Node *root, Set *nodes) {
+    
+    if (root == 0) {
+        return;
+    }
+    
     for (int i = 0; i < IR_MAX_KIDS; i++) {
         Node *child = root->kids[i];
-        if (child != 0) {
-            NodeDeleteTree(child);
-        }
+        _NodeDeleteTree(child, nodes);
     }
-    MemFree(root);
+    
+    SetAdd(nodes, root);
+}
+
+void NodeDeleteTree(Node *root) {
+    Set *nodes = NewSet();
+    _NodeDeleteTree(root, nodes);
+    SET_EACH(nodes, Node *, node, {
+        MemFree(node);
+    });
+    DeleteSet(nodes);
 }

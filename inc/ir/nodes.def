@@ -12,7 +12,9 @@ NODE(Mov, (Node *dst, Node *src), {
     self->kids[1] = src;
 })
 
-SIMPLE(Tmp)
+NODE(Tmp, (), {
+    self->index = NextTmpIndex();
+})
 
 NODE(Add, (Node *left, Node *right), {
     self->kids[0] = left;
@@ -21,4 +23,9 @@ NODE(Add, (Node *left, Node *right), {
 
 NODE(I32, (int32_t i32), {
     self->i32 = i32;
+})
+
+NODE(Seq, (Node *left, Node *right), {
+    self->kids[0] = left;
+    self->kids[1] = right;
 })

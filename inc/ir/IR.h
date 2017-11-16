@@ -12,6 +12,7 @@ struct Node {
     Node *kids[IR_MAX_KIDS];
     union {
         int32_t i32;
+        int index;
     };
 };
 
