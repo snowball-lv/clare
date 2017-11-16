@@ -2,6 +2,22 @@
 
 // #define RULE(pattern, action)
 
-RULE(Nodes.Any(), {
-    printf("matched node: %s\n", NodeName(root));
+RULE(Nodes.Mov(0, 0), {
+    printf("matched Mov\n");
+    MUNCH(root->kids[0]);
+    MUNCH(root->kids[1]);
+})
+
+RULE(Nodes.Tmp(), {
+    printf("matched Tmp\n");
+})
+
+RULE(Nodes.Add(0, 0), {
+    printf("matched Add\n");
+    MUNCH(root->kids[0]);
+    MUNCH(root->kids[1]);
+})
+
+RULE(Nodes.I32(0), {
+    printf("matched I32\n");
 })
