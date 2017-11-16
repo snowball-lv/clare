@@ -72,3 +72,13 @@ const char *NodeName(Node *node) {
     }
     assert(0 && "Unknown node type");
 }
+
+void NodeDeleteTree(Node *root) {
+    for (int i = 0; i < IR_MAX_KIDS; i++) {
+        Node *child = root->kids[i];
+        if (child != 0) {
+            NodeDeleteTree(child);
+        }
+    }
+    MemFree(root);
+}

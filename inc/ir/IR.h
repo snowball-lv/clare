@@ -32,6 +32,7 @@ enum {
 int NodeCmp(Node *a, Node *b);
 int NodeMatch(Node *root, Node *pattern);
 const char *NodeName(Node *node);
+void NodeDeleteTree(Node *root);
 
 typedef struct {
     

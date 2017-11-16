@@ -31,16 +31,6 @@ void _DummyMunch(Node *root, List *patterns) {
     assert(0 && "No rule matches node");
 }
 
-static void DeletePatternTree(Node *root) {
-    for (int i = 0; i < IR_MAX_KIDS; i++) {
-        Node *child = root->kids[i];
-        if (child != 0) {
-            DeletePatternTree(child);
-        }
-    }
-    MemFree(root);
-}
-
 void DummyMunch(Node *root) {
     
     List *patterns = NewList();
@@ -52,7 +42,7 @@ void DummyMunch(Node *root) {
     _DummyMunch(root, patterns);
     
     LIST_EACH(patterns, Node *, pattern, {
-        DeletePatternTree(pattern);
+        NodeDeleteTree(pattern);
     });
     DeleteList(patterns);
 }

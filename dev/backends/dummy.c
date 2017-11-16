@@ -5,16 +5,6 @@
 #include <ir/IR.h>
 #include <backends/dummy/Dummy.h>
 
-void DeleteTree(Node *root) {
-    for (int i = 0; i < IR_MAX_KIDS; i++) {
-        Node *child = root->kids[i];
-        if (child != 0) {
-            DeleteTree(child);
-        }
-    }
-    MemFree(root);
-}
-
 int main() {
     assert(MemEmpty());
     
@@ -26,7 +16,7 @@ int main() {
     
     DummyMunch(root);
     
-    DeleteTree(root);
+    NodeDeleteTree(root);
     
     assert(MemEmpty());
 	return 0;

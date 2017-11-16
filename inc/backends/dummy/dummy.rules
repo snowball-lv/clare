@@ -3,21 +3,23 @@
 // #define RULE(pattern, action)
 
 RULE(Nodes.Mov(0, 0), {
-    printf("matched Mov\n");
+    // printf("matched Mov\n");
     MUNCH(root->kids[0]);
     MUNCH(root->kids[1]);
 })
 
 RULE(Nodes.Tmp(), {
-    printf("matched Tmp\n");
+    // printf("matched Tmp\n");
 })
 
 RULE(Nodes.Add(0, 0), {
-    printf("matched Add\n");
+    // printf("matched Add\n");
     MUNCH(root->kids[0]);
     MUNCH(root->kids[1]);
+    printf("add\n");
 })
 
 RULE(Nodes.I32(0), {
-    printf("matched I32\n");
+    // printf("matched I32\n");
+    printf("push %d\n", root->i32);
 })
