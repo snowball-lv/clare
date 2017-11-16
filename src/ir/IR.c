@@ -1,5 +1,9 @@
 #include <ir/IR.h>
 
+#include <helpers/Unused.h>
+
+#include <assert.h>
+
 int dummy;
 
 HEAP_DEF(Node)
@@ -28,7 +32,7 @@ int NodeMatch(Node *root, Node *pattern) {
     }
     
     if (NodeCmp(root, pattern)) {
-        for (int i = 0; i < MAX_KIDS; i++) {
+        for (int i = 0; i < IR_MAX_KIDS; i++) {
             Node *a = root->kids[i];
             Node *b = pattern->kids[i];
             if (!NodeMatch(a, b)) {
@@ -41,8 +45,12 @@ int NodeMatch(Node *root, Node *pattern) {
     return 0;
 }
 
-#define NODE(name) static Node *_ ## name() {   \
-    return HEAP(Node, { .type = NT(name) });    \
+
+#define NODE(name, params, init)                    \
+static Node *_ ## name params {                     \
+    Node *self = HEAP(Node, { .type = NT(name) });  \
+    init;                                           \
+    return self;                                    \
 }
     #include <ir/nodes.def>
 #undef NODE
@@ -51,7 +59,16 @@ _Nodes Nodes = {
 
     .dummy = 0,    
     
-    #define NODE(name)      .name = _ ## name,
+    #define NODE(name, params, init)    .name = _ ## name,
         #include <ir/nodes.def>
     #undef NODE
 };
+
+const char *NodeName(Node *node) {
+    switch (node->type) {
+        #define NODE(name, params, init) case NT(name): return #name;
+            #include <ir/nodes.def>
+        #undef NODE
+    }
+    assert(0 && "Unknown node type");
+}

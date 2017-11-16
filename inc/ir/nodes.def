@@ -1,5 +1,24 @@
 
 
-NODE(None)
-NODE(Any)
+// #define NODE(name, params, init)
 
+#define SIMPLE(name)    NODE(name, (), {})
+
+SIMPLE(None)
+SIMPLE(Any)
+
+NODE(Mov, (Node *dst, Node *src), {
+    self->kids[0] = dst;
+    self->kids[1] = src;
+})
+
+SIMPLE(Tmp)
+
+NODE(Add, (Node *left, Node *right), {
+    self->kids[0] = left;
+    self->kids[1] = right;
+})
+
+NODE(I32, (int32_t i32), {
+    self->i32 = i32;
+})
