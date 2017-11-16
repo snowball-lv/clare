@@ -28,6 +28,7 @@ struct {
 static void vm_push(int32_t i32) {
     printf("push %d\n", i32);
     INC;
+    assert(VM.sp < MAX_STACK);
     TOP.i32 = i32;
 }
 
@@ -35,18 +36,23 @@ static void vm_add() {
     printf("add\n");
     int32_t i = TOP.i32;
     DEC;
+    assert(VM.sp >= 0);
     TOP.i32 += i;
 }
 
 static void vm_store(int index) {
+    assert(index < MAX_LOCALS);
     printf("store %d\n", index);
     VM.locals[index] = TOP;
     DEC;
+    assert(VM.sp >= 0);
 }
 
 static void vm_load(int index) {
+    assert(index < MAX_LOCALS);
     printf("load %d\n", index);
     INC;
+    assert(VM.sp < MAX_STACK);
     TOP = VM.locals[index];
 }
 
