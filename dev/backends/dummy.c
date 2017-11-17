@@ -27,7 +27,8 @@ int main() {
     
     NodeDeleteTree(root);
     
-    printf("vm top: %d\n", DummyVMTop());
+    // printf("vm top: %d\n", DummyVMTop());
+    assert(DummyVMTop() == 10);
     
     assert(MemEmpty());
 	return 0;
