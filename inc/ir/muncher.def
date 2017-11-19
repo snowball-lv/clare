@@ -1,0 +1,46 @@
+
+
+#define MUNCH_F       MANGLE(Munch)
+#define MUNCH_F2      MUNCH_F ## 2
+
+static void MUNCH_F2(Node *root, List *patterns) {
+    
+    int _index = 0;
+    
+    #define MUNCH(node)     MUNCH_F2(node, patterns);
+    
+    #define RULE(pattern, action) {             \
+        Node *p = ListGet(patterns, _index);    \
+        if (NodeMatch(root, p)) {               \
+            action;                             \
+            return;                             \
+        }                                       \
+        _index++;                               \
+    }
+        #include RULE_FILE
+    #undef RULE
+    
+    #undef MUNCH
+        
+    printf("Trying to match node: %s\n", NodeName(root));
+    assert(0 && "No rule matches node");
+}
+
+void MUNCH_F(Node *root) {
+    
+    List *patterns = NewList();
+    
+    #define RULE(pattern, action)   ListAdd(patterns, pattern);
+        #include RULE_FILE
+    #undef RULE
+    
+    MUNCH_F2(root, patterns);
+    
+    LIST_EACH(patterns, Node *, pattern, {
+        NodeDeleteTree(pattern);
+    });
+    DeleteList(patterns);
+}
+
+#undef MUNCH_F
+#undef MUNCH_F2
