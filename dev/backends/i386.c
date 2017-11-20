@@ -29,6 +29,7 @@ int main() {
     
     // DummyMunch(root);
     List *ops = i386Munch(root);
+    PrintOps(ops);
     DeleteOps(ops);
     DeleteList(ops);
     

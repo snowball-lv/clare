@@ -5,3 +5,4 @@
 
 List *i386Munch(Node *root);
 void DeleteOps(List *ops);
+void PrintOps(List *ops);
