@@ -26,7 +26,8 @@ int main() {
             Nodes.Add(a, b)));
     
     // DummyMunch(root);
-    i386Munch(root);
+    List *ops = i386Munch(root);
+    DeleteList(ops);
     
     NodeDeleteTree(root);
     

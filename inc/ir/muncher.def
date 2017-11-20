@@ -3,11 +3,11 @@
 #define MUNCH_F       MANGLE(Munch)
 #define MUNCH_F2      MUNCH_F ## 2
 
-static void MUNCH_F2(Node *root, List *patterns) {
+static void MUNCH_F2(Node *root, List *patterns, List *ops) {
     
     int _index = 0;
     
-    #define MUNCH(node)     MUNCH_F2(node, patterns);
+    #define MUNCH(node)     MUNCH_F2(node, patterns, ops);
     
     #define RULE(pattern, action) {             \
         Node *p = ListGet(patterns, _index);    \
@@ -26,20 +26,23 @@ static void MUNCH_F2(Node *root, List *patterns) {
     assert(0 && "No rule matches node");
 }
 
-void MUNCH_F(Node *root) {
+List *MUNCH_F(Node *root) {
     
+    List *ops = NewList();
     List *patterns = NewList();
     
     #define RULE(pattern, action)   ListAdd(patterns, pattern);
         #include RULE_FILE
     #undef RULE
     
-    MUNCH_F2(root, patterns);
+    MUNCH_F2(root, patterns, ops);
     
     LIST_EACH(patterns, Node *, pattern, {
         NodeDeleteTree(pattern);
     });
     DeleteList(patterns);
+    
+    return ops;
 }
 
 #undef MUNCH_F

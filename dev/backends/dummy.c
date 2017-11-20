@@ -23,7 +23,8 @@ int main() {
                     Nodes.I32(4))),
             Nodes.Add(a, b)));
     
-    DummyMunch(root);
+    List *ops = DummyMunch(root);
+    DeleteList(ops);
     
     NodeDeleteTree(root);
     

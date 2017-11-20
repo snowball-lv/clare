@@ -1,5 +1,6 @@
 #pragma once
 
 #include <ir/IR.h>
+#include <collections/List.h>
 
-void i386Munch(Node *root);
+List *i386Munch(Node *root);
