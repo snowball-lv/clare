@@ -3,7 +3,7 @@
 #define MUNCH_F       MANGLE(Munch)
 #define MUNCH_F2      MUNCH_F ## 2
 
-static void *MUNCH_F2(Node *root, List *patterns, List *ops) {
+static RET_TYPE MUNCH_F2(Node *root, List *patterns, List *ops) {
     
     int _index = 0;
     
@@ -14,7 +14,7 @@ static void *MUNCH_F2(Node *root, List *patterns, List *ops) {
         Node *p = ListGet(patterns, _index);    \
         if (NodeMatch(root, p)) {               \
             action;                             \
-            return 0;                           \
+            return RET_DEFAULT;                 \
         }                                       \
         _index++;                               \
     }

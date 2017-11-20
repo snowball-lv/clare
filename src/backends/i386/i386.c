@@ -10,57 +10,53 @@
 #include <string.h>
 #include <assert.h>
 
-int dummy;
+typedef struct {
+    int id;
+} VReg;
+
+HEAP_DEF(VReg)
+#define VREG(...)    HEAP(VReg, __VA_ARGS__)
+
+static int _VRegCounter = -1;
+static VReg *NewVReg() {
+    return VREG({
+        .id = _VRegCounter--
+    });
+}
 
 typedef struct {
-    union {
-        int dummy;
-        int index;
-        int32_t i32;
-    };
+    int32_t i32;
+    VReg    *vreg;
 } Opr;
-
-HEAP_DEF(Opr)
-#define OPR(...)    HEAP(Opr, __VA_ARGS__)
 
 #define MAX_OPRS    2
 
 typedef struct {
     const char *fmt;
-    Opr *oprs[MAX_OPRS];
+    Opr oprs[MAX_OPRS];
 } Op;
 
 HEAP_DEF(Op)
 #define OP(...)    HEAP(Op, __VA_ARGS__)
 
-static Op *Mov(Opr *dst, Opr *src) {
-    return OP({
-        .fmt = "mov $vr, $vr\n",
-        .oprs = { dst, src }
-    });
-}
-
-static Op *Add(Opr *left, Opr *right) {
-    return OP({
-        .fmt = "add $vr, $vr\n",
-        .oprs = { left, right }
-    });
-}
-
 #define MANGLE(name)    i386 ## name
 #define RULE_FILE       <backends/i386/i386.rules>
+#define RET_TYPE        VReg *
+#define RET_DEFAULT     0
 
     #include <ir/muncher.def>
     
+#undef RET_DEFAULT
+#undef RET_TYPE
 #undef RULE_FILE
 #undef MANGLE
 
-static void CollectOprs(List *ops, Set *oprs) {
+static void CollectVRegs(List *ops, Set *vregs) {
     LIST_EACH(ops, Op *, op, {
         for (int i = 0; i < MAX_OPRS; i++) {
-            Opr *opr = op->oprs[i];
-            if (opr != 0)  {
-                SetAdd(oprs, opr);
+            VReg *vreg = op->oprs[i].vreg;
+            if (vreg != 0)  {
+                SetAdd(vregs, vreg);
             }
         }
     });
@@ -68,22 +64,17 @@ static void CollectOprs(List *ops, Set *oprs) {
 
 void DeleteOps(List *ops) {
     
-    Set *oprs = NewSet();
-    CollectOprs(ops, oprs);
+    Set *vregs = NewSet();
+    CollectVRegs(ops, vregs);
     
-    SET_EACH(oprs, Opr *, opr, {
-        MemFree(opr);
+    SET_EACH(vregs, VReg *, vreg, {
+        MemFree(vreg);
     });
-    DeleteSet(oprs);
+    DeleteSet(vregs);
     
     LIST_EACH(ops, Op *, op, {
         MemFree(op);
     });
-}
-
-static void PrintOpr(Opr *opr) {
-    printf("%s", "[opr]");
-    UNUSED(opr);
 }
 
 static void PrintOp(Op *op) {
@@ -92,29 +83,36 @@ static void PrintOp(Op *op) {
     
     int opr_counter = 0;
     
+    #define RULE(spec, action) {                    \
+        const char *ptr = strstr(fmt, spec);        \
+        if (ptr != 0) {                             \
+            ptrdiff_t diff = ptr - fmt;             \
+            if (diff > 0) {                         \
+                printf("%.*s", (int) diff, fmt);    \
+            }                                       \
+            Opr *opr = &op->oprs[opr_counter];      \
+            action;                                 \
+            opr_counter++;                          \
+            fmt = ptr + strlen(spec);               \
+            continue;                               \
+        }                                           \
+    }
+    
     while (1) {
         
-        const char *spec = "$vr";
-        const char *ptr = strstr(fmt, spec);
+        RULE("$vr", {
+            printf("$vr%d", opr->vreg->id);
+        });
+            
+        RULE("$i32", {
+            printf("%d", opr->i32);
+        });
         
-        if (ptr != 0) {
-            
-            ptrdiff_t diff = ptr - fmt;
-            if (diff > 0) {
-                printf("%.*s", (int) diff, fmt);
-            }
-            
-            Opr *opr = op->oprs[opr_counter];
-            PrintOpr(opr);
-            opr_counter++;
-            
-            fmt = ptr + strlen(spec);
-            
-        } else {
-            printf("%s", fmt);
-            break;
-        }
+        printf("%s", fmt);
+        break;
     }
+    
+    #undef RULE
 }
 
 void PrintOps(List *ops) {

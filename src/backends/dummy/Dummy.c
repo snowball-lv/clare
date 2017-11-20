@@ -62,8 +62,12 @@ int32_t DummyVMTop() {
 
 #define MANGLE(name)    Dummy ## name
 #define RULE_FILE       <backends/dummy/dummy.rules>
+#define RET_TYPE        void
+#define RET_DEFAULT
 
     #include <ir/muncher.def>
     
+#undef RET_DEFAULT
+#undef RET_TYPE
 #undef RULE_FILE
 #undef MANGLE
