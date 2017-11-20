@@ -5,25 +5,29 @@
 RULE(Nodes.Seq(0, 0), {
     MUNCH(root->kids[0]);
     MUNCH(root->kids[1]);
-    printf("seq\n");
 })
 
 RULE(Nodes.Mov(Nodes.Tmp(), 0), {
-    // Node *dst = root->kids[0];
-    MUNCH(root->kids[1]);
-    printf("mov\n");
+    Opr *dst = MUNCH(root->kids[0]);
+    Opr *src = MUNCH(root->kids[1]);
+    EMIT(Mov(dst, src));
 })
 
 RULE(Nodes.Tmp(), {
-    printf("tmp\n");
+    return OPR({
+        .index = root->index
+    });
 })
 
 RULE(Nodes.Add(0, 0), {
-    MUNCH(root->kids[0]);
-    MUNCH(root->kids[1]);
-    printf("add\n");
+    Opr *left = MUNCH(root->kids[0]);
+    Opr *right = MUNCH(root->kids[1]);
+    EMIT(Add(left, right));
+    return left;
 })
 
 RULE(Nodes.I32(0), {
-    printf("i32\n");
+    return OPR({
+        .i32 = root->i32
+    });
 })

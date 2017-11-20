@@ -3,23 +3,25 @@
 #define MUNCH_F       MANGLE(Munch)
 #define MUNCH_F2      MUNCH_F ## 2
 
-static void MUNCH_F2(Node *root, List *patterns, List *ops) {
+static void *MUNCH_F2(Node *root, List *patterns, List *ops) {
     
     int _index = 0;
     
-    #define MUNCH(node)     MUNCH_F2(node, patterns, ops);
+    #define MUNCH(node)     MUNCH_F2(node, patterns, ops)
+    #define EMIT(op)        ListAdd(ops, op)
     
     #define RULE(pattern, action) {             \
         Node *p = ListGet(patterns, _index);    \
         if (NodeMatch(root, p)) {               \
             action;                             \
-            return;                             \
+            return 0;                           \
         }                                       \
         _index++;                               \
     }
         #include RULE_FILE
     #undef RULE
     
+    #undef EMIT
     #undef MUNCH
         
     printf("Trying to match node: %s\n", NodeName(root));

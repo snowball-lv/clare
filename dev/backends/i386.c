@@ -17,16 +17,19 @@ int main() {
     
     Node *root = Nodes.Seq(
         Nodes.Mov(a, Nodes.Add(
-                Nodes.I32(1),
-                Nodes.I32(2))),
+            Nodes.I32(1),
+            Nodes.I32(2))),
         Nodes.Seq(
             Nodes.Mov(b, Nodes.Add(
-                    Nodes.I32(3),
-                    Nodes.I32(4))),
-            Nodes.Add(a, b)));
+                Nodes.I32(3),
+                Nodes.I32(4))),
+            Nodes.Mov(Nodes.Tmp(), Nodes.Add(
+                a,
+                b))));
     
     // DummyMunch(root);
     List *ops = i386Munch(root);
+    DeleteOps(ops);
     DeleteList(ops);
     
     NodeDeleteTree(root);
