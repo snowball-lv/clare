@@ -13,14 +13,14 @@ RULE(Nodes.Mov(Nodes.Tmp(), 0), {
     EMIT(OP({
         .fmt = "mov $vr, $vr\n",
         .oprs[0] = { .vreg = dst },
-        .oprs[1] = { .vreg = src }
+        .oprs[1] = { .vreg = src },
+        .use = { src },
+        .def = { dst }
     }));
 })
 
 RULE(Nodes.Tmp(), {
-    return VREG({
-        .id = root->index
-    });
+    return VRegForTmp(state, root);
 })
 
 RULE(Nodes.Add(0, 0), {
@@ -29,7 +29,9 @@ RULE(Nodes.Add(0, 0), {
     EMIT(OP({
         .fmt = "add $vr, $vr\n",
         .oprs[0] = { .vreg = left },
-        .oprs[1] = { .vreg = right }
+        .oprs[1] = { .vreg = right },
+        .use = { left, right },
+        .def = { left }
     }));
     return left;
 })
@@ -39,7 +41,8 @@ RULE(Nodes.I32(0), {
     EMIT(OP({
         .fmt = "mov $vr, $i32\n",
         .oprs[0] = { .vreg = dst },
-        .oprs[1] = { .i32 = root->i32 }
+        .oprs[1] = { .i32 = root->i32 },
+        .def = { dst }
     }));
     return dst;
 })

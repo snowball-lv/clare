@@ -3,6 +3,7 @@
 #include <helpers/Unused.h>
 #include <collections/List.h>
 #include <collections/Set.h>
+#include <collections/Map.h>
 #include <helpers/Types.h>
 
 #include <stdio.h>
@@ -34,18 +35,45 @@ typedef struct {
 typedef struct {
     const char *fmt;
     Opr oprs[MAX_OPRS];
+    VReg *use[MAX_OPRS];
+    VReg *def[MAX_OPRS];
 } Op;
 
 HEAP_DEF(Op)
 #define OP(...)    HEAP(Op, __VA_ARGS__)
+
+typedef struct {
+    Map *vregs;
+} MunchState;
+
+static VReg *VRegForTmp(MunchState *state, Node *tmp) {
+    Map *map = state->vregs;
+    if (!MapContains(map, tmp)) {
+        VReg *vreg = VREG({
+            .id = tmp->index
+        });
+        MapPut(map, tmp, vreg);
+    }
+    return MapGet(map, tmp);
+}
 
 #define MANGLE(name)    i386 ## name
 #define RULE_FILE       <backends/i386/i386.rules>
 #define RET_TYPE        VReg *
 #define RET_DEFAULT     0
 
+#define STATE
+#define STATE_T         MunchState
+#define STATE_INIT      { state->vregs = NewMap(); }
+#define STATE_DEINIT    { DeleteMap(state->vregs); }
+
     #include <ir/muncher.def>
     
+#undef STATE_DEINIT
+#undef STATE_INIT
+#undef STATE_T
+#undef STATE
+
 #undef RET_DEFAULT
 #undef RET_TYPE
 #undef RULE_FILE
@@ -119,4 +147,30 @@ void PrintOps(List *ops) {
     LIST_EACH(ops, Op *, op, {
         PrintOp(op);
     });
+}
+
+Set *OpUse(void *op) {
+    Set *use = NewSet();
+    for (int i = 0; i < MAX_OPRS; i++) {
+        VReg *vreg = ((Op *)op)->use[i];
+        if (vreg != 0) {
+            SetAdd(use, vreg);
+        }
+    }
+    return use;
+}
+
+Set *OpDef(void *op) {
+    Set *def = NewSet();
+    for (int i = 0; i < MAX_OPRS; i++) {
+        VReg *vreg = ((Op *)op)->def[i];
+        if (vreg != 0) {
+            SetAdd(def, vreg);
+        }
+    }
+    return def;
+}
+
+int VRegIndex(void *vreg) {
+    return ((VReg *)vreg)->id;
 }

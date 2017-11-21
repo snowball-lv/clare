@@ -3,11 +3,22 @@
 #define MUNCH_F       MANGLE(Munch)
 #define MUNCH_F2      MUNCH_F ## 2
 
-static RET_TYPE MUNCH_F2(Node *root, List *patterns, List *ops) {
+
+#ifdef STATE
+    static RET_TYPE MUNCH_F2(Node *root, List *patterns, List *ops, STATE_T *state) 
+#else
+    static RET_TYPE MUNCH_F2(Node *root, List *patterns, List *ops) 
+#endif
+{
     
     int _index = 0;
     
-    #define MUNCH(node)     MUNCH_F2(node, patterns, ops)
+    #ifdef STATE
+        #define MUNCH(node)     MUNCH_F2(node, patterns, ops, state)
+    #else
+        #define MUNCH(node)     MUNCH_F2(node, patterns, ops)
+    #endif
+    
     #define EMIT(op)        ListAdd(ops, op)
     
     #define RULE(pattern, action) {             \
@@ -30,6 +41,12 @@ static RET_TYPE MUNCH_F2(Node *root, List *patterns, List *ops) {
 
 List *MUNCH_F(Node *root) {
     
+    #ifdef STATE
+        STATE_T _state = { 0 };
+        STATE_T *state = &_state;
+        STATE_INIT;
+    #endif
+    
     List *ops = NewList();
     List *patterns = NewList();
     
@@ -37,12 +54,20 @@ List *MUNCH_F(Node *root) {
         #include RULE_FILE
     #undef RULE
     
-    MUNCH_F2(root, patterns, ops);
+    #ifdef STATE
+        MUNCH_F2(root, patterns, ops, state);
+    #else
+        MUNCH_F2(root, patterns, ops);
+    #endif
     
     LIST_EACH(patterns, Node *, pattern, {
         NodeDeleteTree(pattern);
     });
     DeleteList(patterns);
+    
+    #ifdef STATE
+        STATE_DEINIT;
+    #endif
     
     return ops;
 }

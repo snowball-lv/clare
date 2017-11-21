@@ -39,11 +39,11 @@ void ListRemove(List *list, int index);
     }                                                   \
 }
 
-#define LIST_REV(list, type, value, block) {        \
+#define LIST_REV(list, type, value, ...) {          \
     int INDEX(value) = ListSize(list) - 1;          \
     for(; INDEX(value) >= 0; INDEX(value)--) {      \
         type value = ListGet(list, INDEX(value));   \
-        block;                                      \
+        __VA_ARGS__;                                \
     }                                               \
 }
 
