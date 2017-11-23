@@ -56,6 +56,20 @@ int main() {
 	return 0;
 }
 
+void *GetSpill(RIG *rig, Coloring *coloring, void *spillColor) {
+    void *spill = 0;
+    Set *nodes = RIGNodes(rig);
+    SET_EACH(nodes, void *, vreg, {
+        void *color = ColoringGetColor(coloring, vreg);
+        if (color == spillColor) {
+            spill = vreg;
+            break;
+        }
+    });
+    DeleteSet(nodes);
+    return spill;
+}
+
 Coloring *Color(List *ops) {
     UNUSED(ops);
     
@@ -100,15 +114,25 @@ Coloring *Color(List *ops) {
     SetAdd(colors, "eax");
     SetAdd(colors, "ecx");
     
+    const char *SPILL = "[spill]";
+    
     Coloring *coloring = ColorRIG(
         rig,
         colors,
         precoloring,
-        "[spill]");
+        (void *)SPILL);
         
     DeleteMap(precoloring);
     DeleteSet(colors);
-    DeleteRIG(rig);
+    
+    void *spill = GetSpill(rig, coloring, (void *)SPILL);
+    if (spill != 0) {
+        int index = VRegIndex(spill);
+        printf("spill: %d\n", index);
+        DeleteRIG(rig);
+    } else {
+        DeleteRIG(rig);
+    }
     
     return coloring;
 }

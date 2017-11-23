@@ -185,3 +185,9 @@ void PrintColoredOps(List *ops, Coloring *coloring) {
         PrintOp(op, coloring);
     });
 }
+
+List *Spill(List *ops, void *vreg) {
+    UNUSED(ops);
+    UNUSED(vreg);
+    return 0;
+}

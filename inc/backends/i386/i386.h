@@ -15,3 +15,4 @@ Set *OpDef(void *op);
 int VRegIndex(void *vreg);
 
 void PrintColoredOps(List *ops, Coloring *coloring);
+List *Spill(List *ops, void *vreg);
