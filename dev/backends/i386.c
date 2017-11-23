@@ -15,7 +15,7 @@
 
 #include <stdio.h>
 
-void Color(List *ops);
+Coloring *Color(List *ops);
 
 int main() {
     assert(MemEmpty());
@@ -39,7 +39,10 @@ int main() {
     List *ops = i386Munch(root);
     PrintOps(ops);
     printf("------------------------\n");
-    Color(ops);
+    Coloring *coloring = Color(ops);
+    printf("------------------------\n");
+    PrintColoredOps(ops, coloring);
+    DeleteColoring(coloring);
     
     DeleteOps(ops);
     DeleteList(ops);
@@ -53,7 +56,7 @@ int main() {
 	return 0;
 }
 
-void Color(List *ops) {
+Coloring *Color(List *ops) {
     UNUSED(ops);
     
     RIG *rig = NewRIG();
@@ -65,12 +68,14 @@ void Color(List *ops) {
         
         Set *def = OpDef(op);
         SET_EACH(def, void *, vreg, {
+            RIGAdd(rig, vreg);
             SetRemove(live, vreg);
         });
         DeleteSet(def);
         
         Set *use = OpUse(op);
         SET_EACH(use, void *, vreg, {
+            RIGAdd(rig, vreg);
             SetAdd(live, vreg);
         });
         DeleteSet(use);
@@ -78,11 +83,12 @@ void Color(List *ops) {
         printf("#");
         SET_EACH(live, void *, vreg, {
             int index = VRegIndex(vreg);
+            if (index == 1) {
+                // MapPut(precoloring, vreg, "eax");
+            }
             printf(" %d", index);
-            RIGAdd(rig, vreg);
             SET_EACH(live, void *, edge, {
                 if (vreg != edge) {
-                    RIGAdd(rig, edge);
                     RIGConnect(rig, vreg, edge);
                 }
             });
@@ -92,6 +98,7 @@ void Color(List *ops) {
     DeleteSet(live);
     
     SetAdd(colors, "eax");
+    SetAdd(colors, "ecx");
     
     Coloring *coloring = ColorRIG(
         rig,
@@ -99,8 +106,9 @@ void Color(List *ops) {
         precoloring,
         "[spill]");
         
-    DeleteColoring(coloring);
     DeleteMap(precoloring);
     DeleteSet(colors);
     DeleteRIG(rig);
+    
+    return coloring;
 }

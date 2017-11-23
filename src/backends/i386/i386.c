@@ -105,7 +105,7 @@ void DeleteOps(List *ops) {
     });
 }
 
-static void PrintOp(Op *op) {
+static void PrintOp(Op *op, Coloring *coloring) {
 
     const char *fmt = op->fmt;
     
@@ -129,7 +129,12 @@ static void PrintOp(Op *op) {
     while (1) {
         
         RULE("$vr", {
-            printf("$vr%d", opr->vreg->id);
+            if (coloring != 0) {
+                char *color = ColoringGetColor(coloring, opr->vreg);
+                printf("%s", color);
+            } else {
+                printf("$vr%d", opr->vreg->id);
+            }
         });
             
         RULE("$i32", {
@@ -145,7 +150,7 @@ static void PrintOp(Op *op) {
 
 void PrintOps(List *ops) {
     LIST_EACH(ops, Op *, op, {
-        PrintOp(op);
+        PrintOp(op, 0);
     });
 }
 
@@ -173,4 +178,10 @@ Set *OpDef(void *op) {
 
 int VRegIndex(void *vreg) {
     return ((VReg *)vreg)->id;
+}
+
+void PrintColoredOps(List *ops, Coloring *coloring) {
+    LIST_EACH(ops, Op *, op, {
+        PrintOp(op, coloring);
+    });
 }
