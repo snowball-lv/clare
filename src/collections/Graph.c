@@ -36,11 +36,13 @@ int GraphContains(Graph *graph, void *node) {
 
 void GraphRemove(Graph *graph, void *node) {
     if (GraphContains(graph, node)) {
-        Set *edges = MapGet(graph->map, node);
+        // Set *edges = MapGet(graph->map, node);
+        Set *edges = GraphEdges(graph, node);
         SET_EACH(edges, void *, edge, {
             GraphDisconnect(graph, node, edge);
         });
         DeleteSet(edges);
+        DeleteSet(MapGet(graph->map, node));
         MapRemove(graph->map, node);
     }
 }

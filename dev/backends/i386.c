@@ -79,6 +79,13 @@ void Color(List *ops) {
         SET_EACH(live, void *, vreg, {
             int index = VRegIndex(vreg);
             printf(" %d", index);
+            RIGAdd(rig, vreg);
+            SET_EACH(live, void *, edge, {
+                if (vreg != edge) {
+                    RIGAdd(rig, edge);
+                    RIGConnect(rig, vreg, edge);
+                }
+            });
         });
         printf("\n");
     });
