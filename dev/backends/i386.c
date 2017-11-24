@@ -129,7 +129,19 @@ Coloring *Color(List *ops) {
     if (spill != 0) {
         int index = VRegIndex(spill);
         printf("spill: %d\n", index);
+    
+        List *ops2 = Spill(ops, spill);
+        ListClear(ops);
+        LIST_EACH(ops2, void *, op, {
+            ListAdd(ops, op);
+        })
+        DeleteList(ops2);
+    
         DeleteRIG(rig);
+        DeleteColoring(coloring);
+    
+        return Color(ops);
+    
     } else {
         DeleteRIG(rig);
     }

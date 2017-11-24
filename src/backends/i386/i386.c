@@ -106,6 +106,44 @@ void DeleteOps(List *ops) {
 }
 
 static void PrintOp(Op *op, Coloring *coloring) {
+    
+    const char *fmt = op->fmt;
+    const char *ptr = fmt;
+    int opr_counter = 0;
+    
+    while (1) {
+        
+        size_t spn = strcspn(ptr, "$");
+        printf("%.*s", (int) spn, ptr);
+        ptr += spn;
+        
+        if (strncmp("$vr", ptr, 3) == 0) {
+            
+            Opr *opr = &op->oprs[opr_counter];
+            if (coloring != 0) {
+                char *color = ColoringGetColor(coloring, opr->vreg);
+                printf("%s", color);
+            } else {
+                printf("$vr%d", opr->vreg->id);
+            }
+            opr_counter++;
+            ptr += 3;
+            
+        } else if (strncmp("$i32", ptr, 4) == 0) {
+            
+            Opr *opr = &op->oprs[opr_counter];
+            printf("%d", opr->i32);
+            opr_counter++;
+            ptr += 4;
+            
+        } else {
+            printf("%s", ptr);
+            break;
+        }
+    }
+}
+    
+void PrintOp_Old(Op *op, Coloring *coloring) {
 
     const char *fmt = op->fmt;
     
@@ -129,6 +167,7 @@ static void PrintOp(Op *op, Coloring *coloring) {
     while (1) {
         
         RULE("$vr", {
+            printf("printing vr\n");
             if (coloring != 0) {
                 char *color = ColoringGetColor(coloring, opr->vreg);
                 printf("%s", color);
@@ -138,6 +177,7 @@ static void PrintOp(Op *op, Coloring *coloring) {
         });
             
         RULE("$i32", {
+            printf("printing i32\n");
             printf("%d", opr->i32);
         });
         
@@ -186,8 +226,56 @@ void PrintColoredOps(List *ops, Coloring *coloring) {
     });
 }
 
-List *Spill(List *ops, void *vreg) {
-    UNUSED(ops);
-    UNUSED(vreg);
+static int IsVRegUsed(Op *op, VReg *vreg) {
+    for (int i = 0; i < MAX_OPRS; i++) {
+        if (op->use[i] == vreg || op->def[i] == vreg) {
+            return 1;
+        }
+    }
     return 0;
+}
+
+static void SubVReg(Op *op, VReg *vreg, VReg *nvreg) {
+    for (int i = 0; i < MAX_OPRS; i++) {
+        if (op->oprs[i].vreg == vreg) {
+            op->oprs[i].vreg = nvreg;
+        }
+        if (op->use[i] == vreg) {
+            op->use[i] = nvreg;
+        }
+        if (op->def[i] == vreg) {
+            op->def[i] = nvreg;
+        }
+    }
+}
+
+List *Spill(List *ops, void *vreg) {
+    List *new_ops = NewList();
+    LIST_EACH(ops, Op *, op, {
+        if (IsVRegUsed(op, vreg)) {
+            
+            VReg *tmpvreg = NewVReg();
+            
+            ListAdd(new_ops, OP({
+                .fmt = "load $vr, [loc vr $i32]\n",
+                .oprs[0] = { .vreg = tmpvreg },
+                .oprs[1] = { .i32 = VRegIndex(vreg) },
+                .def = { tmpvreg }
+            }));
+            
+            SubVReg(op, vreg, tmpvreg);
+            ListAdd(new_ops, op);
+            
+            ListAdd(new_ops, OP({
+                .fmt = "store [loc vr $i32], $vr\n",
+                .oprs[0] = { .i32 = VRegIndex(vreg) },
+                .oprs[1] = { .vreg = tmpvreg },
+                .use = { tmpvreg }
+            }));
+            
+        } else {
+            ListAdd(new_ops, op);
+        }
+    });
+    return new_ops;
 }

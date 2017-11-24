@@ -132,3 +132,7 @@ List *_ListInternalFromVA(int marker, ...) {
     
     return list;
 }
+
+void ListClear(List *list) {
+    list->size = 0;
+}

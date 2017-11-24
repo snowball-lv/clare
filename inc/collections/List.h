@@ -10,6 +10,8 @@ void ListPrepend(List *list, void *value);
 int ListSize(List *list);
 void *ListGet(List *list, int index);
 
+void ListClear(List *list);
+
 #define INDEX(value) value ## _index
 
 #define LIST_EACH(list, type, value, block) {               \
