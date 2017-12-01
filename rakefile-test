@@ -5,6 +5,7 @@ require "fileutils"
 
 
 SRCS = FileList["dev/**/*.c"]
+DEPS = SRCS.pathmap("deps/%X.deps")
 OBJS = SRCS.pathmap("out/%X.o")
 BINS = SRCS.pathmap("%{^dev/,bin/tests/}X")
 
@@ -23,7 +24,10 @@ LFLAGS = [
     "-l clare"
 ]
 
-SRCS.zip(OBJS, BINS).each do |src, obj, bin|
+SRCS.zip(DEPS, OBJS, BINS).each do |src, dep, obj, bin|
+    
+    raise "Missing dependency file: #{dep}" unless File.exist?(dep)
+    deps = File.read(dep).split(/\s+/)
     
     directory(File.dirname(bin))
     file(bin => [obj, File.dirname(bin)]) do
@@ -31,7 +35,7 @@ SRCS.zip(OBJS, BINS).each do |src, obj, bin|
     end
     
     directory(File.dirname(obj))
-    file(obj => [src, File.dirname(obj)]) do
+    file(obj => deps + [File.dirname(obj)]) do
         sh "gcc #{CFLAGS.join(' ')} #{src} -o #{obj}"
     end
 end

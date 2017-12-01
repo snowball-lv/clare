@@ -1,0 +1,7 @@
+dev/color/coloring.c
+inc/mem/Mem.h
+inc/color/RIG.h
+inc/collections/Set.h
+inc/collections/List.h
+inc/color/Coloring.h
+inc/collections/Map.h
