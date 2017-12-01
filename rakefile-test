@@ -1,0 +1,64 @@
+
+
+require "colorize"
+
+
+SRCS = FileList["dev/**/*.c"]
+OBJS = SRCS.pathmap("out/%X.o")
+BINS = SRCS.pathmap("%{^dev/,bin/tests/}X")
+
+CFLAGS = [
+    "-c",
+    "-I inc",
+    "-O2",
+    "-Wall",
+    "-Wextra",
+    "-Wpedantic",
+    "-Werror"
+]
+
+LFLAGS = [
+    "-L bin",
+    "-l clare"
+]
+
+SRCS.zip(OBJS, BINS).each do |src, obj, bin|
+    
+    directory(File.dirname(bin))
+    file(bin => [obj, File.dirname(bin)]) do
+        sh "gcc #{obj} #{LFLAGS.join(' ')} -o #{bin}"
+    end
+    
+    directory(File.dirname(obj))
+    file(obj => [src, File.dirname(obj)]) do
+        sh "gcc #{CFLAGS.join(' ')} #{src} -o #{obj}"
+    end
+end
+
+task :default => BINS do
+    
+    puts
+    puts "Running tests...".colorize(:green)
+    puts
+
+    some_failed = false
+
+    Dir.chdir("bin") do
+        BINS.each do |bin|
+            bin = bin.pathmap("%{^bin/,}p")
+            if system(bin)
+                puts "#{bin}".colorize(:yellow)
+            else
+                puts "#{bin}".colorize(:red)
+                some_failed = true
+            end
+        end
+    end
+
+    puts
+    if some_failed
+        puts "some tests failed.".colorize(:red)
+    else
+        puts "all tests passed.".colorize(:green)
+    end
+end
