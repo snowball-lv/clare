@@ -1,6 +1,7 @@
 
 
 require "colorize"
+require "fileutils"
 
 
 SRCS = FileList["dev/**/*.c"]
@@ -61,4 +62,9 @@ task :default => BINS do
     else
         puts "all tests passed.".colorize(:green)
     end
+end
+
+task :clean do
+    FileUtils.rm_rf("out/dev")
+    FileUtils.rm_rf("bin/tests")
 end
