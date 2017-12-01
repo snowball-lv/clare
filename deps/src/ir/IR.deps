@@ -1,8 +1,0 @@
-src/ir/IR.c
-inc/ir/IR.h
-inc/helpers/Types.h
-inc/mem/Mem.h
-inc/ir/nodes.def
-inc/helpers/Unused.h
-inc/collections/Set.h
-inc/collections/List.h
