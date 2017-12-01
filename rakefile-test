@@ -63,8 +63,3 @@ task :default => BINS do
         puts "all tests passed.".colorize(:green)
     end
 end
-
-task :clean do
-    FileUtils.rm_rf("out/dev")
-    FileUtils.rm_rf("bin/tests")
-end

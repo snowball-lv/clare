@@ -1,0 +1,8 @@
+src/collections/StringMap.c
+inc/collections/StringMap.h
+inc/helpers/Types.h
+inc/mem/Mem.h
+inc/collections/Map.h
+inc/collections/Set.h
+inc/collections/List.h
+inc/helpers/Unused.h
