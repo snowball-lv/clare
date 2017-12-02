@@ -1,13 +1,23 @@
 #include <pasm/PAsm.h>
 
+#include <helpers/Unused.h>
+#include <collections/List.h>
+
 #include <string.h>
 #include <stdio.h>
 
 int dummy;
 
+HEAP_DEF(PAsmOp)
+
 TYPE_DEF(PAsmModule, {
     int dummy;
-}, {}, {})
+    List *header;
+}, {
+    self->header = NewList();
+}, {
+    DeleteList(self->header);
+})
 
 void PAsmPrintOp(PAsmOp *op) {
     

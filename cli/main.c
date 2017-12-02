@@ -36,5 +36,6 @@ static IRModule *SourceToIR() {
 
 static PAsmModule *IRToPAsm(IRModule *irMod) {
     UNUSED(irMod);
-    return NewPAsmModule();
+    PAsmModule *mod = NewPAsmModule();
+    return mod;
 }

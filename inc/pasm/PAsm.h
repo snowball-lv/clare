@@ -3,6 +3,7 @@
 #include <helpers/Types.h>
 
 #include <stdint.h>
+#include <stdio.h>
 
 TYPE_DECL(PAsmModule)
 
@@ -25,5 +26,7 @@ typedef struct {
     PAsmVReg *use[PASM_OP_MAX_OPRS];
     PAsmVReg *def[PASM_OP_MAX_OPRS];
 } PAsmOp;
+
+HEAP_DECL(PAsmOp)
 
 void PAsmPrintOp(PAsmOp *op);
