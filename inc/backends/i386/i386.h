@@ -4,6 +4,7 @@
 #include <collections/List.h>
 #include <collections/Set.h>
 #include <color/Coloring.h>
+#include <backends/Backend.h>
 
 List *i386Munch(Node *root);
 void DeleteOps(List *ops);
@@ -16,3 +17,5 @@ int VRegIndex(void *vreg);
 
 void PrintColoredOps(List *ops, Coloring *coloring);
 List *Spill(List *ops, void *vreg);
+
+extern Backend i386_Backend;

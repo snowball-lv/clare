@@ -1,6 +1,8 @@
 #pragma once
 
 #include <helpers/Types.h>
+#include <backends/Backend.h>
+#include <ir/IR.h>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -30,3 +32,6 @@ typedef struct {
 HEAP_DECL(PAsmOp)
 
 void PAsmPrintOp(PAsmOp *op);
+
+PAsmModule *PAsmSelect(IRModule *irMod, Backend *backend);
+void PAsmPrintModule(PAsmModule *mod);

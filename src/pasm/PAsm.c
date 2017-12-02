@@ -57,3 +57,14 @@ void PAsmPrintOp(PAsmOp *op) {
     #undef RULE
     #undef OPR
 }
+
+PAsmModule *PAsmSelect(IRModule *irMod, Backend *backend) {
+    UNUSED(irMod);
+    UNUSED(backend);
+    PAsmModule *pasmMod = NewPAsmModule();
+    return pasmMod;
+}
+
+void PAsmPrintModule(PAsmModule *mod) {
+    UNUSED(mod);
+}
