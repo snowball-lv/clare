@@ -5,10 +5,10 @@ require "fileutils"
 
 NAME = "clare"
 
-SRCS = FileList["src/**/*.c"]
+SRCS = FileList["cli/**/*.c"]
 DEPS = SRCS.pathmap("deps/%X.deps")
 OBJS = SRCS.pathmap("out/%X.o")
-BIN = "bin/#{NAME}.dll"
+BIN = "bin/#{NAME}"
 
 CFLAGS = [
     "-c",
@@ -17,12 +17,12 @@ CFLAGS = [
     "-Wall",
     "-Wextra",
     "-Wpedantic",
-    "-Werror",
-    "-fPIC"
+    "-Werror"
 ]
 
 LFLAGS = [
-    "-shared"
+    "-L bin",
+    "-l clare"
 ]
 
 SRCS.zip(DEPS, OBJS).each do |src, dep, obj|

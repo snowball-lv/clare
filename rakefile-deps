@@ -3,7 +3,11 @@
 require "fileutils"
 
 
-SRCS = FileList["src/**/*.c", "dev/**/*.c"]
+SRCS = FileList[
+    "src/**/*.c",
+    "dev/**/*.c",
+    "cli/**/*.c"
+]
 DEPS = SRCS.pathmap("deps/%X.deps")
 
 CFLAGS = [
