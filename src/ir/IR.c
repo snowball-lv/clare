@@ -4,6 +4,7 @@
 #include <collections/Set.h>
 
 #include <assert.h>
+#include <stdio.h>
 
 int dummy;
 
@@ -101,3 +102,7 @@ void NodeDeleteTree(Node *root) {
     });
     DeleteSet(nodes);
 }
+
+TYPE_DEF(IRModule, {
+    int dummy;
+}, {}, {})

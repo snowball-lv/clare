@@ -45,3 +45,5 @@ typedef struct {
 } _Nodes;
 
 extern _Nodes Nodes;
+
+TYPE_DECL(IRModule)
