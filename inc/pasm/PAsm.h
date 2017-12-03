@@ -13,6 +13,8 @@ typedef struct {
     int id;
 } PAsmVReg;
 
+HEAP_DECL(PAsmVReg)
+
 typedef struct {
     int dummy;
     PAsmVReg *vreg;
@@ -20,7 +22,7 @@ typedef struct {
     int32_t i32;
 } PAsmOpr;
 
-#define PASM_OP_MAX_OPRS    1
+#define PASM_OP_MAX_OPRS    2
 
 typedef struct {
     const char *fmt;
@@ -35,3 +37,10 @@ void PAsmPrintOp(PAsmOp *op);
 void PAsmPrintModule(PAsmModule *mod);
 
 void PAsmModuleAddOp(PAsmModule *mod, PAsmOp *op);
+
+PAsmVReg *PAsmVRegFromTmp(Node *tmp);
+
+void PAsmInit();
+void PAsmDeinit();
+
+PAsmVReg *NewPAsmVReg();

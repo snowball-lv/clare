@@ -2,6 +2,7 @@
 
 #include <helpers/Unused.h>
 #include <collections/List.h>
+#include <collections/Map.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -10,12 +11,31 @@ int dummy;
 
 HEAP_DEF(PAsmOp)
 
+static void CollectVRegs(List *ops, Set *vregs) {
+    LIST_EACH(ops, PAsmOp *, op, {
+        for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+            PAsmOpr *opr = &op->oprs[i];
+            if (opr->vreg != 0) {
+                SetAdd(vregs, opr->vreg);
+            }
+        }
+    });
+}
+
 TYPE_DEF(PAsmModule, {
     int dummy;
     List *ops;
 }, {
     self->ops = NewList();
 }, {
+    
+    Set *vregs = NewSet();
+    CollectVRegs(self->ops, vregs);
+    SET_EACH(vregs, PAsmVReg *, vreg, {
+        MemFree(vreg);
+    });
+    DeleteSet(vregs);
+    
     LIST_EACH(self->ops, PAsmOp *, op, {
         MemFree(op);
     });
@@ -76,4 +96,35 @@ void PAsmPrintModule(PAsmModule *mod) {
         PAsmPrintOp(op);
     });
     printf("-------------------\n");
+}
+
+static Map *_TmpToVregMap = 0;
+
+void PAsmInit() {
+    _TmpToVregMap = NewMap();
+}
+
+void PAsmDeinit() {
+    DeleteMap(_TmpToVregMap);
+}
+
+HEAP_DEF(PAsmVReg)
+
+PAsmVReg *PAsmVRegFromTmp(Node *tmp) {
+    if (!MapContains(_TmpToVregMap, tmp)) {
+        PAsmVReg *vreg = HEAP(PAsmVReg, {
+            .id = tmp->index
+        });
+        MapPut(_TmpToVregMap, tmp, vreg);
+    }
+    PAsmVReg *vreg = MapGet(_TmpToVregMap, tmp);
+    return vreg;
+}
+
+PAsmVReg *NewPAsmVReg() {
+    Node *tmp = IR.Tmp();
+    PAsmVReg *vreg = PAsmVRegFromTmp(tmp);
+    MapRemove(_TmpToVregMap, tmp);
+    MemFree(tmp);
+    return vreg;
 }

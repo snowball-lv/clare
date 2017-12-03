@@ -1,6 +1,61 @@
 
 
+#define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+
+RULE(IR.Seq(0, 0), {
+    MUNCH(root->kids[0]);
+    MUNCH(root->kids[1]);
+})
+
+RULE(IR.Mov(IR.Tmp(), 0), {
+    Node *tmp_dst = root->kids[0];
+    PAsmVReg *dst = PAsmVRegFromTmp(tmp_dst);
+    PAsmVReg *src = MUNCH(root->kids[1]);
+    EMIT(OP({
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = dst },
+        .oprs[1] = { .vreg = src }
+    }));
+})
+
+RULE(IR.Add(0, 0), {
+    PAsmVReg *a = MUNCH(root->kids[0]);
+    PAsmVReg *b = MUNCH(root->kids[1]);
+    EMIT(OP({
+        .fmt = "add $vr, $vr\n",
+        .oprs[0] = { .vreg = a },
+        .oprs[1] = { .vreg = b }
+    }));
+    return a;
+})
+
+RULE(IR.Tmp(), {
+    return PAsmVRegFromTmp(root);
+})
+
+RULE(IR.Arg(0), {
+    PAsmVReg *vreg = NewPAsmVReg();
+    EMIT(OP({
+        .fmt = "mov $vr, [ebp + $i32]\n",
+        .oprs[0] = { .vreg = vreg },
+        .oprs[1] = { .i32 = 8 + root->arg_index * 4 }
+    }));
+    return vreg;
+})
+
+RULE(IR.Ret(0), {
+    PAsmVReg *vreg = MUNCH(root->kids[0]);
+    EMIT(OP({
+        .fmt = "mov eax, $vr\n",
+        .oprs[0] = { .vreg = vreg }
+    }));
+    EMIT(OP({
+        .fmt = "ret\n"
+    }));
+})
 
 RULE(IR.Any(), {
     printf("no instruction selection rule for: %s\n", NodeName(root));
-});
+})
+
+#undef OP

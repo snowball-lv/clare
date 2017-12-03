@@ -16,6 +16,8 @@ static PAsmModule *IRToPasm(IRModule *irMod, Backend *backend);
 int main(int argc, char **argv) {
     assert(MemEmpty());
     
+    PAsmInit();
+    
     UNUSED(argc);
     UNUSED(argv);
     printf("--- clare ---\n");
@@ -25,12 +27,13 @@ int main(int argc, char **argv) {
     Backend *backend = GetBackend("i386");
     PAsmModule *pasmMod = IRToPasm(irMod, backend);
     
-    
     // TODO
     PAsmPrintModule(pasmMod);
     
     DeletePAsmModule(pasmMod);
     DeleteIRModule(irMod);
+    
+    PAsmDeinit();
     
     assert(MemEmpty());
     return 0;
