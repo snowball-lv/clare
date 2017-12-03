@@ -31,3 +31,4 @@ typedef struct {
 HEAP_DECL(PAsmOp)
 
 void PAsmPrintOp(PAsmOp *op);
+void PAsmPrintModule(PAsmModule *mod);

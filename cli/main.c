@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
     DeleteIRModule(irMod);
     
     // TODO
+    PAsmPrintModule(pasmMod);
     
     DeletePAsmModule(pasmMod);
     
@@ -42,7 +43,7 @@ static PAsmModule *IRToPasm(IRModule *irMod, Backend *backend) {
     
     Set *funcs = IRModuleFunctions(irMod);
     SET_EACH(funcs, IRFunction *, func, {
-        UNUSED(func);
+        backend->Select(pasmMod, func);
     });
     DeleteSet(funcs);
     

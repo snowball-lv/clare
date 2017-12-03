@@ -57,3 +57,9 @@ void PAsmPrintOp(PAsmOp *op) {
     #undef RULE
     #undef OPR
 }
+
+void PAsmPrintModule(PAsmModule *mod) {
+    UNUSED(mod);
+    printf("--- pasm module ---\n");
+    printf("-------------------\n");
+}
