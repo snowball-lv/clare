@@ -279,7 +279,3 @@ List *Spill(List *ops, void *vreg) {
     });
     return new_ops;
 }
-
-Backend i386_Backend = {
-    .dummy = 0,
-};

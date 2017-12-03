@@ -47,3 +47,7 @@ typedef struct {
 extern _Nodes Nodes;
 
 TYPE_DECL(IRModule)
+TYPE_DECL(IRFunction)
+
+IRFunction *IRModuleNewFunction(IRModule *mod, const char *name);
+void IRFunctionSetBody(IRFunction *func, Node *body);

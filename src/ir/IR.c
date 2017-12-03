@@ -2,9 +2,11 @@
 
 #include <helpers/Unused.h>
 #include <collections/Set.h>
+#include <collections/Map.h>
 
 #include <assert.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 int dummy;
 
@@ -105,4 +107,38 @@ void NodeDeleteTree(Node *root) {
 
 TYPE_DEF(IRModule, {
     int dummy;
-}, {}, {})
+    Map *functions;
+}, {
+    self->functions = NewMap();
+}, {
+    MAP_EACH(self->functions, char *, name, IRFunction *, func, {
+        DeleteIRFunction(func);
+    });
+    DeleteMap(self->functions);
+})
+
+TYPE_DEF(IRFunction, {
+    int dummy;
+    Node *body;
+}, {
+    self->body = 0;
+}, {
+    
+})
+
+IRFunction *IRModuleNewFunction(IRModule *mod, const char *name) {
+
+    if (MapContains(mod->functions, (void *)name)) {
+        printf("module already contains function: %s\n", name);
+        exit(1);
+        return 0;
+    }
+    
+    IRFunction *irFunc = NewIRFunction();
+    MapPut(mod->functions, (void *)name, irFunc);
+    return irFunc;
+}
+
+void IRFunctionSetBody(IRFunction *func, Node *body) {
+    func->body = body;
+}

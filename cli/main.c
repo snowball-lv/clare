@@ -4,13 +4,13 @@
 #include <ir/IR.h>
 #include <mem/Mem.h>
 #include <pasm/PAsm.h>
-#include <backends/Backend.h>
-#include <backends/i386/i386.h>
+#include <backends/Backends.h>
 
 #include <stdio.h>
 #include <assert.h>
 
 static IRModule *SourceToIR();
+static PAsmModule *IRToPasm(IRModule *irMod, Backend *backend);
 
 int main(int argc, char **argv) {
     assert(MemEmpty());
@@ -21,12 +21,12 @@ int main(int argc, char **argv) {
     
     IRModule *irMod = SourceToIR();
     
-    Backend *backend = &i386_Backend;
-    PAsmModule *pasmMod = PAsmSelect(irMod, backend);
-
+    Backend *backend = GetBackend("i386");
+    PAsmModule *pasmMod = IRToPasm(irMod, backend);
+    
     DeleteIRModule(irMod);
-
-    PAsmPrintModule(pasmMod);
+    
+    // TODO
     
     DeletePAsmModule(pasmMod);
     
@@ -34,6 +34,19 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+static PAsmModule *IRToPasm(IRModule *irMod, Backend *backend) {
+    UNUSED(irMod);
+    UNUSED(backend);
+    PAsmModule *pasmMod = NewPAsmModule();
+    return pasmMod;
+}
+
 static IRModule *SourceToIR() {
-    return NewIRModule();
+    IRModule *irMod = NewIRModule();
+    IRFunction *func = IRModuleNewFunction(irMod, "sum");
+    
+    
+    
+    UNUSED(func);
+    return irMod;
 }
