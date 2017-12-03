@@ -31,7 +31,7 @@ NODE(Seq, (Node *left, Node *right), {
 })
 
 NODE(Ret, (Node *node), {
-    self->kids[1] = node;
+    self->kids[0] = node;
 })
 
 NODE(Arg, (int arg_index), {
