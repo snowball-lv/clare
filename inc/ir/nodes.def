@@ -29,3 +29,13 @@ NODE(Seq, (Node *left, Node *right), {
     self->kids[0] = left;
     self->kids[1] = right;
 })
+
+NODE(Ret, (Node *node), {
+    self->kids[1] = node;
+})
+
+NODE(Arg, (int arg_index), {
+    self->arg_index = arg_index;
+})
+
+#undef SIMPLE

@@ -13,6 +13,7 @@ struct Node {
     union {
         int32_t i32;
         int index;
+        int arg_index;
     };
 };
 
@@ -45,6 +46,7 @@ typedef struct {
 } _Nodes;
 
 extern _Nodes Nodes;
+extern _Nodes IR;
 
 TYPE_DECL(IRModule)
 TYPE_DECL(IRFunction)

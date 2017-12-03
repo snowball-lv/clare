@@ -73,6 +73,15 @@ _Nodes Nodes = {
     #undef NODE
 };
 
+_Nodes IR = {
+
+    .dummy = 0,    
+    
+    #define NODE(name, params, init)    .name = _ ## name,
+        #include <ir/nodes.def>
+    #undef NODE
+};
+
 const char *NodeName(Node *node) {
     switch (node->type) {
         #define NODE(name, params, init) case NT(name): return #name;
@@ -123,7 +132,9 @@ TYPE_DEF(IRFunction, {
 }, {
     self->body = 0;
 }, {
-    
+    if (self->body != 0) {
+        NodeDeleteTree(self->body);
+    }
 })
 
 IRFunction *IRModuleNewFunction(IRModule *mod, const char *name) {

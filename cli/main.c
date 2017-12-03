@@ -45,8 +45,18 @@ static IRModule *SourceToIR() {
     IRModule *irMod = NewIRModule();
     IRFunction *func = IRModuleNewFunction(irMod, "sum");
     
+    Node *a = IR.Tmp();
+    Node *b = IR.Tmp();
+    Node *c = IR.Tmp();
     
-    
-    UNUSED(func);
+    Node *body = IR.Seq(
+        IR.Seq(
+            IR.Mov(a, IR.Arg(0)),
+            IR.Seq(
+                IR.Mov(b, IR.Arg(1)),
+                IR.Mov(c, IR.Arg(2)))),
+        IR.Ret(IR.Add(a, IR.Add(b, c))));
+
+    IRFunctionSetBody(func, body);
     return irMod;
 }
