@@ -1,0 +1,6 @@
+
+
+
+RULE(IR.Any(), {
+    printf("no instruction selection rule for: %s\n", NodeName(root));
+});

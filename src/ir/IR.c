@@ -182,3 +182,7 @@ List *IRModuleFunctions(IRModule *mod) {
     });
     return funcs;
 }
+
+Node *IRFunctionBody(IRFunction *func) {
+    return func->body;
+}

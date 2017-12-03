@@ -58,3 +58,4 @@ void IRFunctionSetBody(IRFunction *func, Node *body);
 void IRPrintTree(Node *root);
 List *IRModuleFunctions(IRModule *mod);
 const char *IRFunctionName(IRFunction *func);
+Node *IRFunctionBody(IRFunction *func);
