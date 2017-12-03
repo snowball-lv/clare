@@ -1,6 +1,8 @@
 #pragma once
 
 #include <helpers/Types.h>
+#include <backends/Backends.h>
+#include <collections/Set.h>
 
 #include <stdint.h>
 
@@ -55,3 +57,4 @@ IRFunction *IRModuleNewFunction(IRModule *mod, const char *name);
 void IRFunctionSetBody(IRFunction *func, Node *body);
 
 void IRPrintTree(Node *root);
+Set *IRModuleFunctions(IRModule *mod);

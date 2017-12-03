@@ -168,3 +168,7 @@ void IRPrintTree(Node *root) {
     List *ops = IRPrinterMunch(root);
     DeleteList(ops);
 }
+
+Set *IRModuleFunctions(IRModule *mod) {
+    return MapKeys(mod->functions);
+}

@@ -5,6 +5,7 @@
 #include <mem/Mem.h>
 #include <pasm/PAsm.h>
 #include <backends/Backends.h>
+#include <collections/Set.h>
 
 #include <stdio.h>
 #include <assert.h>
@@ -38,6 +39,13 @@ static PAsmModule *IRToPasm(IRModule *irMod, Backend *backend) {
     UNUSED(irMod);
     UNUSED(backend);
     PAsmModule *pasmMod = NewPAsmModule();
+    
+    Set *funcs = IRModuleFunctions(irMod);
+    SET_EACH(funcs, IRFunction *, func, {
+        UNUSED(func);
+    });
+    DeleteSet(funcs);
+    
     return pasmMod;
 }
 
