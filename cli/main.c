@@ -43,7 +43,7 @@ static PAsmModule *IRToPasm(IRModule *irMod, Backend *backend) {
 
 static IRModule *SourceToIR() {
     IRModule *irMod = NewIRModule();
-    IRFunction *func = IRModuleNewFunction(irMod, "sum");
+    IRFunction *func = IRModuleNewFunction(irMod, "sum3");
     
     Node *a = IR.Tmp();
     Node *b = IR.Tmp();
@@ -56,6 +56,10 @@ static IRModule *SourceToIR() {
                 IR.Mov(b, IR.Arg(1)),
                 IR.Mov(c, IR.Arg(2)))),
         IR.Ret(IR.Add(a, IR.Add(b, c))));
+        
+    printf("--- sum3 ---\n");
+    IRPrintTree(body);
+    printf("------------\n");
 
     IRFunctionSetBody(func, body);
     return irMod;
