@@ -11,7 +11,6 @@
 #include <assert.h>
 
 static IRModule *SourceToIR();
-static Backend *GetBackend();
 
 int main(int argc, char **argv) {
     assert(MemEmpty());
@@ -22,7 +21,7 @@ int main(int argc, char **argv) {
     
     IRModule *irMod = SourceToIR();
     
-    Backend *backend = GetBackend();
+    Backend *backend = &i386_Backend;
     PAsmModule *pasmMod = PAsmSelect(irMod, backend);
 
     DeleteIRModule(irMod);
@@ -37,8 +36,4 @@ int main(int argc, char **argv) {
 
 static IRModule *SourceToIR() {
     return NewIRModule();
-}
-
-static Backend *GetBackend() {
-    return &i386_Backend;
 }
