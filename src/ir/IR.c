@@ -129,6 +129,7 @@ TYPE_DEF(IRModule, {
 TYPE_DEF(IRFunction, {
     int dummy;
     Node *body;
+    const char *name;
 }, {
     self->body = 0;
 }, {
@@ -136,6 +137,10 @@ TYPE_DEF(IRFunction, {
         NodeDeleteTree(self->body);
     }
 })
+
+const char *IRFunctionName(IRFunction *func) {
+    return func->name;
+}
 
 IRFunction *IRModuleNewFunction(IRModule *mod, const char *name) {
 
@@ -146,6 +151,7 @@ IRFunction *IRModuleNewFunction(IRModule *mod, const char *name) {
     }
     
     IRFunction *irFunc = NewIRFunction();
+    irFunc->name = name;
     MapPut(mod->functions, (void *)name, irFunc);
     return irFunc;
 }
@@ -169,6 +175,10 @@ void IRPrintTree(Node *root) {
     DeleteList(ops);
 }
 
-Set *IRModuleFunctions(IRModule *mod) {
-    return MapKeys(mod->functions);
+List *IRModuleFunctions(IRModule *mod) {
+    List *funcs = NewList();
+    MAP_EACH(mod->functions, char *, name, IRFunction *, func, {
+        ListAdd(funcs, func);
+    });
+    return funcs;
 }

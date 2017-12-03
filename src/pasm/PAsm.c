@@ -12,12 +12,19 @@ HEAP_DEF(PAsmOp)
 
 TYPE_DEF(PAsmModule, {
     int dummy;
-    List *header;
+    List *ops;
 }, {
-    self->header = NewList();
+    self->ops = NewList();
 }, {
-    DeleteList(self->header);
+    LIST_EACH(self->ops, PAsmOp *, op, {
+        MemFree(op);
+    });
+    DeleteList(self->ops);
 })
+
+void PAsmModuleAddOp(PAsmModule *mod, PAsmOp *op) {
+    ListAdd(mod->ops, op);
+}
 
 void PAsmPrintOp(PAsmOp *op) {
     
@@ -50,6 +57,10 @@ void PAsmPrintOp(PAsmOp *op) {
             printf("%d", OPR->i32);
         });
         
+        RULE("$str", {
+            printf("%s", OPR->str);
+        });
+        
         printf("%s", ptr);
         break;
     }
@@ -61,5 +72,8 @@ void PAsmPrintOp(PAsmOp *op) {
 void PAsmPrintModule(PAsmModule *mod) {
     UNUSED(mod);
     printf("--- pasm module ---\n");
+    LIST_EACH(mod->ops, PAsmOp *, op, {
+        PAsmPrintOp(op);
+    });
     printf("-------------------\n");
 }

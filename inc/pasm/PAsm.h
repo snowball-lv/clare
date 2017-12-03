@@ -16,6 +16,7 @@ typedef struct {
 typedef struct {
     int dummy;
     PAsmVReg *vreg;
+    const char *str;
     int32_t i32;
 } PAsmOpr;
 
@@ -32,3 +33,5 @@ HEAP_DECL(PAsmOp)
 
 void PAsmPrintOp(PAsmOp *op);
 void PAsmPrintModule(PAsmModule *mod);
+
+void PAsmModuleAddOp(PAsmModule *mod, PAsmOp *op);

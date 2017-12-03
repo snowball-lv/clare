@@ -5,7 +5,7 @@
 #include <mem/Mem.h>
 #include <pasm/PAsm.h>
 #include <backends/Backends.h>
-#include <collections/Set.h>
+#include <collections/List.h>
 
 #include <stdio.h>
 #include <assert.h>
@@ -25,27 +25,25 @@ int main(int argc, char **argv) {
     Backend *backend = GetBackend("i386");
     PAsmModule *pasmMod = IRToPasm(irMod, backend);
     
-    DeleteIRModule(irMod);
     
     // TODO
     PAsmPrintModule(pasmMod);
     
     DeletePAsmModule(pasmMod);
+    DeleteIRModule(irMod);
     
     assert(MemEmpty());
     return 0;
 }
 
 static PAsmModule *IRToPasm(IRModule *irMod, Backend *backend) {
-    UNUSED(irMod);
-    UNUSED(backend);
     PAsmModule *pasmMod = NewPAsmModule();
     
-    Set *funcs = IRModuleFunctions(irMod);
-    SET_EACH(funcs, IRFunction *, func, {
+    List *funcs = IRModuleFunctions(irMod);
+    LIST_EACH(funcs, IRFunction *, func, {
         backend->Select(pasmMod, func);
     });
-    DeleteSet(funcs);
+    DeleteList(funcs);
     
     return pasmMod;
 }
