@@ -40,10 +40,12 @@ RULE(IR.Tmp(), {
 RULE(IR.Arg(0), {
     PAsmVReg *vreg = NewPAsmVReg();
     EMIT(OP({
-        .fmt = "mov $vr, [ebp + $i32]\n",
+        .fmt = "mov $vr, [$vr + $i32]\n",
         .oprs[0] = { .vreg = vreg },
-        .oprs[1] = { .i32 = 8 + root->arg_index * 4 },
-        .def = { vreg }
+        .oprs[1] = { .vreg = EBX },
+        .oprs[2] = { .i32 = 8 + root->arg_index * 4 },
+        .def = { vreg },
+        .use = { EBX }
     }));
     return vreg;
 })
@@ -51,12 +53,15 @@ RULE(IR.Arg(0), {
 RULE(IR.Ret(0), {
     PAsmVReg *vreg = MUNCH(root->kids[0]);
     EMIT(OP({
-        .fmt = "mov eax, $vr\n",
-        .oprs[0] = { .vreg = vreg },
-        .use = { vreg }
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = EAX },
+        .oprs[1] = { .vreg = vreg },
+        .use = { vreg },
+        .def = { EAX }
     }));
     EMIT(OP({
-        .fmt = "ret\n"
+        .fmt = "ret\n",
+        .use = { EAX }
     }));
 })
 

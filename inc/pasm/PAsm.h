@@ -9,8 +9,8 @@
 TYPE_DECL(PAsmModule)
 
 typedef struct {
-    int dummy;
     int id;
+    int backend;
 } PAsmVReg;
 
 HEAP_DECL(PAsmVReg)
@@ -22,7 +22,7 @@ typedef struct {
     int32_t i32;
 } PAsmOpr;
 
-#define PASM_OP_MAX_OPRS    2
+#define PASM_OP_MAX_OPRS    3
 
 typedef struct {
     const char *fmt;

@@ -17,7 +17,7 @@ static void CollectVRegs(List *ops, Set *vregs) {
     LIST_EACH(ops, PAsmOp *, op, {
         for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
             PAsmOpr *opr = &op->oprs[i];
-            if (opr->vreg != 0) {
+            if (opr->vreg != 0 && !opr->vreg->backend) {
                 SetAdd(vregs, opr->vreg);
             }
         }
