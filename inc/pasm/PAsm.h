@@ -2,6 +2,8 @@
 
 #include <helpers/Types.h>
 #include <ir/IR.h>
+#include <collections/Set.h>
+#include <collections/Map.h>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -10,7 +12,6 @@ TYPE_DECL(PAsmModule)
 
 typedef struct {
     int id;
-    int backend;
 } PAsmVReg;
 
 HEAP_DECL(PAsmVReg)

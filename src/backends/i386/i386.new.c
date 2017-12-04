@@ -7,19 +7,6 @@
 #include <stdio.h>
 #include <assert.h>
 
-static PAsmVReg *EAX = 0;
-static PAsmVReg *EBX = 0;
-
-static void _Init() {
-    EAX = NewPAsmVReg(); EAX->backend = 1;
-    EBX = NewPAsmVReg(); EBX->backend = 1;
-}
-
-static void _Deinit() {
-    MemFree(EAX);
-    MemFree(EBX);
-}
-
 #define MANGLE(name)     i386_v2_ ## name
 #define RULE_FILE       <backends/i386/i386.new.rules>
 #define RET_TYPE        PAsmVReg *
@@ -70,6 +57,4 @@ static void _Select(PAsmModule *mod, IRFunction *func) {
 Backend i386_Backend = {
     .dummy = 0,
     .Select = _Select,
-    .Init = _Init,
-    .Deinit = _Deinit
 };

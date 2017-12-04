@@ -25,7 +25,6 @@ int main(int argc, char **argv) {
     IRModule *irMod = SourceToIR();
     
     Backend *backend = GetBackend("i386");
-    backend->Init();
     
     PAsmModule *pasmMod = IRToPasm(irMod, backend);
     
@@ -38,8 +37,6 @@ int main(int argc, char **argv) {
     DeleteIRModule(irMod);
     
     PAsmDeinit();
-    
-    backend->Deinit();
     
     assert(MemEmpty());
     return 0;

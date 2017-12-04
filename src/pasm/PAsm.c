@@ -9,15 +9,13 @@
 #include <string.h>
 #include <stdio.h>
 
-int dummy;
-
 HEAP_DEF(PAsmOp)
 
 static void CollectVRegs(List *ops, Set *vregs) {
     LIST_EACH(ops, PAsmOp *, op, {
         for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
             PAsmOpr *opr = &op->oprs[i];
-            if (opr->vreg != 0 && !opr->vreg->backend) {
+            if (opr->vreg != 0) {
                 SetAdd(vregs, opr->vreg);
             }
         }
@@ -178,6 +176,8 @@ void PAsmAllocate(PAsmModule *mod) {
         });
     });
     
+    DeleteSet(live);
+    
     Set *colors = NewSet();
     SetAdd(colors, "A");
     SetAdd(colors, "B");
@@ -191,10 +191,10 @@ void PAsmAllocate(PAsmModule *mod) {
         precoloring,
         (void *)SPILL);
         
-    mod->coloring = coloring;
-    
-    DeleteMap(precoloring);
+        
     DeleteSet(colors);
+    DeleteMap(precoloring);
     DeleteRIG(rig);
-    DeleteSet(live);
+        
+    mod->coloring = coloring;
 }
