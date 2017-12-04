@@ -14,7 +14,9 @@ RULE(IR.Mov(IR.Tmp(), 0), {
     EMIT(OP({
         .fmt = "mov $vr, $vr\n",
         .oprs[0] = { .vreg = dst },
-        .oprs[1] = { .vreg = src }
+        .oprs[1] = { .vreg = src },
+        .use = { src },
+        .def = { dst }
     }));
 })
 
@@ -24,7 +26,9 @@ RULE(IR.Add(0, 0), {
     EMIT(OP({
         .fmt = "add $vr, $vr\n",
         .oprs[0] = { .vreg = a },
-        .oprs[1] = { .vreg = b }
+        .oprs[1] = { .vreg = b },
+        .use = { a, b },
+        .def = { a }
     }));
     return a;
 })
@@ -38,7 +42,8 @@ RULE(IR.Arg(0), {
     EMIT(OP({
         .fmt = "mov $vr, [ebp + $i32]\n",
         .oprs[0] = { .vreg = vreg },
-        .oprs[1] = { .i32 = 8 + root->arg_index * 4 }
+        .oprs[1] = { .i32 = 8 + root->arg_index * 4 },
+        .def = { vreg }
     }));
     return vreg;
 })
@@ -47,7 +52,8 @@ RULE(IR.Ret(0), {
     PAsmVReg *vreg = MUNCH(root->kids[0]);
     EMIT(OP({
         .fmt = "mov eax, $vr\n",
-        .oprs[0] = { .vreg = vreg }
+        .oprs[0] = { .vreg = vreg },
+        .use = { vreg }
     }));
     EMIT(OP({
         .fmt = "ret\n"

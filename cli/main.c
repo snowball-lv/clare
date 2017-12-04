@@ -29,6 +29,8 @@ int main(int argc, char **argv) {
     
     // TODO
     PAsmPrintModule(pasmMod);
+    PAsmAllocate(pasmMod);
+    PAsmPrintModule(pasmMod);
     
     DeletePAsmModule(pasmMod);
     DeleteIRModule(irMod);

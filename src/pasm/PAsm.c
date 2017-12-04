@@ -3,6 +3,8 @@
 #include <helpers/Unused.h>
 #include <collections/List.h>
 #include <collections/Map.h>
+#include <color/RIG.h>
+#include <color/Coloring.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -25,6 +27,7 @@ static void CollectVRegs(List *ops, Set *vregs) {
 TYPE_DEF(PAsmModule, {
     int dummy;
     List *ops;
+    Coloring *coloring;
 }, {
     self->ops = NewList();
 }, {
@@ -40,13 +43,17 @@ TYPE_DEF(PAsmModule, {
         MemFree(op);
     });
     DeleteList(self->ops);
+    
+    if (self->coloring != 0) {
+        DeleteColoring(self->coloring);
+    }
 })
 
 void PAsmModuleAddOp(PAsmModule *mod, PAsmOp *op) {
     ListAdd(mod->ops, op);
 }
 
-void PAsmPrintOp(PAsmOp *op) {
+static void PAsmPrintOp(PAsmModule *mod, PAsmOp *op) {
     
     const char *fmt = op->fmt;
     const char *ptr = fmt;
@@ -70,7 +77,12 @@ void PAsmPrintOp(PAsmOp *op) {
         ptr += spn;
         
         RULE("$vr", {
-            printf("$vr%d", OPR->vreg->id);
+            if (mod->coloring != 0) {
+                const char *color = ColoringGetColor(mod->coloring, OPR->vreg);
+                printf("%s", color);
+            } else {
+                printf("$vr%d", OPR->vreg->id);
+            }
         });
         
         RULE("$i32", {
@@ -93,7 +105,7 @@ void PAsmPrintModule(PAsmModule *mod) {
     UNUSED(mod);
     printf("--- pasm module ---\n");
     LIST_EACH(mod->ops, PAsmOp *, op, {
-        PAsmPrintOp(op);
+        PAsmPrintOp(mod, op);
     });
     printf("-------------------\n");
 }
@@ -127,4 +139,62 @@ PAsmVReg *NewPAsmVReg() {
     MapRemove(_TmpToVregMap, tmp);
     MemFree(tmp);
     return vreg;
+}
+
+static const char *SPILL = "[spill]";
+
+void PAsmAllocate(PAsmModule *mod) {
+    
+    List *ops = mod->ops;
+    Set *live = NewSet();
+    RIG *rig = NewRIG();
+    
+    LIST_REV(ops, PAsmOp *, op, {
+        
+        for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+            PAsmVReg *vreg = op->def[i];
+            if (vreg != 0) {
+                // def'd
+                SetRemove(live, vreg);
+                RIGAdd(rig, vreg);
+            }
+        }
+            
+        for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+            PAsmVReg *vreg = op->use[i];
+            if (vreg != 0) {
+                // used
+                SetAdd(live, vreg);
+                RIGAdd(rig, vreg);
+            }
+        }
+        
+        SET_EACH(live, PAsmVReg *, a, {
+            SET_EACH(live, PAsmVReg *, b, {
+                if (a != b) {
+                    RIGConnect(rig, a, b);
+                }
+            });
+        });
+    });
+    
+    Set *colors = NewSet();
+    SetAdd(colors, "A");
+    SetAdd(colors, "B");
+    SetAdd(colors, "C");
+    
+    Map *precoloring = NewMap();
+    
+    Coloring *coloring = ColorRIG(
+        rig,
+        colors,
+        precoloring,
+        (void *)SPILL);
+        
+    mod->coloring = coloring;
+    
+    DeleteMap(precoloring);
+    DeleteSet(colors);
+    DeleteRIG(rig);
+    DeleteSet(live);
 }
