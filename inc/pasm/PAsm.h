@@ -4,9 +4,15 @@
 #include <ir/IR.h>
 #include <collections/Set.h>
 #include <collections/Map.h>
+#include <backend/Backend.h>
 
 #include <stdint.h>
 #include <stdio.h>
+
+// TODO: fix kludge for PAsmModule and Backend
+// referencing each other
+
+typedef struct Backend Backend;
 
 TYPE_DECL(PAsmModule)
 
@@ -45,4 +51,6 @@ void PAsmDeinit();
 
 PAsmVReg *NewPAsmVReg();
 
-void PAsmAllocate(PAsmModule *mod);
+void PAsmAllocate(PAsmModule *mod); 
+
+void PAsmModuleSetBackend(Backend *backend);

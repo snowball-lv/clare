@@ -5,6 +5,7 @@
 #include <collections/Map.h>
 #include <color/RIG.h>
 #include <color/Coloring.h>
+#include <backend/Backend.h>
 
 #include <string.h>
 #include <stdio.h>
@@ -26,6 +27,7 @@ TYPE_DEF(PAsmModule, {
     int dummy;
     List *ops;
     Coloring *coloring;
+    Backend *backend;
 }, {
     self->ops = NewList();
 }, {
@@ -197,4 +199,8 @@ void PAsmAllocate(PAsmModule *mod) {
     DeleteRIG(rig);
         
     mod->coloring = coloring;
+}
+
+void PAsmModuleSetBackend(Backend *backend) {
+    UNUSED(backend);
 }

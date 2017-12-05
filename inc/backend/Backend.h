@@ -5,7 +5,14 @@
 #include <collections/Set.h>
 #include <collections/Map.h>
 
-typedef struct {
+// TODO: fix kludge for PAsmModule and Backend
+// referencing each other
+
+typedef struct PAsmModule PAsmModule;
+
+struct Backend {
     int dummy;
     void (*Select)(PAsmModule *mod, IRFunction *func);
-} Backend;
+};
+
+typedef struct Backend Backend;
