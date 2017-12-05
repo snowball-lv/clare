@@ -53,4 +53,4 @@ PAsmVReg *NewPAsmVReg();
 
 void PAsmAllocate(PAsmModule *mod); 
 
-void PAsmModuleSetBackend(Backend *backend);
+PAsmModule *PAsmModuleFromBackend(Backend *backend);

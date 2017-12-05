@@ -54,7 +54,44 @@ static void _Select(PAsmModule *mod, IRFunction *func) {
     #undef OP
 }
 
+static Set *_ColorSet = 0;
+static Map *_PrecoloringMap = 0;
+
+static void _Init() {
+    
+    _ColorSet = NewSet();
+    
+    SetAdd(_ColorSet, "eax");
+    SetAdd(_ColorSet, "ebx");
+    SetAdd(_ColorSet, "ecx");
+    SetAdd(_ColorSet, "edx");
+    
+    SetAdd(_ColorSet, "esi");
+    SetAdd(_ColorSet, "edi");
+    SetAdd(_ColorSet, "ebp");
+    SetAdd(_ColorSet, "esp");
+    
+    _PrecoloringMap = NewMap();
+}
+
+static void _Deinit() {
+    DeleteSet(_ColorSet);
+    DeleteMap(_PrecoloringMap);
+}
+
+static Set *_Colors() {
+    return _ColorSet;
+}
+
+static Map *_Precoloring() {
+    return _PrecoloringMap;
+}
+
 Backend i386_Backend = {
     .dummy = 0,
     .Select = _Select,
+    .Init = _Init,
+    .Deinit = _Deinit,
+    .Colors = _Colors,
+    .Precoloring = _Precoloring
 };

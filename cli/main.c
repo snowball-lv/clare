@@ -25,6 +25,7 @@ int main(int argc, char **argv) {
     IRModule *irMod = SourceToIR();
     
     Backend *backend = GetBackend("i386");
+    backend->Init();
     
     PAsmModule *pasmMod = IRToPasm(irMod, backend);
     
@@ -38,12 +39,15 @@ int main(int argc, char **argv) {
     
     PAsmDeinit();
     
+    backend->Deinit();
+    
     assert(MemEmpty());
     return 0;
 }
 
 static PAsmModule *IRToPasm(IRModule *irMod, Backend *backend) {
-    PAsmModule *pasmMod = NewPAsmModule();
+    
+    PAsmModule *pasmMod = PAsmModuleFromBackend(backend);
     
     List *funcs = IRModuleFunctions(irMod);
     LIST_EACH(funcs, IRFunction *, func, {

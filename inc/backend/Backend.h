@@ -13,6 +13,10 @@ typedef struct PAsmModule PAsmModule;
 struct Backend {
     int dummy;
     void (*Select)(PAsmModule *mod, IRFunction *func);
+    Set *(*Colors)();
+    Map *(*Precoloring)();
+    void (*Init)();
+    void (*Deinit)();
 };
 
 typedef struct Backend Backend;

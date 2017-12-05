@@ -24,12 +24,13 @@ static void CollectVRegs(List *ops, Set *vregs) {
 }
 
 TYPE_DEF(PAsmModule, {
-    int dummy;
     List *ops;
     Coloring *coloring;
     Backend *backend;
 }, {
     self->ops = NewList();
+    self->coloring = 0;
+    self->backend = 0;
 }, {
     
     Set *vregs = NewSet();
@@ -180,27 +181,31 @@ void PAsmAllocate(PAsmModule *mod) {
     
     DeleteSet(live);
     
-    Set *colors = NewSet();
-    SetAdd(colors, "A");
-    SetAdd(colors, "B");
-    SetAdd(colors, "C");
+    Backend *backend = mod->backend;
     
-    Map *precoloring = NewMap();
+    // Set *colors = NewSet();
+    // SetAdd(colors, "A");
+    // SetAdd(colors, "B");
+    // SetAdd(colors, "C");
+    // 
+    // Map *precoloring = NewMap();
     
     Coloring *coloring = ColorRIG(
         rig,
-        colors,
-        precoloring,
+        backend->Colors(),
+        backend->Precoloring(),
         (void *)SPILL);
         
         
-    DeleteSet(colors);
-    DeleteMap(precoloring);
+    // DeleteSet(colors);
+    // DeleteMap(precoloring);
     DeleteRIG(rig);
         
     mod->coloring = coloring;
 }
 
-void PAsmModuleSetBackend(Backend *backend) {
-    UNUSED(backend);
+PAsmModule *PAsmModuleFromBackend(Backend *backend) {
+    PAsmModule *mod = NewPAsmModule();
+    mod->backend = backend;
+    return mod;
 }
