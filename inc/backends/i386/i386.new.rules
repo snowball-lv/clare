@@ -51,12 +51,15 @@ RULE(IR.Arg(0), {
 RULE(IR.Ret(0), {
     PAsmVReg *vreg = MUNCH(root->kids[0]);
     EMIT(OP({
-        .fmt = "mov eax, $vr\n",
+        .fmt = "mov $vr, $vr\n",
+        .oprs[1] = { .vreg = EAX },
         .oprs[0] = { .vreg = vreg },
-        .use = { vreg }
+        .use = { vreg },
+        .def = { EAX }
     }));
     EMIT(OP({
-        .fmt = "ret\n"
+        .fmt = "ret\n",
+        .use = { EAX }
     }));
 })
 

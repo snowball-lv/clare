@@ -16,7 +16,7 @@ static void CollectVRegs(List *ops, Set *vregs) {
     LIST_EACH(ops, PAsmOp *, op, {
         for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
             PAsmOpr *opr = &op->oprs[i];
-            if (opr->vreg != 0) {
+            if (opr->vreg != 0 && !opr->vreg->special) {
                 SetAdd(vregs, opr->vreg);
             }
         }
@@ -142,6 +142,12 @@ PAsmVReg *NewPAsmVReg() {
     return vreg;
 }
 
+PAsmVReg *NewSpecialPAsmVReg() {
+    PAsmVReg *vreg = NewPAsmVReg();
+    vreg->special = 1;
+    return vreg;
+}
+
 static const char *SPILL = "[spill]";
 
 void PAsmAllocate(PAsmModule *mod) {
@@ -183,22 +189,12 @@ void PAsmAllocate(PAsmModule *mod) {
     
     Backend *backend = mod->backend;
     
-    // Set *colors = NewSet();
-    // SetAdd(colors, "A");
-    // SetAdd(colors, "B");
-    // SetAdd(colors, "C");
-    // 
-    // Map *precoloring = NewMap();
-    
     Coloring *coloring = ColorRIG(
         rig,
         backend->Colors(),
         backend->Precoloring(),
         (void *)SPILL);
         
-        
-    // DeleteSet(colors);
-    // DeleteMap(precoloring);
     DeleteRIG(rig);
         
     mod->coloring = coloring;

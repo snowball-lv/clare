@@ -18,6 +18,7 @@ TYPE_DECL(PAsmModule)
 
 typedef struct {
     int id;
+    int special;
 } PAsmVReg;
 
 HEAP_DECL(PAsmVReg)
@@ -50,6 +51,7 @@ void PAsmInit();
 void PAsmDeinit();
 
 PAsmVReg *NewPAsmVReg();
+PAsmVReg *NewSpecialPAsmVReg();
 
 void PAsmAllocate(PAsmModule *mod); 
 
