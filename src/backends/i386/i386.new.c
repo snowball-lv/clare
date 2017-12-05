@@ -11,28 +11,36 @@ static Set *_ColorSet = 0;
 static Map *_PrecoloringMap = 0;
 
 static PAsmVReg *EAX = 0;
+static PAsmVReg *EBP = 0;
 
 static void _Init() {
     
     EAX = NewSpecialPAsmVReg();
+    EBP = NewSpecialPAsmVReg();
     
     _ColorSet = NewSet();
     
     SetAdd(_ColorSet, "eax");
-    // SetAdd(_ColorSet, "ebx");
-    // SetAdd(_ColorSet, "ecx");
-    // SetAdd(_ColorSet, "edx");
-    // 
-    // SetAdd(_ColorSet, "esi");
-    // SetAdd(_ColorSet, "edi");
-    // SetAdd(_ColorSet, "ebp");
-    // SetAdd(_ColorSet, "esp");
+    SetAdd(_ColorSet, "ebx");
+    SetAdd(_ColorSet, "ecx");
+    SetAdd(_ColorSet, "edx");
+    
+    SetAdd(_ColorSet, "esi");
+    SetAdd(_ColorSet, "edi");
+    SetAdd(_ColorSet, "ebp");
+    SetAdd(_ColorSet, "esp");
     
     _PrecoloringMap = NewMap();
+    
+    MapPut(_PrecoloringMap, EAX, "eax");
+    MapPut(_PrecoloringMap, EBP, "ebp");
 }
 
 static void _Deinit() {
+    
     MemFree(EAX);
+    MemFree(EBP);
+        
     DeleteSet(_ColorSet);
     DeleteMap(_PrecoloringMap);
 }
