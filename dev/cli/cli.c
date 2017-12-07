@@ -6,8 +6,8 @@
 
 int main() {
     assert(MemEmpty());
-
-    assert(!system("./clare"));
+    
+    assert(!system("./clare -f clare-ir -b i386 example.a.clare.ir"));
 
     assert(MemEmpty());
 	return 0;

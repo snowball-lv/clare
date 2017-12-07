@@ -1,83 +1,53 @@
-
-
 #include <helpers/Unused.h>
-#include <ir/IR.h>
 #include <mem/Mem.h>
-#include <pasm/PAsm.h>
-#include <backends/Backends.h>
-#include <collections/List.h>
+#include <cli/Args.h>
 
 #include <stdio.h>
 #include <assert.h>
+#include <string.h>
+#include <stdlib.h>
 
-static IRModule *SourceToIR();
-static PAsmModule *IRToPasm(IRModule *irMod, Backend *backend);
+static void run_compiler(Args *args);
 
 int main(int argc, char **argv) {
     assert(MemEmpty());
     
-    PAsmInit();
-    
     UNUSED(argc);
     UNUSED(argv);
-    printf("--- clare ---\n");
     
-    IRModule *irMod = SourceToIR();
+    Args args = { 0 };
     
-    Backend *backend = GetBackend("i386");
-    backend->Init();
+    for (int i = 1; i < argc; i++) {
+        // printf("%s\n", argv[i]);
+        
+        if (strcmp("-f", argv[i]) == 0) {
+            
+            args.frontend = argv[i + 1];
+            i++;
+            continue;
+            
+        } else if (strcmp("-b", argv[i]) == 0) {
+            
+            args.backend = argv[i + 1];
+            i++;
+            continue;
+            
+        } else {
+            args.source_file = argv[i];
+        }
+    }
     
-    PAsmModule *pasmMod = IRToPasm(irMod, backend);
-    
-    // TODO
-    PAsmPrintModule(pasmMod);
-    PAsmAllocate(pasmMod);
-    PAsmPrintModule(pasmMod);
-    
-    DeletePAsmModule(pasmMod);
-    DeleteIRModule(irMod);
-    
-    PAsmDeinit();
-    
-    backend->Deinit();
+    run_compiler(&args);
     
     assert(MemEmpty());
     return 0;
 }
 
-static PAsmModule *IRToPasm(IRModule *irMod, Backend *backend) {
+static void run_compiler(Args *args) {
     
-    PAsmModule *pasmMod = PAsmModuleFromBackend(backend);
+    printf("--- clare ---\n");
     
-    List *funcs = IRModuleFunctions(irMod);
-    LIST_EACH(funcs, IRFunction *, func, {
-        backend->Select(pasmMod, func);
-    });
-    DeleteList(funcs);
-    
-    return pasmMod;
-}
-
-static IRModule *SourceToIR() {
-    IRModule *irMod = NewIRModule();
-    IRFunction *func = IRModuleNewFunction(irMod, "sum3");
-    
-    Node *a = IR.Tmp();
-    Node *b = IR.Tmp();
-    Node *c = IR.Tmp();
-    
-    Node *body = IR.Seq(
-        IR.Seq(
-            IR.Mov(a, IR.Arg(0)),
-            IR.Seq(
-                IR.Mov(b, IR.Arg(1)),
-                IR.Mov(c, IR.Arg(2)))),
-        IR.Ret(IR.Add(a, IR.Add(b, c))));
-        
-    printf("--- sum3 ---\n");
-    IRPrintTree(body);
-    printf("------------\n");
-
-    IRFunctionSetBody(func, body);
-    return irMod;
+    printf("frontend: %s\n", args->frontend);
+    printf("backend: %s\n", args->backend);
+    printf("source_file: %s\n", args->source_file);
 }
