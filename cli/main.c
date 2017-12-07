@@ -94,5 +94,13 @@ static void compile_file(FILE *file, Frontend *frontend, Backend *backend) {
     IRModule *irMod = frontend->SourceToIRModule(file);
     UNUSED(irMod);
     
+    PAsmInit();
+    backend->Init();
+    
+    
+    
+    backend->Deinit();
+    PAsmDeinit();
+    
     DeleteIRModule(irMod);
 }
