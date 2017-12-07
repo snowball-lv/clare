@@ -46,6 +46,8 @@ int main(int argc, char **argv) {
     return 0;
 }
 
+static void compile_file(FILE *file, Frontend *frontend, Backend *backend);
+
 static void run_compiler(Args *args) {
     
     printf("--- clare ---\n");
@@ -78,7 +80,19 @@ static void run_compiler(Args *args) {
         return;
     }
     
-    // TODO
+    compile_file(file, frontend, backend);
     
     fclose(file);
+}
+
+static void compile_file(FILE *file, Frontend *frontend, Backend *backend) {
+    
+    UNUSED(file);
+    UNUSED(frontend);
+    UNUSED(backend);
+
+    IRModule *irMod = frontend->SourceToIRModule(file);
+    UNUSED(irMod);
+    
+    DeleteIRModule(irMod);
 }
