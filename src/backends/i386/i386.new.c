@@ -105,13 +105,25 @@ static PAsmModule *_IRToPAsmModule(IRModule *irMod) {
     Backend *backend = &i386_Backend;
     PAsmModule *pasmMod = PAsmModuleFromBackend(backend);
     
+    #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+    #define EMIT(...)   PAsmModuleAddOp(pasmMod, OP(__VA_ARGS__))
+    
+    EMIT({ .fmt = ";--- start of module ---\n" });
+    EMIT({ .fmt = "\n" });
+    
     List *funcs = IRModuleFunctions(irMod);
     LIST_EACH(funcs, IRFunction *, func, {
         backend->Select(pasmMod, func);
     });
     DeleteList(funcs);
     
+    EMIT({ .fmt = "\n" });
+    EMIT({ .fmt = ";--- end of module ---\n" });
+    
     return pasmMod;
+    
+    #undef EMIT
+    #undef OP
 }
 
 Backend i386_Backend = {

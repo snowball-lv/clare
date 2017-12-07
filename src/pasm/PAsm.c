@@ -54,7 +54,11 @@ void PAsmModuleAddOp(PAsmModule *mod, PAsmOp *op) {
     ListAdd(mod->ops, op);
 }
 
-static void PAsmPrintOp(PAsmModule *mod, PAsmOp *op) {
+static void PAsmPrintOp(PAsmModule *mod, PAsmOp *op, FILE *output) {
+    
+    UNUSED(output);
+    
+    #define printf(...)     fprintf(output, __VA_ARGS__)
     
     const char *fmt = op->fmt;
     const char *ptr = fmt;
@@ -100,15 +104,8 @@ static void PAsmPrintOp(PAsmModule *mod, PAsmOp *op) {
     
     #undef RULE
     #undef OPR
-}
-
-void PAsmPrintModule(PAsmModule *mod) {
-    UNUSED(mod);
-    printf("--- pasm module ---\n");
-    LIST_EACH(mod->ops, PAsmOp *, op, {
-        PAsmPrintOp(mod, op);
-    });
-    printf("-------------------\n");
+    
+    #undef printf
 }
 
 static Map *_TmpToVregMap = 0;
@@ -204,4 +201,11 @@ PAsmModule *PAsmModuleFromBackend(Backend *backend) {
     PAsmModule *mod = NewPAsmModule();
     mod->backend = backend;
     return mod;
+}
+
+void PrintPAsmModule(PAsmModule *mod, FILE *output) {
+    UNUSED(output);
+    LIST_EACH(mod->ops, PAsmOp *, op, {
+        PAsmPrintOp(mod, op, output);
+    });
 }

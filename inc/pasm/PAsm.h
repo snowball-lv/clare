@@ -41,8 +41,6 @@ typedef struct {
 
 HEAP_DECL(PAsmOp)
 
-void PAsmPrintModule(PAsmModule *mod);
-
 void PAsmModuleAddOp(PAsmModule *mod, PAsmOp *op);
 
 PAsmVReg *PAsmVRegFromTmp(Node *tmp);
@@ -56,3 +54,5 @@ PAsmVReg *NewSpecialPAsmVReg();
 void PAsmAllocate(PAsmModule *mod); 
 
 PAsmModule *PAsmModuleFromBackend(Backend *backend);
+
+void PrintPAsmModule(PAsmModule *mod, FILE *output);

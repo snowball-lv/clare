@@ -98,7 +98,11 @@ static void compile_file(FILE *file, Frontend *frontend, Backend *backend) {
     backend->Init();
     PAsmModule *pasmMod = backend->IRToPAsmModule(irMod);
     
+    PAsmAllocate(pasmMod);
     
+    FILE *output = fopen("output.asm", "w");
+    PrintPAsmModule(pasmMod, output);
+    fclose(output);
     
     DeletePAsmModule(pasmMod);
     backend->Deinit();
