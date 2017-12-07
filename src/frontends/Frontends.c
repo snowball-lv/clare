@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+#include <frontends/clare-ir/clare-ir.h>
+
 Frontend *GetFrontend(const char *name) {
     
     UNUSED(name);
@@ -14,6 +16,8 @@ Frontend *GetFrontend(const char *name) {
     }
     
     // DEF("i386", &i386_Backend);
+    
+    DEF("clare-ir", &clare_IR_Frontend);
     
     return 0;
 }

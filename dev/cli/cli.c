@@ -7,7 +7,7 @@
 int main() {
     assert(MemEmpty());
     
-    assert(!system("./clare -f clare-ir -b i386 example.a.clare.ir"));
+    assert(!system("./clare -f clare-ir -b i386 ../dev/cli/example.a.clare.ir"));
 
     assert(MemEmpty());
 	return 0;

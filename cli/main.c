@@ -7,6 +7,9 @@
 #include <string.h>
 #include <stdlib.h>
 
+#include <frontends/Frontends.h>
+#include <backends/Backends.h>
+
 static void run_compiler(Args *args);
 
 int main(int argc, char **argv) {
@@ -46,8 +49,36 @@ int main(int argc, char **argv) {
 static void run_compiler(Args *args) {
     
     printf("--- clare ---\n");
+    puts("");
     
-    printf("frontend: %s\n", args->frontend);
-    printf("backend: %s\n", args->backend);
-    printf("source_file: %s\n", args->source_file);
+    printf("Arguments:\n");
+    printf("    frontend: %s\n", args->frontend);
+    printf("    backend: %s\n", args->backend);
+    printf("    source_file: %s\n", args->source_file);
+    puts("");
+    
+    Frontend *frontend = GetFrontend(args->frontend);
+    if (frontend == 0) {
+        printf("no frontend available for: %s\n", args->frontend);
+        exit(1);
+        return;
+    }
+    
+    Backend *backend = GetBackend(args->backend);
+    if (backend == 0) {
+        printf("no backend available for: %s\n", args->backend);
+        exit(1);
+        return;
+    }
+    
+    FILE *file = fopen(args->source_file, "r");
+    if (file == 0) {
+        printf("no such file: %s\n", args->source_file);
+        exit(1);
+        return;
+    }
+    
+    // TODO
+    
+    fclose(file);
 }
