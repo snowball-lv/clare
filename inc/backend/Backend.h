@@ -17,6 +17,7 @@ struct Backend {
     Map *(*Precoloring)();
     void (*Init)();
     void (*Deinit)();
+    PAsmModule *(*IRToPAsmModule)(IRModule *irMod);
 };
 
 typedef struct Backend Backend;

@@ -100,11 +100,26 @@ static Map *_Precoloring() {
     return _PrecoloringMap;
 }
 
+static PAsmModule *_IRToPAsmModule(IRModule *irMod) {
+
+    Backend *backend = &i386_Backend;
+    PAsmModule *pasmMod = PAsmModuleFromBackend(backend);
+    
+    List *funcs = IRModuleFunctions(irMod);
+    LIST_EACH(funcs, IRFunction *, func, {
+        backend->Select(pasmMod, func);
+    });
+    DeleteList(funcs);
+    
+    return pasmMod;
+}
+
 Backend i386_Backend = {
     .dummy = 0,
     .Select = _Select,
     .Init = _Init,
     .Deinit = _Deinit,
     .Colors = _Colors,
-    .Precoloring = _Precoloring
+    .Precoloring = _Precoloring,
+    .IRToPAsmModule = _IRToPAsmModule
 };
