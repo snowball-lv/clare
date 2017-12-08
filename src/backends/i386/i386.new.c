@@ -65,6 +65,8 @@ static void _Select(PAsmModule *mod, IRFunction *func) {
     
     const char *name = IRFunctionName(func);
     
+    EMIT({ .fmt = "\n" });
+    
     EMIT({ 
         .fmt = ";--- start of function: [$str] ---\n",
         .oprs[0] = { .str = name }
@@ -104,6 +106,8 @@ static void _Select(PAsmModule *mod, IRFunction *func) {
         .fmt = ";--- end of function: [$str] ---\n",
         .oprs[0] = { .str = name }
     });
+    
+    EMIT({ .fmt = "\n" });
     
     #undef EMIT
     #undef OP
