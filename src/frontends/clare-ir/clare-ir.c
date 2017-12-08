@@ -2,6 +2,7 @@
 
 #include <helpers/Unused.h>
 #include <ir/IR.h>
+#include <collections/Map.h>
 
 #include <ctype.h>
 #include <string.h>
@@ -10,6 +11,7 @@
 
 typedef struct {
     FILE *file;
+    Map *tmpMap;
 } Source;
 
 typedef struct {
@@ -166,7 +168,10 @@ static IRModule *_SourceToIRModule(FILE *source_file) {
     // 
     // IRFunctionSetBody(func, body);
     
-    Source source = { .file = source_file };
+    Source source = { 
+        .file = source_file,
+        .tmpMap = NewMap()
+    };
     
     // Token tok = { .type = TOK_NONE };
     // while (tok.type != TOK_EOF) {
@@ -184,6 +189,8 @@ static IRModule *_SourceToIRModule(FILE *source_file) {
     Node *body = ParseSource(&source);
     IRPrintTree(body);
     IRFunctionSetBody(func, body);
+    
+    DeleteMap(source.tmpMap);
     
     return irMod;
 }
@@ -235,7 +242,20 @@ Node *ParseNode(Token tok, Source *src) {
         
     } else if (tok.type == TOK_TMP) {
         
-        return IR.Tmp();
+        Node *tmp = 0;
+        MAP_EACH(src->tmpMap, char *, key, Node *, value, {
+            if (strcmp(key, tok.tmp) == 0) {
+                tmp = value;
+                break;
+            }
+        });
+        
+        if (tmp != 0) {
+            return tmp;
+        } else {
+            MapPut(src->tmpMap, (void *) tok.tmp, IR.Tmp());
+            return MapGet(src->tmpMap, (void *) tok.tmp);
+        }
         
     } else {
         fprintf(stderr, "this token can't start a node: %s\n", TokName(tok));
