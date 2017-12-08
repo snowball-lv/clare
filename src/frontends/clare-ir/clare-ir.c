@@ -11,7 +11,6 @@
 
 typedef struct {
     FILE *file;
-    Map *tmpMap;
 } Source;
 
 typedef struct {
@@ -145,57 +144,37 @@ static Token NextToken(Source *src) {
     #undef PUSH
 }
 
-static Node *ParseSource(Source *src);
+static void ParseSource(IRModule *mod, Source *src);
 
 static IRModule *_SourceToIRModule(FILE *source_file) {
     UNUSED(source_file);
     
     IRModule *irMod = NewIRModule();
     
-    // IRFunction *func = IRModuleNewFunction(irMod, "sum3");
-    // 
-    // Node *a = IR.Tmp();
-    // Node *b = IR.Tmp();
-    // Node *c = IR.Tmp();
-    // 
-    // Node *body = IR.Seq(
-    //     IR.Seq(
-    //         IR.Mov(a, IR.Arg(0)),
-    //         IR.Seq(
-    //             IR.Mov(b, IR.Arg(1)),
-    //             IR.Mov(c, IR.Arg(2)))),
-    //     IR.Ret(IR.Add(a, IR.Add(b, c))));
-    // 
-    // IRFunctionSetBody(func, body);
-    
     Source source = { 
-        .file = source_file,
-        .tmpMap = NewMap()
+        .file = source_file
     };
     
-    // Token tok = { .type = TOK_NONE };
-    // while (tok.type != TOK_EOF) {
-    //     tok = NextToken(&source);
-    //     printf("tok: %s", TokName(tok));
-    //     switch (tok.type) {
-    //         case TOK_ID: printf(", id: %s", tok.id); break;
-    //         case TOK_NUM: printf(", num: %d", tok.num); break;
-    //         case TOK_TMP: printf(", tmp: $%s", tok.tmp); break;
-    //     }
-    //     printf("\n");
-    // }
+    ParseSource(irMod, &source);
     
-    IRFunction *func = IRModuleNewFunction(irMod, "foo");
-    Node *body = ParseSource(&source);
-    IRPrintTree(body);
-    IRFunctionSetBody(func, body);
-    
-    DeleteMap(source.tmpMap);
+    List *funcs = IRModuleFunctions(irMod);
+    LIST_EACH(funcs, IRFunction *, func, {
+        printf("\n");
+        printf("function: [%s]\n", IRFunctionName(func));
+        printf("\n");
+        Node *body = IRFunctionBody(func);
+        IRPrintTree(body);
+        printf("\n");
+    });
+    DeleteList(funcs);
     
     return irMod;
 }
 
-Node *ParseNode(Token tok, Source *src) {
+static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
+    
+    #define ParseNode(tok, src) ParseNode(tok, src, tmpCache)
+    
     if (tok.type == TOK_ID) {
         
         if (strcmp(tok.id, "mov") == 0) {
@@ -243,7 +222,7 @@ Node *ParseNode(Token tok, Source *src) {
     } else if (tok.type == TOK_TMP) {
         
         Node *tmp = 0;
-        MAP_EACH(src->tmpMap, char *, key, Node *, value, {
+        MAP_EACH(tmpCache, char *, key, Node *, value, {
             if (strcmp(key, tok.tmp) == 0) {
                 tmp = value;
                 break;
@@ -253,35 +232,65 @@ Node *ParseNode(Token tok, Source *src) {
         if (tmp != 0) {
             return tmp;
         } else {
-            MapPut(src->tmpMap, (void *) tok.tmp, IR.Tmp());
-            return MapGet(src->tmpMap, (void *) tok.tmp);
+            MapPut(tmpCache, (void *) tok.tmp, IR.Tmp());
+            return MapGet(tmpCache, (void *) tok.tmp);
         }
         
     } else {
         fprintf(stderr, "this token can't start a node: %s\n", TokName(tok));
         exit(1);
     }
+    
+    #undef ParseNode
 }
     
-static Node *ParseSource(Source *src) {
-    UNUSED(src);
-    Node *tree = IR.Nop();
+static void ParseFunction(Token tok, IRModule *mod, Source *src) {
+    
+    Map *tmpCache = NewMap();
+    
+    assert(tok.type == TOK_ID);
+    assert(strcmp(tok.id, "func") == 0);
+    
+    Token name = NextToken(src);
+    assert(name.type == TOK_ID);
+    
+    IRFunction *func = IRModuleNewFunction(mod, name.id);
+    Node *body = IR.Nop();
+    
+    while (1) {
+        Token tok = NextToken(src);
+        assert(tok.type == TOK_ID);
+        if (strcmp(tok.id, "end") != 0) {
+            body = IR.Seq(
+                body,
+                ParseNode(tok, src, tmpCache));
+        } else {
+            break;
+        }
+    }
+    
+    IRFunctionSetBody(func, body);
+    DeleteMap(tmpCache);
+}
+    
+static void ParseSource(IRModule *mod, Source *src) {
     while (1) {
         Token tok = NextToken(src);
         switch (tok.type) {
-            case TOK_ID: 
-                tree = IR.Seq(
-                    tree, 
-                    ParseNode(tok, src));
+            case TOK_ID:
+                if (strcmp(tok.id, "func") == 0) {
+                    ParseFunction(tok, mod, src);
+                } else {
+                    fprintf(stderr, "was excpeting ID \"func\": %s\n", tok.id);
+                    exit(1);
+                }
             break;
-            case TOK_EOF: goto end;
+            case TOK_EOF: return;
             default:
                 fprintf(stderr, "expecting either ID or EOF, got: %s\n", TokName(tok));
                 exit(1);
         }
     }
-    end:
-    return tree;
 }
 
 Frontend clare_IR_Frontend = {
