@@ -3,5 +3,5 @@
 mov($a, arg(0))
 mov($b, arg(1))
 mov($c, arg(2))
-ret(add(a, add(b, c)))
+ret(add($a, add($b, $c)))
 

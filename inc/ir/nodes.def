@@ -6,6 +6,7 @@
 
 SIMPLE(None)
 SIMPLE(Any)
+SIMPLE(Nop)
 
 NODE(Mov, (Node *dst, Node *src), {
     self->kids[0] = dst;

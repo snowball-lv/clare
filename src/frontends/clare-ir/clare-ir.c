@@ -1,6 +1,7 @@
 #include <frontends/clare-ir/clare-ir.h>
 
 #include <helpers/Unused.h>
+#include <ir/IR.h>
 
 #include <ctype.h>
 #include <string.h>
@@ -142,6 +143,8 @@ static Token NextToken(Source *src) {
     #undef PUSH
 }
 
+static Node *ParseSource(Source *src);
+
 static IRModule *_SourceToIRModule(FILE *source_file) {
     UNUSED(source_file);
     
@@ -165,19 +168,100 @@ static IRModule *_SourceToIRModule(FILE *source_file) {
     
     Source source = { .file = source_file };
     
-    Token tok = { .type = TOK_NONE };
-    while (tok.type != TOK_EOF) {
-        tok = NextToken(&source);
-        printf("tok: %s", TokName(tok));
-        switch (tok.type) {
-            case TOK_ID: printf(", id: %s", tok.id); break;
-            case TOK_NUM: printf(", num: %d", tok.num); break;
-            case TOK_TMP: printf(", tmp: $%s", tok.tmp); break;
-        }
-        printf("\n");
-    }
+    // Token tok = { .type = TOK_NONE };
+    // while (tok.type != TOK_EOF) {
+    //     tok = NextToken(&source);
+    //     printf("tok: %s", TokName(tok));
+    //     switch (tok.type) {
+    //         case TOK_ID: printf(", id: %s", tok.id); break;
+    //         case TOK_NUM: printf(", num: %d", tok.num); break;
+    //         case TOK_TMP: printf(", tmp: $%s", tok.tmp); break;
+    //     }
+    //     printf("\n");
+    // }
+    
+    IRFunction *func = IRModuleNewFunction(irMod, "foo");
+    Node *body = ParseSource(&source);
+    IRPrintTree(body);
+    IRFunctionSetBody(func, body);
     
     return irMod;
+}
+
+Node *ParseNode(Token tok, Source *src) {
+    if (tok.type == TOK_ID) {
+        
+        if (strcmp(tok.id, "mov") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Node *a = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_COMMA);
+            Node *b = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Mov(a, b);
+            
+        } else if (strcmp(tok.id, "arg") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Token tok = NextToken(src);
+            assert(tok.type == TOK_NUM);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Arg(tok.num);
+            
+        } else if (strcmp(tok.id, "add") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Node *left = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_COMMA);
+            Node *right = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Add(left, right);
+            
+        } else if (strcmp(tok.id, "ret") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Node *node = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Ret(node);
+            
+        } else {
+            fprintf(stderr, "no such IR node: %s\n", tok.id);
+            exit(1);
+        }
+        
+    } else if (tok.type == TOK_TMP) {
+        
+        return IR.Tmp();
+        
+    } else {
+        fprintf(stderr, "this token can't start a node: %s\n", TokName(tok));
+        exit(1);
+    }
+}
+    
+static Node *ParseSource(Source *src) {
+    UNUSED(src);
+    Node *tree = IR.Nop();
+    while (1) {
+        Token tok = NextToken(src);
+        switch (tok.type) {
+            case TOK_ID: 
+                tree = IR.Seq(
+                    tree, 
+                    ParseNode(tok, src));
+            break;
+            case TOK_EOF: goto end;
+            default:
+                fprintf(stderr, "expecting either ID or EOF, got: %s\n", TokName(tok));
+                exit(1);
+        }
+    }
+    end:
+    return tree;
 }
 
 Frontend clare_IR_Frontend = {
