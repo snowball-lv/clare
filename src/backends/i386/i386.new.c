@@ -12,11 +12,13 @@ static Map *_PrecoloringMap = 0;
 
 static PAsmVReg *EAX = 0;
 static PAsmVReg *EBP = 0;
+static PAsmVReg *ESP = 0;
 
 static void _Init() {
     
     EAX = NewSpecialPAsmVReg();
     EBP = NewSpecialPAsmVReg();
+    ESP = NewSpecialPAsmVReg();
     
     _ColorSet = NewSet();
     
@@ -34,12 +36,14 @@ static void _Init() {
     
     MapPut(_PrecoloringMap, EAX, "eax");
     MapPut(_PrecoloringMap, EBP, "ebp");
+    MapPut(_PrecoloringMap, ESP, "esp");
 }
 
 static void _Deinit() {
     
     MemFree(EAX);
     MemFree(EBP);
+    MemFree(ESP);
         
     DeleteSet(_ColorSet);
     DeleteMap(_PrecoloringMap);
@@ -74,6 +78,19 @@ static void _Select(PAsmModule *mod, IRFunction *func) {
     EMIT({ 
         .fmt = "$str:\n",
         .oprs[0] = { .str = name }
+    });
+    
+    EMIT({ 
+        .fmt = "push $vr\n",
+        .oprs[0] = { .vreg = EBP },
+        .use = { EBP }
+    });
+    EMIT({
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = EBP },
+        .oprs[1] = { .vreg = ESP },
+        .use = { ESP },
+        .def = { EBP }
     });
     
     // TODO

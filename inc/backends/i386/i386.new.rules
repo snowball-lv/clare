@@ -52,6 +52,7 @@ RULE(IR.Arg(0), {
 
 RULE(IR.Ret(0), {
     PAsmVReg *vreg = MUNCH(root->kids[0]);
+    
     EMIT(OP({
         .fmt = "mov $vr, $vr\n",
         .oprs[0] = { .vreg = EAX },
@@ -59,6 +60,20 @@ RULE(IR.Ret(0), {
         .use = { vreg },
         .def = { EAX }
     }));
+    
+    EMIT(OP({
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = ESP },
+        .oprs[1] = { .vreg = EBP },
+        .use = { EBP },
+        .def = { ESP }
+    }));
+    EMIT(OP({ 
+        .fmt = "pop $vr\n",
+        .oprs[0] = { .vreg = EBP },
+        .def = { EBP }
+    }));
+    
     EMIT(OP({
         .fmt = "ret\n",
         .use = { EAX }
