@@ -223,6 +223,15 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             
             return IR.Ret(node);
             
+        } else if (strcmp(tok.id, "call") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Token fname = NextToken(src);
+            assert(fname.type == TOK_ID);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Call(fname.id);
+            
         } else {
             fprintf(stderr, "no such IR node: %s\n", tok.id);
             exit(1);

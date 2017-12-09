@@ -95,6 +95,15 @@ RULE(IR.Nop(), {
     // do nothing
 })
 
+RULE(IR.Call(0), {
+    EMIT(OP({
+        .fmt = "call $str\n",
+        .oprs[0] = { .str = root->fname },
+        .def = { EAX }
+    }));
+    return EAX;
+})
+
 RULE(IR.Any(), {
     printf("no instruction selection rule for: %s\n", NodeName(root));
 })

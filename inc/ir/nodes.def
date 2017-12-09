@@ -39,4 +39,8 @@ NODE(Arg, (int arg_index), {
     self->arg_index = arg_index;
 })
 
+NODE(Call, (const char *fname), {
+    self->fname = fname;
+})
+
 #undef SIMPLE

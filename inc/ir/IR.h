@@ -15,6 +15,7 @@ struct Node {
         int32_t i32;
         int index;
         int arg_index;
+        const char *fname;
     };
 };
 

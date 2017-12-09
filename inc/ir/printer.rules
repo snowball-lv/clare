@@ -43,6 +43,10 @@ RULE(IR.Nop(), {
     // do nothing
 })
 
+RULE(IR.Call(0), {
+    printf("call(%s)", root->fname);
+})
+
 RULE(IR.Any(), {
     printf("no print rule for node: %s\n", NodeName(root));
 })

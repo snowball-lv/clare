@@ -1,5 +1,9 @@
 
 
+func foo_1337
+    ret(i32(1337))
+end
+
 func clare_foo
-    ret(i32(0))
+    ret(call(foo_1337))
 end
