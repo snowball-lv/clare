@@ -42,3 +42,7 @@ RULE(IR.Seq(0, 0), {
 RULE(IR.Any(), {
     printf("no print rule for node: %s\n", NodeName(root));
 })
+
+RULE(IR.Nop(), {
+    // do nothing
+})

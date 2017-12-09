@@ -95,4 +95,8 @@ RULE(IR.Any(), {
     printf("no instruction selection rule for: %s\n", NodeName(root));
 })
 
+RULE(IR.Nop(), {
+    // do nothing
+})
+
 #undef OP
