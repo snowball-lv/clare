@@ -1,15 +1,5 @@
 
 
-func sum2
-    mov($a, arg(0))
-    mov($b, arg(1))
-    ret(add($a, $b))
+func main
+    ret(i32(0))
 end
-
-func sum3
-    mov($a, arg(0))
-    mov($b, arg(1))
-    mov($c, arg(2))
-    ret(add($a, add($b, $c)))
-end
-

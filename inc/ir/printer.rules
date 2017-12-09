@@ -18,6 +18,10 @@ RULE(IR.Arg(0), {
     printf("arg(%d)", root->arg_index);
 })
 
+RULE(IR.I32(0), {
+    printf("i32(%d)", root->i32);
+})
+
 RULE(IR.Tmp(), {
     printf("$tmp%d", root->index);
 })

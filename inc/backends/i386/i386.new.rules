@@ -50,6 +50,17 @@ RULE(IR.Arg(0), {
     return vreg;
 })
 
+RULE(IR.I32(0), {
+    PAsmVReg *vreg = NewPAsmVReg();
+    EMIT(OP({
+        .fmt = "mov $vr, $i32\n",
+        .oprs[0] = { .vreg = vreg },
+        .oprs[1] = { .i32 = root->i32 },
+        .def = { vreg }
+    }));
+    return vreg;
+})
+
 RULE(IR.Ret(0), {
     PAsmVReg *vreg = MUNCH(root->kids[0]);
     
