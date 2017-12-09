@@ -35,8 +35,21 @@ int main(int argc, char **argv) {
             i++;
             continue;
             
+        } else if (strcmp("-i", argv[i]) == 0) {
+            
+            args.source_file = argv[i + 1];
+            i++;
+            continue;
+            
+        } else if (strcmp("-o", argv[i]) == 0) {
+            
+            args.output_file = argv[i + 1];
+            i++;
+            continue;
+            
         } else {
-            args.source_file = argv[i];
+            printf("stray argument: %s\n", argv[i]);
+            exit(1);
         }
     }
     
@@ -57,6 +70,7 @@ static void run_compiler(Args *args) {
     printf("    frontend: %s\n", args->frontend);
     printf("    backend: %s\n", args->backend);
     printf("    source_file: %s\n", args->source_file);
+    printf("    output_file: %s\n", args->output_file);
     puts("");
     
     Frontend *frontend = GetFrontend(args->frontend);

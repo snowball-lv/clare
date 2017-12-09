@@ -5,4 +5,5 @@ typedef struct {
     const char *frontend;
     const char *backend;
     const char *source_file;
+    const char *output_file;
 } Args;
