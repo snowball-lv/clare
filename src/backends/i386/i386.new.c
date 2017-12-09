@@ -61,6 +61,12 @@ static void _Deinit() {
     DeleteMap(_PrecoloringMap);
 }
 
+static int _Label_Counter = 1;
+
+static int NextLabel() {
+    return _Label_Counter++;
+}
+
 #define MANGLE(name)     i386_v2_ ## name
 #define RULE_FILE       <backends/i386/i386.new.rules>
 #define RET_TYPE        PAsmVReg *

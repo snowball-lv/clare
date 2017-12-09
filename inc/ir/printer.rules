@@ -52,6 +52,24 @@ RULE(IR.Call(0, 0), {
     printf(")");
 })
 
+RULE(IR.Branch(0, 0, 0), {
+    printf("if ");
+    MUNCH(root->kids[0]);
+    printf(" {\n");
+    MUNCH(root->kids[1]);
+    printf("} else {\n");
+    MUNCH(root->kids[2]);
+    printf("}\n");
+})
+
+RULE(IR.Eq(0, 0), {
+    printf("(");
+    MUNCH(root->kids[0]);
+    printf(" == ");
+    MUNCH(root->kids[1]);
+    printf(")");
+})
+
 RULE(IR.Any(), {
     printf("no print rule for node: %s\n", NodeName(root));
 })

@@ -95,6 +95,52 @@ RULE(IR.Nop(), {
     // do nothing
 })
 
+RULE(IR.Eq(0, 0), {
+    PAsmVReg *left = MUNCH(root->kids[0]);
+    PAsmVReg *right = MUNCH(root->kids[1]);
+    EMIT(OP({
+        .fmt = "cmp $vr, $vr\n",
+        .oprs[0] = { .vreg = left },
+        .oprs[1] = { .vreg = right },
+        .use = { left, right}
+    }));
+})
+
+RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
+    
+    MUNCH(root->kids[0]);
+    
+    int label_true  = NextLabel();
+    int label_end   = NextLabel();
+    
+    EMIT(OP({
+        .fmt = "je .L_T_$i32\n",
+        .oprs[0] = { .i32 = label_true }
+    }));
+    
+    // false
+    MUNCH(root->kids[2]);
+    
+    EMIT(OP({
+        .fmt = "jmp .L_E_$i32\n",
+        .oprs[0] = { .i32 = label_end }
+    }));
+    
+    EMIT(OP({
+        .fmt = ".L_T_$i32:\n",
+        .oprs[0] = { .i32 = label_true }
+    }));
+    
+    // true
+    MUNCH(root->kids[1]);
+    
+    EMIT(OP({
+        .fmt = ".L_E_$i32:\n",
+        .oprs[0] = { .i32 = label_end }
+    }));
+    
+})
+
 RULE(IR.Call(0, 0), {
     
     LIST_REV(root->args, Node *, arg, {

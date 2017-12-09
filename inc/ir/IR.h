@@ -5,7 +5,7 @@
 
 #include <stdint.h>
 
-#define IR_MAX_KIDS    2
+#define IR_MAX_KIDS    3
 
 typedef struct Node Node;
 struct Node {

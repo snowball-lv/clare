@@ -215,6 +215,16 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             
             return IR.Add(left, right);
             
+        } else if (strcmp(tok.id, "eq") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Node *left = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_COMMA);
+            Node *right = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Eq(left, right);
+            
         } else if (strcmp(tok.id, "ret") == 0) {
             
             assert(NextToken(src).type == TOK_L_PAREN);
@@ -222,6 +232,18 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             assert(NextToken(src).type == TOK_R_PAREN);
             
             return IR.Ret(node);
+            
+        } else if (strcmp(tok.id, "branch") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Node *cond = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_COMMA);
+            Node *t = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_COMMA);
+            Node *f = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Branch(cond, t, f);
             
         } else if (strcmp(tok.id, "call") == 0) {
             

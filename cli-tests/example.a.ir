@@ -1,18 +1,18 @@
 
 
-func sum2
-    ret(add(arg(0), arg(1)))
-end
 
-func foo_1337
-    ret(i32(1337))
+func sum2
+    ret(add(
+        arg(0),
+        arg(1)))
 end
 
 func clare_main
-    ret(call(sum2,
-        call(sum2,
-            i32(1),
-            i32(2)),
-        call(foo_1337)
-    ))
+    branch(
+        eq(
+            call(sum2, i32(1), i32(100)),
+            i32(101)),
+        ret(i32(1)),
+        ret(i32(2)))
+    ret(i32(0))
 end
