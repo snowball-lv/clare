@@ -8,6 +8,8 @@ task :default do
     puts
     Dir.chdir("bin") do
         
+        glue = "../cli-tests/example.c"
+        
         src = "../cli-tests/example.a.ir"
         asm = "cli-tests/example.asm"
         obj = "cli-tests/example.o"
@@ -17,7 +19,7 @@ task :default do
         
         sh "./clare -i #{src} -f clare-ir -b i386 -o #{asm}"
         sh "nasm -f elf32 #{asm} -o #{obj}"
-        sh "tcc #{obj} -o #{bin}"
+        sh "tcc #{obj} #{glue} -o #{bin}"
         sh "./#{bin}"
         
     end

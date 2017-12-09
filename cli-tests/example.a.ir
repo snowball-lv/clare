@@ -1,5 +1,5 @@
 
 
-func main
+func clare_foo
     ret(i32(0))
 end

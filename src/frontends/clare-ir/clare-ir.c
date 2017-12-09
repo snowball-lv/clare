@@ -73,7 +73,7 @@ static Token NextToken(Source *src) {
         case EOF: return (Token) { .type = TOK_EOF };
         case '$': tok = TOK_TMP; break;
         default: {
-            if (isalpha(c)) {
+            if (isalpha(c) || c == '_') {
                 PUSH(c);
                 tok = TOK_ID;
             } else if (isdigit(c)) {
@@ -91,7 +91,7 @@ static Token NextToken(Source *src) {
         switch (tok) {
             
             case TOK_ID: {
-                if (isalnum(c)) {
+                if (isalnum(c) || c == '_') {
                     PUSH(c);
                 } else {
                     if (c != EOF) {
@@ -121,7 +121,7 @@ static Token NextToken(Source *src) {
             }
             
             case TOK_TMP: {
-                if (isalnum(c)) {
+                if (isalnum(c) || c == '_') {
                     PUSH(c);
                 } else {
                     if (index == 0) {
