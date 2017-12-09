@@ -96,11 +96,22 @@ RULE(IR.Nop(), {
 })
 
 RULE(IR.Call(0, 0), {
+    
+    LIST_REV(root->args, Node *, arg, {
+        PAsmVReg *vreg = MUNCH(arg);
+        EMIT(OP({ 
+            .fmt = "push $vr\n",
+            .oprs[0] = { .vreg = vreg },
+            .use = { vreg }
+        }));
+    });
+    
     EMIT(OP({
         .fmt = "call $str\n",
         .oprs[0] = { .str = root->fname },
         .def = { EAX }
     }));
+    
     return EAX;
 })
 

@@ -44,7 +44,12 @@ RULE(IR.Nop(), {
 })
 
 RULE(IR.Call(0, 0), {
-    printf("call(%s)", root->fname);
+    printf("call(%s", root->fname);
+    LIST_EACH(root->args, Node *, arg, {
+        printf(", ");
+        MUNCH(arg);
+    });
+    printf(")");
 })
 
 RULE(IR.Any(), {
