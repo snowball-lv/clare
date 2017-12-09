@@ -1,9 +1,13 @@
 
 
-func foo_1337
-    ret(i32(1337))
+func sum2
+    ret(add(arg(0), arg(1)))
 end
 
-func clare_foo
+func foo_1337
+    ret(call(sum2, i32(1), i32(2)))
+end
+
+func clare_main
     ret(call(foo_1337))
 end

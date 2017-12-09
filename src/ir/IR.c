@@ -102,6 +102,12 @@ static void _NodeDeleteTree(Node *root, Set *nodes) {
         _NodeDeleteTree(child, nodes);
     }
     
+    if (root->type == NT(Call) && root->args != 0) {
+        LIST_EACH(root->args, Node *, arg, {
+            _NodeDeleteTree(arg, nodes);
+        });
+    }
+    
     SetAdd(nodes, root);
 }
 
@@ -109,6 +115,9 @@ void NodeDeleteTree(Node *root) {
     Set *nodes = NewSet();
     _NodeDeleteTree(root, nodes);
     SET_EACH(nodes, Node *, node, {
+        if (node->type == NT(Call) && node->args != 0) {
+            DeleteList(node->args);
+        }
         MemFree(node);
     });
     DeleteSet(nodes);

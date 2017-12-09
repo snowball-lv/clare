@@ -2,9 +2,9 @@
 
 #include <stdio.h>
 
-extern int clare_foo();
+extern int clare_main();
 
 int main(int argc, char **argv) {
-    printf("clare_foo: %d\n", clare_foo());
+    printf("clare_foo: %d\n", clare_main());
     return 0;
 }

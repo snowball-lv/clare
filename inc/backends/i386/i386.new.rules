@@ -95,7 +95,7 @@ RULE(IR.Nop(), {
     // do nothing
 })
 
-RULE(IR.Call(0), {
+RULE(IR.Call(0, 0), {
     EMIT(OP({
         .fmt = "call $str\n",
         .oprs[0] = { .str = root->fname },

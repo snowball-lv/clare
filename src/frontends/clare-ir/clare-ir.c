@@ -228,9 +228,27 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             assert(NextToken(src).type == TOK_L_PAREN);
             Token fname = NextToken(src);
             assert(fname.type == TOK_ID);
-            assert(NextToken(src).type == TOK_R_PAREN);
             
-            return IR.Call(fname.id);
+            List *args = NewList();
+            
+            while (1) {
+                Token tok = NextToken(src);
+                if (tok.type == TOK_COMMA) {
+                    
+                    Token id_tok = NextToken(src);
+                    assert(id_tok.type == TOK_ID);
+                    Node *arg = ParseNode(id_tok, src);
+                    ListAdd(args, arg);
+                        
+                } else if (tok.type == TOK_R_PAREN) {
+                    break;
+                } else {
+                    printf("expected R_PAREN or COMMA: %s\n", TokName(tok));
+                    exit(1);
+                }
+            }
+            
+            return IR.Call(fname.id, args);
             
         } else {
             fprintf(stderr, "no such IR node: %s\n", tok.id);

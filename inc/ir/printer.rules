@@ -43,7 +43,7 @@ RULE(IR.Nop(), {
     // do nothing
 })
 
-RULE(IR.Call(0), {
+RULE(IR.Call(0, 0), {
     printf("call(%s)", root->fname);
 })
 
