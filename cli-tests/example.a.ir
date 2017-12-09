@@ -5,9 +5,14 @@ func sum2
 end
 
 func foo_1337
-    ret(call(sum2, i32(1), i32(2)))
+    ret(i32(1337))
 end
 
 func clare_main
-    ret(call(foo_1337))
+    ret(call(sum2,
+        call(sum2,
+            i32(1),
+            i32(0)),
+        i32(0)
+    ))
 end

@@ -109,7 +109,15 @@ RULE(IR.Call(0, 0), {
     EMIT(OP({
         .fmt = "call $str\n",
         .oprs[0] = { .str = root->fname },
+        .use = { EAX, EDX, ECX },
         .def = { EAX }
+    }));
+    
+    EMIT(OP({
+        .fmt = "add $vr, $i32\n",
+        .oprs[0] = { .vreg = ESP },
+        .oprs[1] = { .i32 = ListSize(root->args) * 4 },
+        .def = { ESP }
     }));
     
     return EAX;
