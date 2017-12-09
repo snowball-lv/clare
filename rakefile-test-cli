@@ -1,0 +1,24 @@
+
+
+require "fileutils"
+
+
+task :default do
+    
+    puts
+    Dir.chdir("bin") do
+        
+        src = "../cli-tests/example.a.ir"
+        asm = "cli-tests/example.asm"
+        obj = "cli-tests/example.o"
+        bin = "cli-tests/example"
+        
+        FileUtils.mkdir_p("cli-tests")
+        
+        sh "./clare -i #{src} -f clare-ir -b i386 -o #{asm}"
+        sh "nasm -f elf32 #{asm} -o #{obj}"
+        sh "tcc #{obj} -o #{bin}"
+        sh "./#{bin}"
+        
+    end
+end

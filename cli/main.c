@@ -59,7 +59,10 @@ int main(int argc, char **argv) {
     return 0;
 }
 
-static void compile_file(FILE *file, Frontend *frontend, Backend *backend);
+static void compile_file(   FILE *src, 
+                            Frontend *frontend, 
+                            Backend *backend,
+                            FILE *out);
 
 static void run_compiler(Args *args) {
     
@@ -87,26 +90,26 @@ static void run_compiler(Args *args) {
         return;
     }
     
-    FILE *file = fopen(args->source_file, "r");
-    if (file == 0) {
+    FILE *src = fopen(args->source_file, "r");
+    if (src == 0) {
         printf("no such file: %s\n", args->source_file);
         exit(1);
         return;
     }
     
-    compile_file(file, frontend, backend);
+    FILE *out = fopen(args->output_file, "w");
+    compile_file(src, frontend, backend, out);
+    fclose(out);
     
-    fclose(file);
+    fclose(src);
 }
 
-static void compile_file(FILE *file, Frontend *frontend, Backend *backend) {
+static void compile_file(   FILE *src,
+                            Frontend *frontend,
+                            Backend *backend,
+                            FILE *out) {
     
-    UNUSED(file);
-    UNUSED(frontend);
-    UNUSED(backend);
-
-    IRModule *irMod = frontend->SourceToIRModule(file);
-    UNUSED(irMod);
+    IRModule *irMod = frontend->SourceToIRModule(src);
     
     PAsmInit();
     backend->Init();
@@ -114,9 +117,7 @@ static void compile_file(FILE *file, Frontend *frontend, Backend *backend) {
     
     PAsmAllocate(pasmMod);
     
-    FILE *output = fopen("output.asm", "w");
-    PrintPAsmModule(pasmMod, output);
-    fclose(output);
+    PrintPAsmModule(pasmMod, out);
     
     DeletePAsmModule(pasmMod);
     backend->Deinit();
