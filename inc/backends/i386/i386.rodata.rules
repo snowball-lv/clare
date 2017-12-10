@@ -30,8 +30,9 @@ RULE(IR.I32(0), {
 
 RULE(IR.Float(0), {
     EMIT(OP({
-        .fmt = "my_float: dd $f\n",
-        .oprs[0] = { .f = root->f }
+        .fmt = "_const_$f: dd $f\n",
+        .oprs[0] = { .f = root->f },
+        .oprs[1] = { .f = root->f }
     }));
 })
 

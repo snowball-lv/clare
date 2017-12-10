@@ -7,5 +7,5 @@ end
 
 
 func clare_mainf
-    ret(float(10))
+    ret(add(float(10), float(20)))
 end

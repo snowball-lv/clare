@@ -20,7 +20,7 @@ RULE(IR.Mov(IR.Tmp(), 0), {
     }));
 })
 
-RULE(IR.Add(0, 0), {
+RULE(IR.Add(IR.I32(0), IR.I32(0)), {
     PAsmVReg *a = MUNCH(root->kids[0]);
     PAsmVReg *b = MUNCH(root->kids[1]);
     EMIT(OP({
@@ -63,7 +63,16 @@ RULE(IR.I32(0), {
 
 RULE(IR.Float(0), {
     EMIT(OP({
-        .fmt = "fld dword [my_float]\n"
+        .fmt = "fld dword [_const_$f]\n",
+        .oprs[0] = { .f = root->f }
+    }));
+})
+
+RULE(IR.Add(IR.Float(0), IR.Float(0)), {
+    MUNCH(root->kids[0]);
+    MUNCH(root->kids[1]);
+    EMIT(OP({
+        .fmt = "faddp\n"
     }));
 })
 
