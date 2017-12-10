@@ -76,6 +76,16 @@ RULE(IR.Add(IR.Float(0), IR.Float(0)), {
     }));
 })
 
+RULE(IR.Add(0, 0), {
+    PAsmVReg *left = MUNCH(root->kids[0]);
+    PAsmVReg *right = MUNCH(root->kids[1]);
+    if (left == 0 && right == 0) {
+        EMIT(OP({
+            .fmt = "faddp\n"
+        }));
+    }
+})
+
 RULE(IR.Ret(0), {
     
     PAsmVReg *vreg = MUNCH(root->kids[0]);
