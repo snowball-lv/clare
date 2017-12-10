@@ -26,6 +26,10 @@ NODE(I32, (int32_t i32), {
     self->i32 = i32;
 })
 
+NODE(Float, (float f), {
+    self->f = f;
+})
+
 NODE(Seq, (Node *left, Node *right), {
     self->kids[0] = left;
     self->kids[1] = right;

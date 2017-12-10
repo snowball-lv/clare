@@ -22,6 +22,10 @@ RULE(IR.I32(0), {
     printf("i32(%d)", root->i32);
 })
 
+RULE(IR.Float(0), {
+    printf("float(%f)", root->f);
+})
+
 RULE(IR.Tmp(), {
     printf("$tmp%d", root->index);
 })

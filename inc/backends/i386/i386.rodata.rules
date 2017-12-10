@@ -1,0 +1,67 @@
+
+
+#define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+
+RULE(IR.Seq(0, 0), {
+    MUNCH(root->kids[0]);
+    MUNCH(root->kids[1]);
+})
+
+RULE(IR.Mov(IR.Tmp(), 0), {
+    MUNCH(root->kids[1]);
+})
+
+RULE(IR.Add(0, 0), {
+    MUNCH(root->kids[0]);
+    MUNCH(root->kids[1]);
+})
+
+RULE(IR.Tmp(), {
+
+})
+
+RULE(IR.Arg(0), {
+    
+})
+
+RULE(IR.I32(0), {
+    
+})
+
+RULE(IR.Float(0), {
+    EMIT(OP({
+        .fmt = "my_float: dd $f\n",
+        .oprs[0] = { .f = root->f }
+    }));
+})
+
+RULE(IR.Ret(0), {
+    MUNCH(root->kids[0]);
+})
+
+RULE(IR.Nop(), {
+    // do nothing
+})
+
+RULE(IR.Eq(0, 0), {
+    MUNCH(root->kids[0]);
+    MUNCH(root->kids[1]);
+})
+
+RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
+    MUNCH(root->kids[0]);
+    MUNCH(root->kids[2]);
+    MUNCH(root->kids[1]);
+})
+
+RULE(IR.Call(0, 0), {
+    LIST_REV(root->args, Node *, arg, {
+        MUNCH(arg);
+    });
+})
+
+RULE(IR.Any(), {
+    printf("no instruction selection rule for: %s\n", NodeName(root));
+})
+
+#undef OP

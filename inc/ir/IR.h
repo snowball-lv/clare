@@ -13,6 +13,7 @@ struct Node {
     Node *kids[IR_MAX_KIDS];
     union {
         int32_t i32;
+        float f;
         int index;
         int arg_index;
         struct {

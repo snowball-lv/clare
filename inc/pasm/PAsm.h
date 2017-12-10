@@ -28,6 +28,7 @@ typedef struct {
     PAsmVReg *vreg;
     const char *str;
     int32_t i32;
+    float f;
 } PAsmOpr;
 
 #define PASM_OP_MAX_OPRS    3

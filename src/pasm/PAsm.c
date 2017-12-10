@@ -94,6 +94,10 @@ static void PAsmPrintOp(PAsmModule *mod, PAsmOp *op, FILE *output) {
             printf("%d", OPR->i32);
         });
         
+        RULE("$f", {
+            printf("%f", OPR->f);
+        });
+        
         RULE("$str", {
             printf("%s", OPR->str);
         });

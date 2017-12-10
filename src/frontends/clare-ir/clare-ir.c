@@ -205,6 +205,15 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             
             return IR.I32(tok.num);
             
+        } else if (strcmp(tok.id, "float") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Token tok = NextToken(src);
+            assert(tok.type == TOK_NUM);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Float(tok.num);
+            
         } else if (strcmp(tok.id, "add") == 0) {
             
             assert(NextToken(src).type == TOK_L_PAREN);

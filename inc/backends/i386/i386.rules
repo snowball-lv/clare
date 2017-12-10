@@ -61,16 +61,27 @@ RULE(IR.I32(0), {
     return vreg;
 })
 
+RULE(IR.Float(0), {
+    EMIT(OP({
+        .fmt = "fld dword [my_float]\n"
+    }));
+})
+
 RULE(IR.Ret(0), {
+    
     PAsmVReg *vreg = MUNCH(root->kids[0]);
     
-    EMIT(OP({
-        .fmt = "mov $vr, $vr\n",
-        .oprs[0] = { .vreg = EAX },
-        .oprs[1] = { .vreg = vreg },
-        .use = { vreg },
-        .def = { EAX }
-    }));
+    if (vreg != 0) {
+        EMIT(OP({
+            .fmt = "mov $vr, $vr\n",
+            .oprs[0] = { .vreg = EAX },
+            .oprs[1] = { .vreg = vreg },
+            .use = { vreg },
+            .def = { EAX }
+        }));
+    } else {
+        // nothing
+    }
     
     EMIT(OP({
         .fmt = "mov $vr, $vr\n",
