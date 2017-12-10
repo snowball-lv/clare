@@ -1,281 +1,176 @@
 #include <backends/i386/i386.h>
 
 #include <helpers/Unused.h>
-#include <collections/List.h>
-#include <collections/Set.h>
-#include <collections/Map.h>
-#include <helpers/Types.h>
+#include <pasm/PAsm.h>
+#include <helpers/Unused.h>
 
 #include <stdio.h>
-#include <stdint.h>
-#include <string.h>
 #include <assert.h>
 
-typedef struct {
-    int id;
-} VReg;
+static Set *_ColorSet = 0;
+static Map *_PrecoloringMap = 0;
 
-HEAP_DEF(VReg)
-#define VREG(...)    HEAP(VReg, __VA_ARGS__)
+static PAsmVReg *EAX = 0;
+static PAsmVReg *EBP = 0;
+static PAsmVReg *ESP = 0;
 
-static int _VRegCounter = -1;
-static VReg *NewVReg() {
-    return VREG({
-        .id = _VRegCounter--
-    });
-}
+static PAsmVReg *EDX = 0;
+static PAsmVReg *ECX = 0;
 
-typedef struct {
-    int32_t i32;
-    VReg    *vreg;
-} Opr;
-
-#define MAX_OPRS    2
-
-typedef struct {
-    const char *fmt;
-    Opr oprs[MAX_OPRS];
-    VReg *use[MAX_OPRS];
-    VReg *def[MAX_OPRS];
-} Op;
-
-HEAP_DEF(Op)
-#define OP(...)    HEAP(Op, __VA_ARGS__)
-
-typedef struct {
-    Map *vregs;
-} MunchState;
-
-static VReg *VRegForTmp(MunchState *state, Node *tmp) {
-    Map *map = state->vregs;
-    if (!MapContains(map, tmp)) {
-        VReg *vreg = VREG({
-            .id = tmp->index
-        });
-        MapPut(map, tmp, vreg);
-    }
-    return MapGet(map, tmp);
-}
-
-#define MANGLE(name)    i386 ## name
-#define RULE_FILE       <backends/i386/i386.rules>
-#define RET_TYPE        VReg *
-#define RET_DEFAULT     0
-
-#define STATE
-#define STATE_T         MunchState
-#define STATE_INIT      { state->vregs = NewMap(); }
-#define STATE_DEINIT    { DeleteMap(state->vregs); }
-
-    #include <ir/muncher.def>
+static void _Init() {
     
-#undef STATE_DEINIT
-#undef STATE_INIT
-#undef STATE_T
-#undef STATE
+    EAX = NewSpecialPAsmVReg();
+    EBP = NewSpecialPAsmVReg();
+    ESP = NewSpecialPAsmVReg();
+    
+    EDX = NewSpecialPAsmVReg();
+    ECX = NewSpecialPAsmVReg();
+    
+    _ColorSet = NewSet();
+    
+    SetAdd(_ColorSet, "eax");
+    SetAdd(_ColorSet, "ebx");
+    SetAdd(_ColorSet, "ecx");
+    SetAdd(_ColorSet, "edx");
+    
+    SetAdd(_ColorSet, "esi");
+    SetAdd(_ColorSet, "edi");
+    SetAdd(_ColorSet, "ebp");
+    SetAdd(_ColorSet, "esp");
+    
+    _PrecoloringMap = NewMap();
+    
+    MapPut(_PrecoloringMap, EAX, "eax");
+    MapPut(_PrecoloringMap, EBP, "ebp");
+    MapPut(_PrecoloringMap, ESP, "esp");
+    
+    MapPut(_PrecoloringMap, EDX, "edx");
+    MapPut(_PrecoloringMap, ECX, "ecx");
+}
 
+static void _Deinit() {
+    
+    MemFree(EAX);
+    MemFree(EBP);
+    MemFree(ESP);
+    
+    MemFree(EDX);
+    MemFree(ECX);
+        
+    DeleteSet(_ColorSet);
+    DeleteMap(_PrecoloringMap);
+}
+
+static int _Label_Counter = 1;
+
+static int NextLabel() {
+    return _Label_Counter++;
+}
+
+#define MANGLE(name)     i386_v2_ ## name
+#define RULE_FILE       <backends/i386/i386.rules>
+#define RET_TYPE        PAsmVReg *
+#define RET_DEFAULT     0
+    #include <ir/muncher.def>
 #undef RET_DEFAULT
 #undef RET_TYPE
 #undef RULE_FILE
 #undef MANGLE
 
-static void CollectVRegs(List *ops, Set *vregs) {
-    LIST_EACH(ops, Op *, op, {
-        for (int i = 0; i < MAX_OPRS; i++) {
-            VReg *vreg = op->oprs[i].vreg;
-            if (vreg != 0)  {
-                SetAdd(vregs, vreg);
-            }
-        }
+static void _Select(PAsmModule *mod, IRFunction *func) {
+    #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+    #define EMIT(...)   PAsmModuleAddOp(mod, OP(__VA_ARGS__))
+    
+    const char *name = IRFunctionName(func);
+    
+    EMIT({ .fmt = "\n" });
+    
+    EMIT({ 
+        .fmt = ";--- start of function: [$str] ---\n",
+        .oprs[0] = { .str = name }
     });
-}
-
-void DeleteOps(List *ops) {
     
-    Set *vregs = NewSet();
-    CollectVRegs(ops, vregs);
-    
-    SET_EACH(vregs, VReg *, vreg, {
-        MemFree(vreg);
+    EMIT({ .fmt = "section .text\n" });
+    EMIT({ 
+        .fmt = "global $str\n",
+        .oprs[0] = { .str = name }
     });
-    DeleteSet(vregs);
-    
-    LIST_EACH(ops, Op *, op, {
-        MemFree(op);
+    EMIT({ 
+        .fmt = "$str:\n",
+        .oprs[0] = { .str = name }
     });
-}
-
-static void PrintOp(Op *op, Coloring *coloring) {
     
-    const char *fmt = op->fmt;
-    const char *ptr = fmt;
-    int opr_counter = 0;
-    
-    while (1) {
-        
-        size_t spn = strcspn(ptr, "$");
-        printf("%.*s", (int) spn, ptr);
-        ptr += spn;
-        
-        if (strncmp("$vr", ptr, 3) == 0) {
-            
-            Opr *opr = &op->oprs[opr_counter];
-            if (coloring != 0) {
-                char *color = ColoringGetColor(coloring, opr->vreg);
-                printf("%s", color);
-            } else {
-                printf("$vr%d", opr->vreg->id);
-            }
-            opr_counter++;
-            ptr += 3;
-            
-        } else if (strncmp("$i32", ptr, 4) == 0) {
-            
-            Opr *opr = &op->oprs[opr_counter];
-            printf("%d", opr->i32);
-            opr_counter++;
-            ptr += 4;
-            
-        } else {
-            printf("%s", ptr);
-            break;
-        }
-    }
-}
-    
-void PrintOp_Old(Op *op, Coloring *coloring) {
-
-    const char *fmt = op->fmt;
-    
-    int opr_counter = 0;
-    
-    #define RULE(spec, action) {                    \
-        const char *ptr = strstr(fmt, spec);        \
-        if (ptr != 0) {                             \
-            ptrdiff_t diff = ptr - fmt;             \
-            if (diff > 0) {                         \
-                printf("%.*s", (int) diff, fmt);    \
-            }                                       \
-            Opr *opr = &op->oprs[opr_counter];      \
-            action;                                 \
-            opr_counter++;                          \
-            fmt = ptr + strlen(spec);               \
-            continue;                               \
-        }                                           \
-    }
-    
-    while (1) {
-        
-        RULE("$vr", {
-            printf("printing vr\n");
-            if (coloring != 0) {
-                char *color = ColoringGetColor(coloring, opr->vreg);
-                printf("%s", color);
-            } else {
-                printf("$vr%d", opr->vreg->id);
-            }
-        });
-            
-        RULE("$i32", {
-            printf("printing i32\n");
-            printf("%d", opr->i32);
-        });
-        
-        printf("%s", fmt);
-        break;
-    }
-    
-    #undef RULE
-}
-
-void PrintOps(List *ops) {
-    LIST_EACH(ops, Op *, op, {
-        PrintOp(op, 0);
+    EMIT({ 
+        .fmt = "push $vr\n",
+        .oprs[0] = { .vreg = EBP },
+        .use = { EBP }
     });
-}
-
-Set *OpUse(void *op) {
-    Set *use = NewSet();
-    for (int i = 0; i < MAX_OPRS; i++) {
-        VReg *vreg = ((Op *)op)->use[i];
-        if (vreg != 0) {
-            SetAdd(use, vreg);
-        }
-    }
-    return use;
-}
-
-Set *OpDef(void *op) {
-    Set *def = NewSet();
-    for (int i = 0; i < MAX_OPRS; i++) {
-        VReg *vreg = ((Op *)op)->def[i];
-        if (vreg != 0) {
-            SetAdd(def, vreg);
-        }
-    }
-    return def;
-}
-
-int VRegIndex(void *vreg) {
-    return ((VReg *)vreg)->id;
-}
-
-void PrintColoredOps(List *ops, Coloring *coloring) {
-    LIST_EACH(ops, Op *, op, {
-        PrintOp(op, coloring);
+    EMIT({
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = EBP },
+        .oprs[1] = { .vreg = ESP },
+        .use = { ESP },
+        .def = { EBP }
     });
-}
-
-static int IsVRegUsed(Op *op, VReg *vreg) {
-    for (int i = 0; i < MAX_OPRS; i++) {
-        if (op->use[i] == vreg || op->def[i] == vreg) {
-            return 1;
-        }
-    }
-    return 0;
-}
-
-static void SubVReg(Op *op, VReg *vreg, VReg *nvreg) {
-    for (int i = 0; i < MAX_OPRS; i++) {
-        if (op->oprs[i].vreg == vreg) {
-            op->oprs[i].vreg = nvreg;
-        }
-        if (op->use[i] == vreg) {
-            op->use[i] = nvreg;
-        }
-        if (op->def[i] == vreg) {
-            op->def[i] = nvreg;
-        }
-    }
-}
-
-List *Spill(List *ops, void *vreg) {
-    List *new_ops = NewList();
-    LIST_EACH(ops, Op *, op, {
-        if (IsVRegUsed(op, vreg)) {
-            
-            VReg *tmpvreg = NewVReg();
-            
-            ListAdd(new_ops, OP({
-                .fmt = "load $vr, [loc vr $i32]\n",
-                .oprs[0] = { .vreg = tmpvreg },
-                .oprs[1] = { .i32 = VRegIndex(vreg) },
-                .def = { tmpvreg }
-            }));
-            
-            SubVReg(op, vreg, tmpvreg);
-            ListAdd(new_ops, op);
-            
-            ListAdd(new_ops, OP({
-                .fmt = "store [loc vr $i32], $vr\n",
-                .oprs[0] = { .i32 = VRegIndex(vreg) },
-                .oprs[1] = { .vreg = tmpvreg },
-                .use = { tmpvreg }
-            }));
-            
-        } else {
-            ListAdd(new_ops, op);
-        }
+    
+    // TODO
+    List *ops = i386_v2_Munch(IRFunctionBody(func));
+    LIST_EACH(ops, PAsmOp *, op, {
+        PAsmModuleAddOp(mod, op);
     });
-    return new_ops;
+    DeleteList(ops);
+    
+    EMIT({
+        .fmt = ";--- end of function: [$str] ---\n",
+        .oprs[0] = { .str = name }
+    });
+    
+    EMIT({ .fmt = "\n" });
+    
+    #undef EMIT
+    #undef OP
 }
+
+static Set *_Colors() {
+    return _ColorSet;
+}
+
+static Map *_Precoloring() {
+    return _PrecoloringMap;
+}
+
+static PAsmModule *_IRToPAsmModule(IRModule *irMod) {
+
+    Backend *backend = &i386_Backend;
+    PAsmModule *pasmMod = PAsmModuleFromBackend(backend);
+    
+    #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+    #define EMIT(...)   PAsmModuleAddOp(pasmMod, OP(__VA_ARGS__))
+    
+    EMIT({ .fmt = ";--- start of module ---\n" });
+    EMIT({ .fmt = "\n" });
+    
+    List *funcs = IRModuleFunctions(irMod);
+    LIST_EACH(funcs, IRFunction *, func, {
+        backend->Select(pasmMod, func);
+    });
+    DeleteList(funcs);
+    
+    EMIT({ .fmt = "\n" });
+    EMIT({ .fmt = ";--- end of module ---\n" });
+    
+    return pasmMod;
+    
+    #undef EMIT
+    #undef OP
+}
+
+Backend i386_Backend = {
+    .dummy = 0,
+    .Select = _Select,
+    .Init = _Init,
+    .Deinit = _Deinit,
+    .Colors = _Colors,
+    .Precoloring = _Precoloring,
+    .IRToPAsmModule = _IRToPAsmModule
+};

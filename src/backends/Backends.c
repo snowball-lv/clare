@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <backends/i386/i386.new.h>
+#include <backends/i386/i386.h>
 
 Backend *GetBackend(const char *name) {
     

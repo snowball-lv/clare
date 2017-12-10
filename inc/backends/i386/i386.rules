@@ -1,15 +1,16 @@
 
 
-// #define RULE(pattern, action)
+#define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
 
-RULE(Nodes.Seq(0, 0), {
+RULE(IR.Seq(0, 0), {
     MUNCH(root->kids[0]);
     MUNCH(root->kids[1]);
 })
 
-RULE(Nodes.Mov(Nodes.Tmp(), 0), {
-    VReg *dst = MUNCH(root->kids[0]);
-    VReg *src = MUNCH(root->kids[1]);
+RULE(IR.Mov(IR.Tmp(), 0), {
+    Node *tmp_dst = root->kids[0];
+    PAsmVReg *dst = PAsmVRegFromTmp(tmp_dst);
+    PAsmVReg *src = MUNCH(root->kids[1]);
     EMIT(OP({
         .fmt = "mov $vr, $vr\n",
         .oprs[0] = { .vreg = dst },
@@ -19,30 +20,157 @@ RULE(Nodes.Mov(Nodes.Tmp(), 0), {
     }));
 })
 
-RULE(Nodes.Tmp(), {
-    return VRegForTmp(state, root);
-})
-
-RULE(Nodes.Add(0, 0), {
-    VReg *left = MUNCH(root->kids[0]);
-    VReg *right = MUNCH(root->kids[1]);
+RULE(IR.Add(0, 0), {
+    PAsmVReg *a = MUNCH(root->kids[0]);
+    PAsmVReg *b = MUNCH(root->kids[1]);
     EMIT(OP({
         .fmt = "add $vr, $vr\n",
-        .oprs[0] = { .vreg = left },
-        .oprs[1] = { .vreg = right },
-        .use = { left, right },
-        .def = { left }
+        .oprs[0] = { .vreg = a },
+        .oprs[1] = { .vreg = b },
+        .use = { a, b },
+        .def = { a }
     }));
-    return left;
+    return a;
 })
 
-RULE(Nodes.I32(0), {
-    VReg *dst = NewVReg();
+RULE(IR.Tmp(), {
+    return PAsmVRegFromTmp(root);
+})
+
+RULE(IR.Arg(0), {
+    PAsmVReg *vreg = NewPAsmVReg();
+    EMIT(OP({
+        .fmt = "mov $vr, [$vr + $i32]\n",
+        .oprs[0] = { .vreg = vreg },
+        .oprs[1] = { .vreg = EBP },
+        .oprs[2] = { .i32 = 8 + root->arg_index * 4 },
+        .def = { vreg },
+        .use = { EBP }
+    }));
+    return vreg;
+})
+
+RULE(IR.I32(0), {
+    PAsmVReg *vreg = NewPAsmVReg();
     EMIT(OP({
         .fmt = "mov $vr, $i32\n",
-        .oprs[0] = { .vreg = dst },
+        .oprs[0] = { .vreg = vreg },
         .oprs[1] = { .i32 = root->i32 },
-        .def = { dst }
+        .def = { vreg }
     }));
-    return dst;
+    return vreg;
 })
+
+RULE(IR.Ret(0), {
+    PAsmVReg *vreg = MUNCH(root->kids[0]);
+    
+    EMIT(OP({
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = EAX },
+        .oprs[1] = { .vreg = vreg },
+        .use = { vreg },
+        .def = { EAX }
+    }));
+    
+    EMIT(OP({
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = ESP },
+        .oprs[1] = { .vreg = EBP },
+        .use = { EBP },
+        .def = { ESP }
+    }));
+    EMIT(OP({ 
+        .fmt = "pop $vr\n",
+        .oprs[0] = { .vreg = EBP },
+        .def = { EBP }
+    }));
+    
+    EMIT(OP({
+        .fmt = "ret\n",
+        .use = { EAX }
+    }));
+})
+
+RULE(IR.Nop(), {
+    // do nothing
+})
+
+RULE(IR.Eq(0, 0), {
+    PAsmVReg *left = MUNCH(root->kids[0]);
+    PAsmVReg *right = MUNCH(root->kids[1]);
+    EMIT(OP({
+        .fmt = "cmp $vr, $vr\n",
+        .oprs[0] = { .vreg = left },
+        .oprs[1] = { .vreg = right },
+        .use = { left, right}
+    }));
+})
+
+RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
+    
+    MUNCH(root->kids[0]);
+    
+    int label_true  = NextLabel();
+    int label_end   = NextLabel();
+    
+    EMIT(OP({
+        .fmt = "je .L_T_$i32\n",
+        .oprs[0] = { .i32 = label_true }
+    }));
+    
+    // false
+    MUNCH(root->kids[2]);
+    
+    EMIT(OP({
+        .fmt = "jmp .L_E_$i32\n",
+        .oprs[0] = { .i32 = label_end }
+    }));
+    
+    EMIT(OP({
+        .fmt = ".L_T_$i32:\n",
+        .oprs[0] = { .i32 = label_true }
+    }));
+    
+    // true
+    MUNCH(root->kids[1]);
+    
+    EMIT(OP({
+        .fmt = ".L_E_$i32:\n",
+        .oprs[0] = { .i32 = label_end }
+    }));
+    
+})
+
+RULE(IR.Call(0, 0), {
+    
+    LIST_REV(root->args, Node *, arg, {
+        PAsmVReg *vreg = MUNCH(arg);
+        EMIT(OP({ 
+            .fmt = "push $vr\n",
+            .oprs[0] = { .vreg = vreg },
+            .use = { vreg }
+        }));
+    });
+    
+    EMIT(OP({
+        .fmt = "call $str\n",
+        .oprs[0] = { .str = root->fname },
+        .use = { EAX, EDX, ECX },
+        .def = { EAX }
+    }));
+    
+    EMIT(OP({
+        .fmt = "add $vr, $i32\n",
+        .oprs[0] = { .vreg = ESP },
+        .oprs[1] = { .i32 = ListSize(root->args) * 4 },
+        .def = { ESP }
+    }));
+    
+    return EAX;
+})
+
+RULE(IR.Any(), {
+    printf("no instruction selection rule for: %s\n", NodeName(root));
+})
+
+#undef OP
