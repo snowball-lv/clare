@@ -9,6 +9,7 @@
 // referencing each other
 
 typedef struct PAsmModule PAsmModule;
+typedef struct PAsmVReg PAsmVReg;
 
 struct Backend {
     int dummy;
@@ -18,6 +19,7 @@ struct Backend {
     void (*Init)();
     void (*Deinit)();
     PAsmModule *(*IRToPAsmModule)(IRModule *irMod);
+    PAsmVReg *(*LoadVReg)(PAsmModule *mod, PAsmVReg *vreg);
 };
 
 typedef struct Backend Backend;

@@ -1,17 +1,17 @@
 
 
-
-func clare_main
-    ret(i32(10))
+func clare_mainf
+    ret(float(1337))
 end
 
-
-func clare_mainf
+func clare_main
     ret(add(
+        i32(0),
         add(
-            float(10),
-            float(20)),
-        add(
-            float(30),
-            float(40))))
+            i32(1),
+            add(
+                i32(2),
+                add(
+                    i32(3),
+                    i32(0))))))
 end

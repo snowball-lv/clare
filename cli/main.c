@@ -115,6 +115,7 @@ static void compile_file(   FILE *src,
     PAsmModule *pasmMod = backend->IRToPAsmModule(irMod);
     
     PAsmAllocate(pasmMod);
+    PAsmSpill(pasmMod);
     
     PrintPAsmModule(pasmMod, out);
     

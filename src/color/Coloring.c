@@ -136,3 +136,12 @@ void *ColoringGetColor(Coloring *coloring, void *node) {
         return MapGet(coloring->precoloring, node);
     }
 }
+
+int ColoringIsColored(Coloring *coloring, void *node) {
+    if (MapContains(coloring->coloring, node)) {
+        return 1;
+    } else if (MapContains(coloring->precoloring, node)) {
+        return 1;
+    }
+    return 0;
+}

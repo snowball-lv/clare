@@ -82,7 +82,7 @@ static void PAsmPrintOp(PAsmModule *mod, PAsmOp *op, FILE *output) {
         ptr += spn;
         
         RULE("$vr", {
-            if (mod->coloring != 0) {
+            if (mod->coloring != 0 && ColoringIsColored(mod->coloring, OPR->vreg)) {
                 const char *color = ColoringGetColor(mod->coloring, OPR->vreg);
                 printf("%s", color);
             } else {
@@ -100,6 +100,10 @@ static void PAsmPrintOp(PAsmModule *mod, PAsmOp *op, FILE *output) {
         
         RULE("$str", {
             printf("%s", OPR->str);
+        });
+        
+        RULE("$loc", {
+            printf("loc($vr%d)", OPR->vreg->id);
         });
         
         printf("%s", ptr);
@@ -196,4 +200,45 @@ void PrintPAsmModule(PAsmModule *mod, FILE *output) {
     LIST_EACH(mod->ops, PAsmOp *, op, {
         PAsmPrintOp(mod, op, output);
     });
+}
+
+static void SubVReg(PAsmOp *op, PAsmVReg *old, PAsmVReg *tmp) {
+    for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+        PAsmOpr *opr = &op->oprs[i];
+        if (opr->vreg != 0 && opr->vreg == old) {
+            opr->vreg = tmp;
+        }
+    }
+}
+
+void PAsmSpill(PAsmModule *mod) {
+        
+    List *old_ops = mod->ops;
+    mod->ops = NewList();
+
+    Coloring *coloring = mod->coloring;
+    Backend *backend = mod->backend;
+    
+    LIST_EACH(old_ops, PAsmOp *, op, {
+        
+        for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+
+            PAsmVReg *vreg = op->use[i];
+            if (vreg == 0) {
+                continue;
+            }
+            
+            void *color = ColoringGetColor(coloring, vreg);
+            if (color == SPILL) {
+                // load vreg
+                PAsmVReg *tmp = backend->LoadVReg(mod, vreg);
+                op->use[i] = tmp;
+                SubVReg(op, vreg, tmp);
+            }
+        }
+        
+        ListAdd(mod->ops, op);
+    });
+    
+    DeleteList(old_ops);
 }

@@ -48,12 +48,12 @@ static void _Init() {
     _ColorSet = NewSet();
     
     SetAdd(_ColorSet, "eax");
-    SetAdd(_ColorSet, "ebx");
+    // SetAdd(_ColorSet, "ebx");
     SetAdd(_ColorSet, "ecx");
     SetAdd(_ColorSet, "edx");
     
-    SetAdd(_ColorSet, "esi");
-    SetAdd(_ColorSet, "edi");
+    // SetAdd(_ColorSet, "esi");
+    // SetAdd(_ColorSet, "edi");
     SetAdd(_ColorSet, "ebp");
     SetAdd(_ColorSet, "esp");
     
@@ -208,6 +208,28 @@ static PAsmModule *_IRToPAsmModule(IRModule *irMod) {
     #undef OP
 }
 
+static PAsmVReg *_LoadVReg(PAsmModule *mod, PAsmVReg *vreg) {
+    
+    #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+    #define EMIT(...)   PAsmModuleAddOp(mod, OP(__VA_ARGS__))
+    
+    PAsmVReg *tmp = NewPAsmVReg();
+    
+    EMIT({
+        .fmt = "mov $vr, [$vr - $loc]    ;load\n",
+        .oprs[0] = { .vreg = tmp },
+        .oprs[1] = { .vreg = EBP },
+        .oprs[2] = { .vreg = vreg },
+        .def = { tmp },
+        .use = { EBP }
+    });
+    
+    return tmp;
+    
+    #undef EMIT
+    #undef OP
+}
+
 Backend i386_Backend = {
     .dummy = 0,
     .Select = _Select,
@@ -215,5 +237,6 @@ Backend i386_Backend = {
     .Deinit = _Deinit,
     .Colors = _Colors,
     .Precoloring = _Precoloring,
-    .IRToPAsmModule = _IRToPAsmModule
+    .IRToPAsmModule = _IRToPAsmModule,
+    .LoadVReg = _LoadVReg,
 };

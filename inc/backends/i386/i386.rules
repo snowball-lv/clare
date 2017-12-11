@@ -83,6 +83,15 @@ RULE(IR.Add(0, 0), {
         EMIT(OP({
             .fmt = "faddp\n"
         }));
+    } else {
+        EMIT(OP({
+            .fmt = "add $vr, $vr\n",
+            .oprs[0] = { .vreg = left },
+            .oprs[1] = { .vreg = right },
+            .use = { left, right },
+            .def = { left }
+        }));
+        return left;
     }
 })
 

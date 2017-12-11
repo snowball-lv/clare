@@ -16,10 +16,12 @@ typedef struct Backend Backend;
 
 TYPE_DECL(PAsmModule)
 
-typedef struct {
+typedef struct PAsmVReg PAsmVReg;
+
+struct PAsmVReg {
     int id;
     int special;
-} PAsmVReg;
+};
 
 HEAP_DECL(PAsmVReg)
 
@@ -48,6 +50,7 @@ PAsmVReg *NewPAsmVReg();
 PAsmVReg *NewSpecialPAsmVReg();
 
 void PAsmAllocate(PAsmModule *mod); 
+void PAsmSpill(PAsmModule *mod); 
 
 PAsmModule *PAsmModuleFromBackend(Backend *backend);
 
