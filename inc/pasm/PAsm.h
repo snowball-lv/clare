@@ -50,7 +50,7 @@ PAsmVReg *NewPAsmVReg();
 PAsmVReg *NewSpecialPAsmVReg();
 
 void PAsmAllocate(PAsmModule *mod); 
-void PAsmSpill(PAsmModule *mod); 
+int PAsmSpill(PAsmModule *mod); 
 
 PAsmModule *PAsmModuleFromBackend(Backend *backend);
 

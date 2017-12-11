@@ -211,7 +211,9 @@ static void SubVReg(PAsmOp *op, PAsmVReg *old, PAsmVReg *tmp) {
     }
 }
 
-void PAsmSpill(PAsmModule *mod) {
+int PAsmSpill(PAsmModule *mod) {
+        
+    int has_spilled = 0;
         
     List *old_ops = mod->ops;
     mod->ops = NewList();
@@ -234,6 +236,7 @@ void PAsmSpill(PAsmModule *mod) {
                 PAsmVReg *tmp = backend->LoadVReg(mod, vreg);
                 op->use[i] = tmp;
                 SubVReg(op, vreg, tmp);
+                has_spilled = 1;
             }
         }
         
@@ -241,4 +244,11 @@ void PAsmSpill(PAsmModule *mod) {
     });
     
     DeleteList(old_ops);
+    
+    // if (has_spilled) {
+    //     DeleteColoring(mod->coloring);
+    //     mod->coloring = 0;
+    // }
+    
+    return has_spilled;
 }

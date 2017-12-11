@@ -114,6 +114,12 @@ static void compile_file(   FILE *src,
     backend->Init();
     PAsmModule *pasmMod = backend->IRToPAsmModule(irMod);
     
+    // int i = 1;
+    // do {
+    //     printf("reg. alloc iteration: %d\n", i++);
+    //     PAsmAllocate(pasmMod);
+    // } while (PAsmSpill(pasmMod));
+    
     PAsmAllocate(pasmMod);
     PAsmSpill(pasmMod);
     
