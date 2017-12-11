@@ -64,15 +64,6 @@ static Node *_ ## name params {                     \
     #include <ir/nodes.def>
 #undef NODE
 
-_Nodes Nodes = {
-
-    .dummy = 0,    
-    
-    #define NODE(name, params, init)    .name = _ ## name,
-        #include <ir/nodes.def>
-    #undef NODE
-};
-
 _Nodes IR = {
 
     .dummy = 0,    

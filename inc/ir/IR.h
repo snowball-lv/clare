@@ -51,7 +51,6 @@ typedef struct {
     #undef NODE
 } _Nodes;
 
-extern _Nodes Nodes;
 extern _Nodes IR;
 
 TYPE_DECL(IRModule)
