@@ -14,7 +14,7 @@ NODE(Mov, (Node *dst, Node *src), {
 })
 
 NODE(Tmp, (), {
-    self->index = NextTmpIndex();
+    self->id = NewTmpID();
 })
 
 NODE(Add, (Node *left, Node *right), {

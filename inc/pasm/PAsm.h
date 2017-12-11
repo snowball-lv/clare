@@ -44,11 +44,6 @@ HEAP_DECL(PAsmOp)
 
 void PAsmModuleAddOp(PAsmModule *mod, PAsmOp *op);
 
-PAsmVReg *PAsmVRegFromTmp(Node *tmp);
-
-void PAsmInit();
-void PAsmDeinit();
-
 PAsmVReg *NewPAsmVReg();
 PAsmVReg *NewSpecialPAsmVReg();
 

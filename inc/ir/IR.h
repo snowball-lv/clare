@@ -14,7 +14,7 @@ struct Node {
     union {
         int32_t i32;
         float f;
-        int index;
+        int id;
         int arg_index;
         struct {
             const char *fname;

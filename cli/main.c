@@ -111,7 +111,6 @@ static void compile_file(   FILE *src,
     
     IRModule *irMod = frontend->SourceToIRModule(src);
     
-    PAsmInit();
     backend->Init();
     PAsmModule *pasmMod = backend->IRToPAsmModule(irMod);
     
@@ -121,7 +120,6 @@ static void compile_file(   FILE *src,
     
     DeletePAsmModule(pasmMod);
     backend->Deinit();
-    PAsmDeinit();
     
     DeleteIRModule(irMod);
 }

@@ -112,34 +112,18 @@ static void PAsmPrintOp(PAsmModule *mod, PAsmOp *op, FILE *output) {
     #undef printf
 }
 
-static Map *_TmpToVregMap = 0;
-
-void PAsmInit() {
-    _TmpToVregMap = NewMap();
-}
-
-void PAsmDeinit() {
-    DeleteMap(_TmpToVregMap);
-}
-
 HEAP_DEF(PAsmVReg)
 
-PAsmVReg *PAsmVRegFromTmp(Node *tmp) {
-    if (!MapContains(_TmpToVregMap, tmp)) {
-        PAsmVReg *vreg = HEAP(PAsmVReg, {
-            .id = tmp->index
-        });
-        MapPut(_TmpToVregMap, tmp, vreg);
-    }
-    PAsmVReg *vreg = MapGet(_TmpToVregMap, tmp);
-    return vreg;
+static int _VRegIDCounter = 0;
+
+static int NewVRegID() {
+    return ++_VRegIDCounter;
 }
 
 PAsmVReg *NewPAsmVReg() {
-    Node *tmp = IR.Tmp();
-    PAsmVReg *vreg = PAsmVRegFromTmp(tmp);
-    MapRemove(_TmpToVregMap, tmp);
-    MemFree(tmp);
+    PAsmVReg *vreg = HEAP(PAsmVReg, {
+        .id = NewVRegID()
+    });
     return vreg;
 }
 

@@ -27,7 +27,7 @@ RULE(IR.Float(0), {
 })
 
 RULE(IR.Tmp(), {
-    printf("$tmp%d", root->index);
+    printf("$tmp%d", root->id);
 })
 
 RULE(IR.Mov(0, 0), {

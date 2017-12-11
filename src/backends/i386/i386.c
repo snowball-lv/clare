@@ -17,7 +17,26 @@ static PAsmVReg *ESP = 0;
 static PAsmVReg *EDX = 0;
 static PAsmVReg *ECX = 0;
 
+static Map *_TmpToVregMap = 0;
+
+static void PAsmInit() {
+    _TmpToVregMap = NewMap();
+}
+
+static void PAsmDeinit() {
+    DeleteMap(_TmpToVregMap);
+}
+
+static PAsmVReg *PAsmVRegFromTmp(Node *tmp) {
+    if (!MapContains(_TmpToVregMap, tmp)) {
+        MapPut(_TmpToVregMap, tmp, NewPAsmVReg());
+    }
+    return MapGet(_TmpToVregMap, tmp);
+}
+
 static void _Init() {
+    
+    PAsmInit();
     
     EAX = NewSpecialPAsmVReg();
     EBP = NewSpecialPAsmVReg();
@@ -59,6 +78,8 @@ static void _Deinit() {
         
     DeleteSet(_ColorSet);
     DeleteMap(_PrecoloringMap);
+    
+    PAsmDeinit();
 }
 
 static int _Label_Counter = 1;

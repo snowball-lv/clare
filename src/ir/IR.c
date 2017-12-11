@@ -49,10 +49,10 @@ int NodeMatch(Node *root, Node *pattern) {
     return 0;
 }
 
-static int TmpIndexCounter = 0;
+static int _TmpIDCounter = 0;
 
-static int NextTmpIndex() {
-    return ++TmpIndexCounter;
+static int NewTmpID() {
+    return ++_TmpIDCounter;
 }
 
 #define NODE(name, params, init)                    \
