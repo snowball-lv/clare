@@ -1,19 +1,12 @@
 
 
-
-func clare_main_2
-    ret(i32(1337))
-end
-
-
 func clare_main
-    ret(add(
-        i32(0),
-        add(
-            i32(1),
-            add(
-                i32(2),
-                add(
-                    i32(3),
-                    i32(0))))))
+    if eq(i32(0), i32(0)) then
+        mov($a, i32(2))
+        ret($a)
+    else
+        mov($b, i32(3))
+        ret($b)
+    end
+    ret(i32(1))
 end

@@ -205,6 +205,44 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             
             return IR.I32(tok.num);
             
+        } else if (strcmp(tok.id, "if") == 0) {
+            
+            Node *cond = ParseNode(NextToken(src), src);
+            
+            Token tok_then = NextToken(src);
+            assert(tok_then.type == TOK_ID);
+            assert(strcmp(tok_then.id, "then") == 0);
+            
+            Node *t = IR.Nop();
+            
+            while (1) {
+                Token tok = NextToken(src);
+                assert(tok.type == TOK_ID);
+                if (strcmp(tok.id, "else") != 0) {
+                    t = IR.Seq(
+                        t,
+                        ParseNode(tok, src));
+                } else {
+                    break;
+                }
+            }
+            
+            Node *f = IR.Nop();
+            
+            while (1) {
+                Token tok = NextToken(src);
+                assert(tok.type == TOK_ID);
+                if (strcmp(tok.id, "end") != 0) {
+                    f = IR.Seq(
+                        f,
+                        ParseNode(tok, src));
+                } else {
+                    break;
+                }
+            }
+            
+            return IR.Branch(cond, t, f);
+            
         } else if (strcmp(tok.id, "float") == 0) {
             
             assert(NextToken(src).type == TOK_L_PAREN);
