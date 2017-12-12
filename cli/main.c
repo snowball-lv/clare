@@ -121,7 +121,7 @@ static void compile_file(   FILE *src,
     // } while (PAsmSpill(pasmMod));
     
     PAsmAllocate(pasmMod);
-    PAsmSpill(pasmMod);
+    // PAsmSpill(pasmMod);
     
     PrintPAsmModule(pasmMod, out);
     

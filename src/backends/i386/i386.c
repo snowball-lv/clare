@@ -98,81 +98,15 @@ static int NextLabel() {
 #undef RULE_FILE
 #undef MANGLE
 
-#define MANGLE(name)     i386_rodata_ ## name
-#define RULE_FILE       <backends/i386/i386.rodata.rules>
-#define RET_TYPE        void *
-#define RET_DEFAULT     0
-    #include <ir/muncher.def>
-#undef RET_DEFAULT
-#undef RET_TYPE
-#undef RULE_FILE
-#undef MANGLE
-
-static void _Select(PAsmModule *mod, IRFunction *func) {
-    #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
-    #define EMIT(...)   PAsmModuleAddOp(mod, OP(__VA_ARGS__))
-    
-    const char *name = IRFunctionName(func);
-    
-    EMIT({ .fmt = "\n" });
-    
-    EMIT({ 
-        .fmt = ";--- start of function: [$str] ---\n",
-        .oprs[0] = { .str = name }
-    });
-    
-    // .rodata
-    EMIT({ .fmt = "section .rodata\n" });
-    {
-        List *ops = i386_rodata_Munch(IRFunctionBody(func));
-        LIST_EACH(ops, PAsmOp *, op, {
-            PAsmModuleAddOp(mod, op);
-        });
-        DeleteList(ops);
-    }
-    
-    // .text
-    EMIT({ .fmt = "section .text\n" });
-    EMIT({ 
-        .fmt = "global $str\n",
-        .oprs[0] = { .str = name }
-    });
-    EMIT({ 
-        .fmt = "$str:\n",
-        .oprs[0] = { .str = name }
-    });
-    
-    EMIT({ 
-        .fmt = "push $vr\n",
-        .oprs[0] = { .vreg = EBP },
-        .use = { EBP }
-    });
-    EMIT({
-        .fmt = "mov $vr, $vr\n",
-        .oprs[0] = { .vreg = EBP },
-        .oprs[1] = { .vreg = ESP },
-        .use = { ESP },
-        .def = { EBP }
-    });
-    
-    {
-        List *ops = i386_v2_Munch(IRFunctionBody(func));
-        LIST_EACH(ops, PAsmOp *, op, {
-            PAsmModuleAddOp(mod, op);
-        });
-        DeleteList(ops);
-    }
-    
-    EMIT({
-        .fmt = ";--- end of function: [$str] ---\n",
-        .oprs[0] = { .str = name }
-    });
-    
-    EMIT({ .fmt = "\n" });
-    
-    #undef EMIT
-    #undef OP
-}
+// #define MANGLE(name)     i386_rodata_ ## name
+// #define RULE_FILE       <backends/i386/i386.rodata.rules>
+// #define RET_TYPE        void *
+// #define RET_DEFAULT     0
+//     #include <ir/muncher.def>
+// #undef RET_DEFAULT
+// #undef RET_TYPE
+// #undef RULE_FILE
+// #undef MANGLE
 
 static Set *_Colors() {
     return _ColorSet;
@@ -182,61 +116,151 @@ static Map *_Precoloring() {
     return _PrecoloringMap;
 }
 
+static PAsmFunction *IRToPAsmFunction(PAsmModule *mod, IRFunction *func) {
+    
+    UNUSED(mod);
+    UNUSED(func);
+    
+    const char *name = IRFunctionName(func);
+    
+    PAsmFunction *pasmFunc = NewPAsmFunction();
+    
+    ListAdd(pasmFunc->header, HEAP(PAsmOp, {
+        .fmt = "\n"
+    }));
+    ListAdd(pasmFunc->header, HEAP(PAsmOp, {
+        .fmt = ";-------- start of function: [$str]\n",
+        .oprs[0] = { .str = name }
+    }));
+    ListAdd(pasmFunc->header, HEAP(PAsmOp, {
+        .fmt = "section .text\n"
+    }));
+    ListAdd(pasmFunc->header, HEAP(PAsmOp, {
+        .fmt = "global $str\n",
+        .oprs[0] = { .str = name }
+    }));
+    ListAdd(pasmFunc->header, HEAP(PAsmOp, {
+        .fmt = "$str:\n",
+        .oprs[0] = { .str = name }
+    }));
+    
+    List *ops = i386_v2_Munch(IRFunctionBody(func));
+    LIST_EACH(ops, PAsmOp *, op, {
+        ListAdd(pasmFunc->body, op);
+    });
+    DeleteList(ops);
+    
+    ListAdd(pasmFunc->footer, HEAP(PAsmOp, {
+        .fmt = ";-------- end of function: [$str]\n",
+        .oprs[0] = { .str = name }
+    }));
+    ListAdd(pasmFunc->footer, HEAP(PAsmOp, {
+        .fmt = "\n"
+    }));
+    
+    return pasmFunc;
+}
+
 static PAsmModule *_IRToPAsmModule(IRModule *irMod) {
 
-    Backend *backend = &i386_Backend;
-    PAsmModule *pasmMod = PAsmModuleFromBackend(backend);
-    
-    #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
-    #define EMIT(...)   PAsmModuleAddOp(pasmMod, OP(__VA_ARGS__))
-    
-    EMIT({ .fmt = ";--- start of module ---\n" });
-    EMIT({ .fmt = "\n" });
+    PAsmModule *pasmMod = PAsmModuleFromBackend(&i386_Backend);
     
     List *funcs = IRModuleFunctions(irMod);
     LIST_EACH(funcs, IRFunction *, func, {
-        backend->Select(pasmMod, func);
+        PAsmFunction *pasmFunc = IRToPAsmFunction(pasmMod, func);
+        PAsmModuleAddFunc(pasmMod, pasmFunc);
     });
     DeleteList(funcs);
     
-    EMIT({ .fmt = "\n" });
-    EMIT({ .fmt = ";--- end of module ---\n" });
-    
     return pasmMod;
+}
+
+static PAsmVReg *_LoadVReg(PAsmModule *mod, PAsmVReg *vreg) {
+    
+    UNUSED(mod);
+    UNUSED(vreg);
+    
+    return 0;
+    
+    // #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+    // #define EMIT(...)   PAsmModuleAddOp(mod, OP(__VA_ARGS__))
+    // 
+    // PAsmVReg *tmp = NewPAsmVReg();
+    // 
+    // EMIT({
+    //     .fmt = "mov $vr, [$vr - $loc]    ;load\n",
+    //     .oprs[0] = { .vreg = tmp },
+    //     .oprs[1] = { .vreg = EBP },
+    //     .oprs[2] = { .vreg = vreg },
+    //     .def = { tmp },
+    //     .use = { EBP }
+    // });
+    // 
+    // return tmp;
+    // 
+    // #undef EMIT
+    // #undef OP
+}
+
+static List *_GenPrologue(PAsmFunction *func) {
+    
+    List *ops = NewList();
+    
+    #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+    #define EMIT(...)   ListAdd(ops, OP(__VA_ARGS__))
+    
+    UNUSED(func);
+    
+    EMIT({ .fmt = ";-------- prologue\n" });
+    
+    EMIT({ .fmt = "push ebp\n" });
+    EMIT({ .fmt = "mov ebp, esp\n" });
+    EMIT({ 
+        .fmt = "sub esp, $i32\n",
+        .oprs[0] = { .i32 = func->stack_space }
+    });
+    
+    EMIT({ .fmt = ";-------- /prologue\n" });
+    
+    return ops;
     
     #undef EMIT
     #undef OP
 }
 
-static PAsmVReg *_LoadVReg(PAsmModule *mod, PAsmVReg *vreg) {
+static List *_GenEpilogue(PAsmFunction *func) {
     
+    List *ops = NewList();
+
     #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
-    #define EMIT(...)   PAsmModuleAddOp(mod, OP(__VA_ARGS__))
-    
-    PAsmVReg *tmp = NewPAsmVReg();
-    
-    EMIT({
-        .fmt = "mov $vr, [$vr - $loc]    ;load\n",
-        .oprs[0] = { .vreg = tmp },
-        .oprs[1] = { .vreg = EBP },
-        .oprs[2] = { .vreg = vreg },
-        .def = { tmp },
-        .use = { EBP }
-    });
-    
-    return tmp;
-    
+    #define EMIT(...)   ListAdd(ops, OP(__VA_ARGS__))
+
+    UNUSED(func);
+
+    EMIT({ .fmt = ";-------- epilogue\n" });
+
+    EMIT({ .fmt = "mov esp, ebp\n" });
+    EMIT({ .fmt = "pop ebp\n" });
+    EMIT({ .fmt = "ret\n" });
+
+    EMIT({ .fmt = ";-------- /epilogue\n" });
+
+    return ops;
+
     #undef EMIT
     #undef OP
 }
 
 Backend i386_Backend = {
     .dummy = 0,
-    .Select = _Select,
+    // .Select = _Select,
     .Init = _Init,
     .Deinit = _Deinit,
     .Colors = _Colors,
     .Precoloring = _Precoloring,
     .IRToPAsmModule = _IRToPAsmModule,
     .LoadVReg = _LoadVReg,
+    
+    .GenPrologue = _GenPrologue,
+    .GenEpilogue = _GenEpilogue,
 };

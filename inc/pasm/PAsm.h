@@ -5,6 +5,7 @@
 #include <collections/Set.h>
 #include <collections/Map.h>
 #include <backend/Backend.h>
+#include <color/Coloring.h>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -16,8 +17,19 @@ typedef struct Backend Backend;
 
 TYPE_DECL(PAsmModule)
 
-typedef struct PAsmVReg PAsmVReg;
+typedef struct PAsmFunction PAsmFunction;
+struct PAsmFunction {
+    int dummy;
+    List *header;
+    List *body;
+    List *footer;
+    int stack_space;
+    Coloring *coloring;
+};
+PAsmFunction *NewPAsmFunction();
+void DeletePAsmFunction(PAsmFunction *self);
 
+typedef struct PAsmVReg PAsmVReg;
 struct PAsmVReg {
     int id;
     int special;
@@ -44,7 +56,7 @@ typedef struct {
 
 HEAP_DECL(PAsmOp)
 
-void PAsmModuleAddOp(PAsmModule *mod, PAsmOp *op);
+void PAsmModuleAddFunc(PAsmModule *mod, PAsmFunction *func);
 
 PAsmVReg *NewPAsmVReg();
 PAsmVReg *NewSpecialPAsmVReg();

@@ -1,7 +1,7 @@
 
 
 func clare_mainf
-    ret(float(1337))
+    ret(i32(1337))
 end
 
 func clare_main
