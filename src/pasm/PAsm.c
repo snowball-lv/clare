@@ -9,6 +9,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <assert.h>
 
 HEAP_DEF(PAsmOp)
 
@@ -35,6 +36,8 @@ PAsmFunction *NewPAsmFunction() {
     self->stack_space = 0;
 
     self->coloring = 0;
+    
+    self->locations = NewMap();
 
     return self;
 }
@@ -68,6 +71,10 @@ void DeletePAsmFunction(PAsmFunction *self) {
     
     if (self->coloring != 0) {
         DeleteColoring(self->coloring);
+    }
+    
+    if (self->locations) {
+        DeleteMap(self->locations);
     }
     
     MemFree(self);
@@ -128,6 +135,10 @@ static void PAsmPrintOp(PAsmOp *op, Coloring *coloring, FILE *output) {
             } else {
                 printf("$vr%d", OPR->vreg->id);
             }
+        });
+        
+        RULE("$id", {
+            printf("$vr%d", OPR->vreg->id);
         });
         
         RULE("$i32", {
@@ -286,56 +297,100 @@ void PrintPAsmModule(PAsmModule *mod, FILE *output) {
     });
 }
 
-// static void SubVReg(PAsmOp *op, PAsmVReg *old, PAsmVReg *tmp) {
-//     for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
-//         PAsmOpr *opr = &op->oprs[i];
-//         if (opr->vreg != 0 && opr->vreg == old) {
-//             opr->vreg = tmp;
-//         }
-//     }
-// }
+static void SubVReg(PAsmOp *op, PAsmVReg *old, PAsmVReg *tmp) {
+    for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+        PAsmOpr *opr = &op->oprs[i];
+        if (opr->vreg != 0 && opr->vreg == old) {
+            opr->vreg = tmp;
+        }
+    }
+}
+
+static int PAsmSpillFunction(PAsmModule *mod, PAsmFunction *func) {
+    
+    int has_spilled = 0;
+    
+    List *old_ops = func->body;
+    func->body = NewList();
+    
+    Coloring *coloring = func->coloring;
+    Backend *backend = mod->backend;
+    
+    LIST_EACH(old_ops, PAsmOp *, op, {
+    
+        Map *map = NewMap();
+    
+        for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+            
+            PAsmVReg *use = op->use[i];
+            if (use != 0) {
+                void *color = ColoringGetColor(coloring, use);
+                if (color == SPILL && !MapContains(map, use)) {
+                    MapPut(map, use, NewPAsmVReg());
+                    has_spilled = 1;
+                }
+            }
+            
+            PAsmVReg *def = op->def[i];
+            if (def != 0) {
+                void *color = ColoringGetColor(coloring, def);
+                if (color == SPILL && !MapContains(map, def)) {
+                    MapPut(map, def, NewPAsmVReg());
+                    has_spilled = 1;
+                }
+            }
+        }
+        
+        for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+            PAsmVReg *use = op->use[i];
+            if (use != 0) {
+                void *color = ColoringGetColor(coloring, use);
+                if (color == SPILL) {
+                    PAsmVReg *tmp = MapGet(map, use);
+                    backend->LoadVReg(func, use, tmp);
+                    op->use[i] = tmp;
+                    SubVReg(op, use, tmp);
+                }
+            }
+        }
+    
+        ListAdd(func->body, op);
+        
+        for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+            PAsmVReg *def = op->def[i];
+            if (def != 0) {
+                void *color = ColoringGetColor(coloring, def);
+                if (color == SPILL) {
+                    PAsmVReg *tmp = MapGet(map, def);
+                    backend->StoreVReg(func, def, tmp);
+                    op->def[i] = tmp;
+                    SubVReg(op, def, tmp);
+                }
+            }
+        }
+        
+        DeleteMap(map);
+    });
+    
+    DeleteList(old_ops);
+    
+    return has_spilled;
+}
 
 int PAsmSpill(PAsmModule *mod) {
     
-    UNUSED(mod);
-    return 0;
-        
-    // int has_spilled = 0;
-    // 
-    // List *old_ops = mod->ops;
-    // mod->ops = NewList();
-    // 
-    // Coloring *coloring = mod->coloring;
-    // Backend *backend = mod->backend;
-    // 
-    // LIST_EACH(old_ops, PAsmOp *, op, {
-    // 
-    //     for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
-    // 
-    //         PAsmVReg *vreg = op->use[i];
-    //         if (vreg == 0) {
-    //             continue;
-    //         }
-    // 
-    //         void *color = ColoringGetColor(coloring, vreg);
-    //         if (color == SPILL) {
-    //             // load vreg
-    //             PAsmVReg *tmp = backend->LoadVReg(mod, vreg);
-    //             op->use[i] = tmp;
-    //             SubVReg(op, vreg, tmp);
-    //             has_spilled = 1;
-    //         }
-    //     }
-    // 
-    //     ListAdd(mod->ops, op);
-    // });
-    // 
-    // DeleteList(old_ops);
-    // 
-    // // if (has_spilled) {
-    // //     DeleteColoring(mod->coloring);
-    // //     mod->coloring = 0;
-    // // }
-    // 
-    // return has_spilled;
+    int has_spilled = 0;
+    
+    LIST_EACH(mod->funcs, PAsmFunction *, func, {
+        has_spilled |= PAsmSpillFunction(mod, func);
+    });
+    
+    if (has_spilled) {
+        LIST_EACH(mod->funcs, PAsmFunction *, func, {
+            DeleteColoring(func->coloring);
+            func->coloring = 0;
+        });
+    }
+    
+    return has_spilled;
 }

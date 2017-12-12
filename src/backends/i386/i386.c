@@ -175,31 +175,60 @@ static PAsmModule *_IRToPAsmModule(IRModule *irMod) {
     return pasmMod;
 }
 
-static PAsmVReg *_LoadVReg(PAsmModule *mod, PAsmVReg *vreg) {
+static void _LoadVReg(PAsmFunction *func, PAsmVReg *spill, PAsmVReg *tmp) {
     
-    UNUSED(mod);
-    UNUSED(vreg);
+    #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+    #define EMIT(...)   ListAdd(func->body, OP(__VA_ARGS__))
     
-    return 0;
+    int offset = 0;
+    if (MapContains(func->locations, spill)) {
+        offset = (int) (intptr_t) MapGet(func->locations, spill);
+    } else {
+        offset = func->stack_space + 4;
+        MapPut(func->locations, spill, (void *) (intptr_t) offset);
+        func->stack_space = offset;
+    }
     
-    // #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
-    // #define EMIT(...)   PAsmModuleAddOp(mod, OP(__VA_ARGS__))
-    // 
-    // PAsmVReg *tmp = NewPAsmVReg();
-    // 
-    // EMIT({
-    //     .fmt = "mov $vr, [$vr - $loc]    ;load\n",
-    //     .oprs[0] = { .vreg = tmp },
-    //     .oprs[1] = { .vreg = EBP },
-    //     .oprs[2] = { .vreg = vreg },
-    //     .def = { tmp },
-    //     .use = { EBP }
-    // });
-    // 
-    // return tmp;
-    // 
-    // #undef EMIT
-    // #undef OP
+    EMIT({
+        .fmt = "mov $vr, [$vr - $i32]    ;load $id\n",
+        .oprs[0] = { .vreg = tmp },
+        .oprs[1] = { .vreg = EBP },
+        .oprs[2] = { .i32 = offset },
+        .oprs[3] = { .vreg = spill },
+        .def = { tmp },
+        .use = { EBP }
+    });
+    
+    #undef EMIT
+    #undef OP
+}
+
+static void _StoreVReg(PAsmFunction *func, PAsmVReg *spill, PAsmVReg *tmp) {
+    
+    #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+    #define EMIT(...)   ListAdd(func->body, OP(__VA_ARGS__))
+    
+    
+    int offset = 0;
+    if (MapContains(func->locations, spill)) {
+        offset = (int) (intptr_t) MapGet(func->locations, spill);
+    } else {
+        offset = func->stack_space + 4;
+        MapPut(func->locations, spill, (void *) (intptr_t) offset);
+        func->stack_space = offset;
+    }
+    
+    EMIT({
+        .fmt = "mov [$vr - $i32], $vr    ;store $id\n",
+        .oprs[0] = { .vreg = EBP },
+        .oprs[1] = { .i32 = offset },
+        .oprs[2] = { .vreg = tmp },
+        .oprs[3] = { .vreg = spill },
+        .use = { EBP, tmp }
+    });
+    
+    #undef EMIT
+    #undef OP
 }
 
 static List *_GenPrologue(PAsmFunction *func) {
@@ -259,7 +288,9 @@ Backend i386_Backend = {
     .Colors = _Colors,
     .Precoloring = _Precoloring,
     .IRToPAsmModule = _IRToPAsmModule,
+    
     .LoadVReg = _LoadVReg,
+    .StoreVReg = _StoreVReg,
     
     .GenPrologue = _GenPrologue,
     .GenEpilogue = _GenEpilogue,

@@ -22,7 +22,9 @@ struct Backend {
     void (*Init)();
     void (*Deinit)();
     PAsmModule *(*IRToPAsmModule)(IRModule *irMod);
-    PAsmVReg *(*LoadVReg)(PAsmModule *mod, PAsmVReg *vreg);
+    
+    void (*LoadVReg)(PAsmFunction *func, PAsmVReg *spill, PAsmVReg *tmp);
+    void (*StoreVReg)(PAsmFunction *func, PAsmVReg *spill, PAsmVReg *tmp);
     
     List *(*GenPrologue)(PAsmFunction *func);
     List *(*GenEpilogue)(PAsmFunction *func);

@@ -25,6 +25,7 @@ struct PAsmFunction {
     List *footer;
     int stack_space;
     Coloring *coloring;
+    Map *locations;
 };
 PAsmFunction *NewPAsmFunction();
 void DeletePAsmFunction(PAsmFunction *self);
@@ -45,7 +46,7 @@ typedef struct {
     float f;
 } PAsmOpr;
 
-#define PASM_OP_MAX_OPRS    3
+#define PASM_OP_MAX_OPRS    4
 
 typedef struct {
     const char *fmt;

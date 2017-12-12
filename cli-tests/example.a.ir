@@ -1,6 +1,6 @@
 
 
-func clare_mainf
+func clare_main_2
     ret(i32(1337))
 end
 
