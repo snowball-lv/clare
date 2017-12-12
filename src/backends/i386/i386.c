@@ -54,8 +54,8 @@ static void _Init() {
     
     // SetAdd(_ColorSet, "esi");
     // SetAdd(_ColorSet, "edi");
-    SetAdd(_ColorSet, "ebp");
-    SetAdd(_ColorSet, "esp");
+    // SetAdd(_ColorSet, "ebp");
+    // SetAdd(_ColorSet, "esp");
     
     _PrecoloringMap = NewMap();
     
