@@ -1,5 +1,11 @@
 
 
+
+func clare_main_2
+    ret(i32(1337))
+end
+
+
 func clare_main
     ret(add(
         i32(0),
@@ -10,9 +16,4 @@ func clare_main
                 add(
                     i32(3),
                     i32(0))))))
-end
-
-
-func clare_main_2
-    ret(i32(1337))
 end

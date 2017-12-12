@@ -56,17 +56,43 @@ static void *Next(Coloring *coloring) {
     void *min_node = 0;
     int min_count = INT_MAX;
     
+    Set *precolored = MapKeys(coloring->precoloring);
+    
     Set *uncolored = Uncolored(coloring);
     SET_EACH(uncolored, void *, node, {
-        int count = RIGEdgeCount(coloring->rig, node);
+        
+        Set *edges = RIGEdges(coloring->rig, node);
+        Set *vregs = SetSubtract(edges, precolored);
+        DeleteSet(edges);
+        
+        int count = SetSize(vregs);
         if (count < min_count) {
             min_node = node;
             min_count = count;
         }
+        
+        DeleteSet(vregs);
     });
     DeleteSet(uncolored);
     
+    DeleteSet(precolored);
+    
     return min_node;
+    
+    // void *min_node = 0;
+    // int min_count = INT_MAX;
+    // 
+    // Set *uncolored = Uncolored(coloring);
+    // SET_EACH(uncolored, void *, node, {
+    //     int count = RIGEdgeCount(coloring->rig, node);
+    //     if (count < min_count) {
+    //         min_node = node;
+    //         min_count = count;
+    //     }
+    // });
+    // DeleteSet(uncolored);
+    // 
+    // return min_node;
     
     // void *next = 0;
     // Set *uncolored = Uncolored(coloring);
