@@ -19,6 +19,8 @@ int RIGConnected(RIG *rig, void *a, void *b);
 Set *RIGNodes(RIG *rig);
 Set *RIGEdges(RIG *rig, void *node);
 
+int RIGEdgeCount(RIG *rig, void *node);
+
 #define RIG_EACH(rig, type, node, block) {  \
     Set *_nodes = RIGNodes(rig);            \
     SET_EACH(_nodes, type, node, block);    \

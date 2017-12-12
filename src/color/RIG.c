@@ -56,6 +56,10 @@ Set *RIGEdges(RIG *rig, void *node) {
     return GraphEdges(rig->edges, node);
 }
 
+int RIGEdgeCount(RIG *rig, void *node) {
+    return GraphEdgeCount(rig->edges, node);
+}
+
 void RIGAddAll(RIG *rig, Set *nodes) {
     SET_EACH(nodes, void *, node, {
         if (!RIGContains(rig, node)) {

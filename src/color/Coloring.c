@@ -5,6 +5,7 @@
 #include <color/RIG.h>
 
 #include <assert.h>
+#include <limits.h>
 
 struct Coloring {
     RIG *rig;
@@ -51,13 +52,29 @@ static Set *Uncolored(Coloring *coloring) {
 }
 
 static void *Next(Coloring *coloring) {
-    void *next = 0;
+    
+    void *min_node = 0;
+    int min_count = INT_MAX;
+    
     Set *uncolored = Uncolored(coloring);
     SET_EACH(uncolored, void *, node, {
-        next = node;
+        int count = RIGEdgeCount(coloring->rig, node);
+        if (count < min_count) {
+            min_node = node;
+            min_count = count;
+        }
     });
     DeleteSet(uncolored);
-    return next;
+    
+    return min_node;
+    
+    // void *next = 0;
+    // Set *uncolored = Uncolored(coloring);
+    // SET_EACH(uncolored, void *, node, {
+    //     next = node;
+    // });
+    // DeleteSet(uncolored);
+    // return next;
 }
 
 typedef struct {

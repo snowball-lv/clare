@@ -44,6 +44,8 @@ int main() {
 
     RIGConnect(rig, "c", "red");
     RIGConnect(rig, "c", "green");
+    
+    RIGConnect(rig, "d", "blue");
 
     Coloring *coloring = ColorRIG(
         rig,
