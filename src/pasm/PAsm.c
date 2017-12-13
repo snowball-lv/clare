@@ -2,6 +2,7 @@
 
 #include <helpers/Unused.h>
 #include <collections/List.h>
+#include <collections/Graph.h>
 #include <collections/Map.h>
 #include <color/RIG.h>
 #include <color/Coloring.h>
@@ -221,6 +222,35 @@ static List *Blockify(List *ops) {
     return blocks;
 }
 
+TYPE_DECL(CFG)
+TYPE_DEF(CFG, {
+    // fields
+    int dummy;
+}, {
+    // ctor
+}, {
+    // dtor
+})
+
+static CFG *MakeCFG(List *blocks) {
+    
+    CFG *cfg = NewCFG();
+    Map *map = NewMap();
+    
+    // fill lookup map
+    LIST_EACH(blocks, List *, block, {
+        LIST_FIRST(block, PAsmOp *, leader, {
+            if (leader->is_label) {
+                void *key = (void *)(intptr_t)leader->label_id;
+                MapPut(map, key, block);
+            }
+        });
+    });
+    
+    DeleteMap(map);
+    return cfg;
+}
+
 void PAsmAllocateFunction2(PAsmModule *mod, PAsmFunction *func) {
     
     UNUSED(mod);
@@ -243,9 +273,13 @@ void PAsmAllocateFunction2(PAsmModule *mod, PAsmFunction *func) {
         printf("\n");
         DeleteList(block);
     });
-    DeleteList(blocks);
     
     printf("-------- /blockify\n");
+    
+    CFG *cfg = MakeCFG(blocks);
+    DeleteCFG(cfg);
+    
+    DeleteList(blocks);
 }
 
 static void PAsmAllocateFunction(PAsmModule *mod, PAsmFunction *func) {
