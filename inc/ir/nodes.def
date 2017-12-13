@@ -64,4 +64,9 @@ NODE(Eq, (Node *left, Node *right), {
     self->kids[1] = right;
 })
 
+NODE(Lt, (Node *left, Node *right), {
+    self->kids[0] = left;
+    self->kids[1] = right;
+})
+
 #undef SIMPLE

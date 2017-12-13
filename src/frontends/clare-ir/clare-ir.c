@@ -296,6 +296,16 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             
             return IR.Eq(left, right);
             
+        } else if (strcmp(tok.id, "lt") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Node *left = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_COMMA);
+            Node *right = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Lt(left, right);
+            
         } else if (strcmp(tok.id, "ret") == 0) {
             
             assert(NextToken(src).type == TOK_L_PAREN);

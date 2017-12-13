@@ -145,6 +145,17 @@ RULE(IR.Eq(0, 0), {
     }));
 })
 
+RULE(IR.Lt(0, 0), {
+    PAsmVReg *left = MUNCH(root->kids[0]);
+    PAsmVReg *right = MUNCH(root->kids[1]);
+    EMIT(OP({
+        .fmt = "cmp $vr, $vr\n",
+        .oprs[0] = { .vreg = left },
+        .oprs[1] = { .vreg = right },
+        .use = { left, right}
+    }));
+})
+
 RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
     
     MUNCH(root->kids[0]);
@@ -195,6 +206,38 @@ RULE(IR.Loop(IR.Eq(0, 0), 0), {
     
     EMIT(OP({
         .fmt = "jne .L_E_$i32\n",
+        .oprs[0] = { .i32 = label_end }
+    }));
+    
+    // true
+    MUNCH(root->kids[1]);
+    
+    EMIT(OP({
+        .fmt = "jmp .L_S_$i32\n",
+        .oprs[0] = { .i32 = label_start }
+    }));
+    
+    EMIT(OP({
+        .fmt = ".L_E_$i32:\n",
+        .oprs[0] = { .i32 = label_end }
+    }));
+})
+
+RULE(IR.Loop(IR.Lt(0, 0), 0), {
+    
+    int label_start = NextLabel();
+    
+    EMIT(OP({
+        .fmt = ".L_S_$i32:\n",
+        .oprs[0] = { .i32 = label_start }
+    }));
+    
+    MUNCH(root->kids[0]);
+    
+    int label_end = NextLabel();
+    
+    EMIT(OP({
+        .fmt = "jnl .L_E_$i32\n",
         .oprs[0] = { .i32 = label_end }
     }));
     

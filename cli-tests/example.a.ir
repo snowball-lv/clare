@@ -2,7 +2,7 @@
 
 func clare_main
     mov($i, i32(0))
-    while eq($i, i32(0)) do
+    while lt($i, i32(10)) do
         mov($i, add($i, i32(1)))
     end
     ret($i)
