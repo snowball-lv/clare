@@ -53,6 +53,9 @@ typedef struct {
     PAsmOpr oprs[PASM_OP_MAX_OPRS];
     PAsmVReg *use[PASM_OP_MAX_OPRS];
     PAsmVReg *def[PASM_OP_MAX_OPRS];
+    int is_label;
+    int is_jump;
+    int is_ret;
 } PAsmOp;
 
 HEAP_DECL(PAsmOp)

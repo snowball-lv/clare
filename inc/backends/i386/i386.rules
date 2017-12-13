@@ -126,7 +126,8 @@ RULE(IR.Ret(0), {
     
     EMIT(OP({
         .fmt = "ret\n",
-        .use = { EAX }
+        .use = { EAX },
+        .is_ret = 1
     }));
 })
 
@@ -165,7 +166,8 @@ RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
     
     EMIT(OP({
         .fmt = "je .L_T_$i32\n",
-        .oprs[0] = { .i32 = label_true }
+        .oprs[0] = { .i32 = label_true },
+        .is_jump = 1
     }));
     
     // false
@@ -173,12 +175,14 @@ RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
     
     EMIT(OP({
         .fmt = "jmp .L_E_$i32\n",
-        .oprs[0] = { .i32 = label_end }
+        .oprs[0] = { .i32 = label_end },
+        .is_jump = 1
     }));
     
     EMIT(OP({
         .fmt = ".L_T_$i32:\n",
-        .oprs[0] = { .i32 = label_true }
+        .oprs[0] = { .i32 = label_true },
+        .is_label = 1
     }));
     
     // true
@@ -186,7 +190,8 @@ RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
     
     EMIT(OP({
         .fmt = ".L_E_$i32:\n",
-        .oprs[0] = { .i32 = label_end }
+        .oprs[0] = { .i32 = label_end },
+        .is_label = 1
     }));
     
 })
@@ -197,7 +202,8 @@ RULE(IR.Loop(IR.Eq(0, 0), 0), {
     
     EMIT(OP({
         .fmt = ".L_S_$i32:\n",
-        .oprs[0] = { .i32 = label_start }
+        .oprs[0] = { .i32 = label_start },
+        .is_label = 1
     }));
     
     MUNCH(root->kids[0]);
@@ -206,7 +212,8 @@ RULE(IR.Loop(IR.Eq(0, 0), 0), {
     
     EMIT(OP({
         .fmt = "jne .L_E_$i32\n",
-        .oprs[0] = { .i32 = label_end }
+        .oprs[0] = { .i32 = label_end },
+        .is_jump = 1
     }));
     
     // true
@@ -214,12 +221,14 @@ RULE(IR.Loop(IR.Eq(0, 0), 0), {
     
     EMIT(OP({
         .fmt = "jmp .L_S_$i32\n",
-        .oprs[0] = { .i32 = label_start }
+        .oprs[0] = { .i32 = label_start },
+        .is_jump = 1
     }));
     
     EMIT(OP({
         .fmt = ".L_E_$i32:\n",
-        .oprs[0] = { .i32 = label_end }
+        .oprs[0] = { .i32 = label_end },
+        .is_label = 1
     }));
 })
 
@@ -229,7 +238,8 @@ RULE(IR.Loop(IR.Lt(0, 0), 0), {
     
     EMIT(OP({
         .fmt = ".L_S_$i32:\n",
-        .oprs[0] = { .i32 = label_start }
+        .oprs[0] = { .i32 = label_start },
+        .is_label = 1
     }));
     
     MUNCH(root->kids[0]);
@@ -238,7 +248,8 @@ RULE(IR.Loop(IR.Lt(0, 0), 0), {
     
     EMIT(OP({
         .fmt = "jnl .L_E_$i32\n",
-        .oprs[0] = { .i32 = label_end }
+        .oprs[0] = { .i32 = label_end },
+        .is_jump = 1
     }));
     
     // true
@@ -246,12 +257,14 @@ RULE(IR.Loop(IR.Lt(0, 0), 0), {
     
     EMIT(OP({
         .fmt = "jmp .L_S_$i32\n",
-        .oprs[0] = { .i32 = label_start }
+        .oprs[0] = { .i32 = label_start },
+        .is_jump = 1
     }));
     
     EMIT(OP({
         .fmt = ".L_E_$i32:\n",
-        .oprs[0] = { .i32 = label_end }
+        .oprs[0] = { .i32 = label_end },
+        .is_label = 1
     }));
 })
 

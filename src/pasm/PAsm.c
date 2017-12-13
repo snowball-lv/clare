@@ -190,8 +190,67 @@ PAsmVReg *NewSpecialPAsmVReg() {
 
 static const char *SPILL = "[spill]";
 
+static List *Blockify(List *ops) {
+    
+    UNUSED(ops);
+
+    List *blocks = NewList();
+    List *current = 0;
+    
+    LIST_EACH(ops, PAsmOp *, op, {
+        if (current == 0) {
+            current = NewList();
+            ListAdd(current, op);
+        } else {
+            if (op->is_label) {
+                ListAdd(blocks, current);
+                current = NewList();
+                ListAdd(current, op);
+            } else if (op->is_jump || op->is_ret) {
+                ListAdd(current, op);
+                ListAdd(blocks, current);
+                current = 0;
+            } else {
+                ListAdd(current, op);
+            }
+        }
+    });
+
+    assert(current == 0);
+    
+    return blocks;
+}
+
+void PAsmAllocateFunction2(PAsmModule *mod, PAsmFunction *func) {
+    
+    UNUSED(mod);
+    UNUSED(func);
+    
+    printf("-------- blockify\n");
+    printf("\n");
+    
+    int counter = 0;
+    
+    List *blocks = Blockify(func->body);
+    LIST_EACH(blocks, List *, block, {
+        printf("---- block %d\n", counter);
+        
+        LIST_EACH(block, PAsmOp *, op, {
+            PAsmPrintOp(op, func->coloring, stdout);
+        });
+        
+        printf("---- /block %d\n", counter++);
+        printf("\n");
+        DeleteList(block);
+    });
+    DeleteList(blocks);
+    
+    printf("-------- /blockify\n");
+}
 
 static void PAsmAllocateFunction(PAsmModule *mod, PAsmFunction *func) {
+    
+    PAsmAllocateFunction2(mod, func);
     
     List *ops = func->body;
     Set *live = NewSet();
