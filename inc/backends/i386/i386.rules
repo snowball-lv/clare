@@ -180,6 +180,38 @@ RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
     
 })
 
+RULE(IR.Loop(IR.Eq(0, 0), 0), {
+    
+    int label_start = NextLabel();
+    
+    EMIT(OP({
+        .fmt = ".L_S_$i32:\n",
+        .oprs[0] = { .i32 = label_start }
+    }));
+    
+    MUNCH(root->kids[0]);
+    
+    int label_end = NextLabel();
+    
+    EMIT(OP({
+        .fmt = "jne .L_E_$i32\n",
+        .oprs[0] = { .i32 = label_end }
+    }));
+    
+    // true
+    MUNCH(root->kids[1]);
+    
+    EMIT(OP({
+        .fmt = "jmp .L_S_$i32\n",
+        .oprs[0] = { .i32 = label_start }
+    }));
+    
+    EMIT(OP({
+        .fmt = ".L_E_$i32:\n",
+        .oprs[0] = { .i32 = label_end }
+    }));
+})
+
 RULE(IR.Call(0, 0), {
     
     LIST_REV(root->args, Node *, arg, {

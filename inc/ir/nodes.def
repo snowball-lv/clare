@@ -54,6 +54,11 @@ NODE(Branch, (Node *cond, Node *t, Node *f), {
     self->kids[2] = f;
 })
 
+NODE(Loop, (Node *cond, Node *t), {
+    self->kids[0] = cond;
+    self->kids[1] = t;
+})
+
 NODE(Eq, (Node *left, Node *right), {
     self->kids[0] = left;
     self->kids[1] = right;

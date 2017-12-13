@@ -66,6 +66,14 @@ RULE(IR.Branch(0, 0, 0), {
     printf("}\n");
 })
 
+RULE(IR.Loop(0, 0), {
+    printf("while ");
+    MUNCH(root->kids[0]);
+    printf(" {\n");
+    MUNCH(root->kids[1]);
+    printf("}\n");
+})
+
 RULE(IR.Eq(0, 0), {
     printf("(");
     MUNCH(root->kids[0]);

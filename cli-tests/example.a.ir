@@ -1,12 +1,9 @@
 
 
 func clare_main
-    if eq(i32(0), i32(0)) then
-        mov($a, i32(2))
-        ret($a)
-    else
-        mov($b, i32(3))
-        ret($b)
+    mov($i, i32(0))
+    while eq($i, i32(0)) do
+        mov($i, add($i, i32(1)))
     end
-    ret(i32(1))
+    ret($i)
 end
