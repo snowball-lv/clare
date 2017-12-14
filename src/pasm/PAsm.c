@@ -199,14 +199,20 @@ TYPE_DEF(BasicBlock, {
     int id;
     List *ops;
     const char *name;
+    Set *live_in;
+    Set *live_out;
 }, {
     // ctor
     self->id = _BasicBlockIDCounter++;
     self->ops = NewList();
     self->name = 0;
+    self->live_in = NewSet();
+    self->live_out = NewSet();
 }, {
     // dtor
     DeleteList(self->ops);
+    DeleteSet(self->live_in);
+    DeleteSet(self->live_out);
 })
 
 static void BasicBlockPrintName(BasicBlock *block) {
@@ -315,7 +321,7 @@ static void CFGConnect(CFG *cfg, BasicBlock *from, BasicBlock *to) {
     SetAdd(in, from);
 }
 
-void PrintEdgeSet(Set *set) {
+static void PrintEdgeSet(Set *set) {
     printf("[");
     int first = 1;
     SET_EACH(set, BasicBlock *, block, {
@@ -330,15 +336,36 @@ void PrintEdgeSet(Set *set) {
     printf(" ]");
 }
 
+static void PrintLiveVariableSet(Set *set) {
+    printf("{");
+    int first = 1;
+    SET_EACH(set, PAsmVReg *, vreg, {
+        if (first) {
+            printf(" ");
+            first = 0;
+        } else {
+            printf(", ");
+        }
+        printf("$vr%d", vreg->id);
+    });
+    printf(" }");
+}
+
 static void CFGPrint(CFG *cfg) {
     printf("-------- cfg\n");
     SET_EACH(cfg->blocks, BasicBlock *, block, {
         
         PrintEdgeSet(MapGet(cfg->inEdges, block));
         
-        printf(" ->  ");
+        printf(" -> ");
+        PrintLiveVariableSet(block->live_in);
+        
+        printf(" ");
         BasicBlockPrintName(block);
-        printf(" ->  ");
+        printf(" ");
+        
+        PrintLiveVariableSet(block->live_out);
+        printf(" -> ");
         
         PrintEdgeSet(MapGet(cfg->outEdges, block));
 
@@ -402,6 +429,61 @@ static CFG *MakeCFG(List *blocks) {
     return cfg;
 }
 
+static void SolveLiveness(CFG *cfg) {
+    
+    int changed = 1;
+    
+    while (changed) {
+        
+        changed = 0;
+        
+        SET_EACH(cfg->blocks, BasicBlock *, block, {
+            
+            Set *old_in = SetCopy(block->live_in);
+            Set *old_out = SetCopy(block->live_out);
+            
+            SetAddAll(block->live_in, block->live_out);
+            
+            LIST_REV(block->ops, PAsmOp *, op, {
+            
+                for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+                    PAsmVReg *vreg = op->def[i];
+                    if (vreg != 0) {
+                        // def'd
+                        SetRemove(block->live_in, vreg);
+                    }
+                }
+            
+                for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+                    PAsmVReg *vreg = op->use[i];
+                    if (vreg != 0) {
+                        // used
+                        SetAdd(block->live_in, vreg);
+                    }
+                }
+            });
+            
+            Set *edges = MapGet(cfg->outEdges, block);
+            SET_EACH(edges, BasicBlock *, edge, {
+                SetAddAll(block->live_out, edge->live_in);
+            });
+            
+            if (SetSize(old_in) != SetSize(block->live_in)) {
+                changed = 1;
+            }
+            
+            if (SetSize(old_out) != SetSize(block->live_out)) {
+                changed = 1;
+            }
+            
+            DeleteSet(old_in);
+            DeleteSet(old_out);
+        });
+        
+        CFGPrint(cfg);
+    }
+}
+
 void PAsmAllocateFunction2(PAsmModule *mod, PAsmFunction *func) {
     
     UNUSED(mod);
@@ -426,6 +508,7 @@ void PAsmAllocateFunction2(PAsmModule *mod, PAsmFunction *func) {
     
     CFG *cfg = MakeCFG(blocks);
     CFGPrint(cfg);
+    SolveLiveness(cfg);
     DeleteCFG(cfg);
     
     LIST_EACH(blocks, BasicBlock *, block, {
