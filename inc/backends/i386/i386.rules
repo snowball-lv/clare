@@ -167,7 +167,9 @@ RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
     EMIT(OP({
         .fmt = "je .L_T_$i32\n",
         .oprs[0] = { .i32 = label_true },
-        .is_jump = 1
+        .is_jump = 1,
+        .is_cjump = 1,
+        .label_id = label_true
     }));
     
     // false
@@ -176,7 +178,8 @@ RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
     EMIT(OP({
         .fmt = "jmp .L_E_$i32\n",
         .oprs[0] = { .i32 = label_end },
-        .is_jump = 1
+        .is_jump = 1,
+        .label_id = label_end
     }));
     
     EMIT(OP({
@@ -216,7 +219,9 @@ RULE(IR.Loop(IR.Eq(0, 0), 0), {
     EMIT(OP({
         .fmt = "jne .L_E_$i32\n",
         .oprs[0] = { .i32 = label_end },
-        .is_jump = 1
+        .is_jump = 1,
+        .is_cjump = 1,
+        .label_id = label_end
     }));
     
     // true
@@ -225,7 +230,8 @@ RULE(IR.Loop(IR.Eq(0, 0), 0), {
     EMIT(OP({
         .fmt = "jmp .L_S_$i32\n",
         .oprs[0] = { .i32 = label_start },
-        .is_jump = 1
+        .is_jump = 1,
+        .label_id = label_start
     }));
     
     EMIT(OP({
@@ -254,7 +260,9 @@ RULE(IR.Loop(IR.Lt(0, 0), 0), {
     EMIT(OP({
         .fmt = "jnl .L_E_$i32\n",
         .oprs[0] = { .i32 = label_end },
-        .is_jump = 1
+        .is_jump = 1,
+        .is_cjump = 1,
+        .label_id = label_end
     }));
     
     // true
@@ -263,7 +271,8 @@ RULE(IR.Loop(IR.Lt(0, 0), 0), {
     EMIT(OP({
         .fmt = "jmp .L_S_$i32\n",
         .oprs[0] = { .i32 = label_start },
-        .is_jump = 1
+        .is_jump = 1,
+        .label_id = label_start
     }));
     
     EMIT(OP({

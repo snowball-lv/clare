@@ -191,28 +191,54 @@ PAsmVReg *NewSpecialPAsmVReg() {
 
 static const char *SPILL = "[spill]";
 
+static int _BasicBlockIDCounter = 1;
+
+TYPE_DECL(BasicBlock)
+TYPE_DEF(BasicBlock, {
+    // fields
+    int id;
+    List *ops;
+    const char *name;
+}, {
+    // ctor
+    self->id = _BasicBlockIDCounter++;
+    self->ops = NewList();
+    self->name = 0;
+}, {
+    // dtor
+    DeleteList(self->ops);
+})
+
+static void BasicBlockPrintName(BasicBlock *block) {
+    if (block->name != 0) {
+        printf("%s", block->name);
+    } else {
+        printf("%d", block->id);
+    }
+}
+
 static List *Blockify(List *ops) {
     
     UNUSED(ops);
 
     List *blocks = NewList();
-    List *current = 0;
+    BasicBlock *current = 0;
     
     LIST_EACH(ops, PAsmOp *, op, {
         if (current == 0) {
-            current = NewList();
-            ListAdd(current, op);
+            current = NewBasicBlock();
+            ListAdd(current->ops, op);
         } else {
             if (op->is_label) {
                 ListAdd(blocks, current);
-                current = NewList();
-                ListAdd(current, op);
+                current = NewBasicBlock();
+                ListAdd(current->ops, op);
             } else if (op->is_jump || op->is_ret) {
-                ListAdd(current, op);
+                ListAdd(current->ops, op);
                 ListAdd(blocks, current);
                 current = 0;
             } else {
-                ListAdd(current, op);
+                ListAdd(current->ops, op);
             }
         }
     });
@@ -226,26 +252,151 @@ TYPE_DECL(CFG)
 TYPE_DEF(CFG, {
     // fields
     int dummy;
+    BasicBlock *first;
+    BasicBlock *last;
+    Map *inEdges;
+    Map *outEdges;
+    Set *blocks;
 }, {
     // ctor
+    self->first = NewBasicBlock();
+    self->last = NewBasicBlock();
+    self->inEdges = NewMap();
+    self->outEdges = NewMap();
+    self->blocks = NewSet();
+    
+    self->first->name = "first";
+    self->last->name = "last";
+    
+    SetAdd(self->blocks, self->first);
+    MapPut(self->inEdges, self->first, NewSet());
+    MapPut(self->outEdges, self->first, NewSet());
+    
+    SetAdd(self->blocks, self->last);
+    MapPut(self->inEdges, self->last, NewSet());
+    MapPut(self->outEdges, self->last, NewSet());
 }, {
     // dtor
+    DeleteBasicBlock(self->first);
+    DeleteBasicBlock(self->last);
+    MAP_EACH(self->inEdges, void *, unused, Set *, set, {
+        DeleteSet(set);
+    });
+    DeleteMap(self->inEdges);
+    MAP_EACH(self->outEdges, void *, unused, Set *, set, {
+        DeleteSet(set);
+    });
+    DeleteMap(self->outEdges);
+    DeleteSet(self->blocks);
 })
+
+static void CFGConnect(CFG *cfg, BasicBlock *from, BasicBlock *to) {
+    
+    BasicBlockPrintName(from);
+    printf(" -> ");
+    BasicBlockPrintName(to);
+    printf("\n");
+    
+    SetAdd(cfg->blocks, from);
+    SetAdd(cfg->blocks, to);
+    
+    if (!MapContains(cfg->outEdges, from)) {
+        MapPut(cfg->outEdges, from, NewSet());
+    }
+    Set *out = MapGet(cfg->outEdges, from);
+    
+    SetAdd(out, to);
+    
+    if (!MapContains(cfg->inEdges, to)) {
+        MapPut(cfg->inEdges, to, NewSet());
+    }
+    Set *in = MapGet(cfg->inEdges, to);
+    
+    SetAdd(in, from);
+}
+
+void PrintEdgeSet(Set *set) {
+    printf("[");
+    int first = 1;
+    SET_EACH(set, BasicBlock *, block, {
+        if (first) {
+            printf(" ");
+            first = 0;
+        } else {
+            printf(", ");
+        }
+        BasicBlockPrintName(block);
+    });
+    printf(" ]");
+}
+
+static void CFGPrint(CFG *cfg) {
+    printf("-------- cfg\n");
+    SET_EACH(cfg->blocks, BasicBlock *, block, {
+        
+        PrintEdgeSet(MapGet(cfg->inEdges, block));
+        
+        printf(" ->  ");
+        BasicBlockPrintName(block);
+        printf(" ->  ");
+        
+        PrintEdgeSet(MapGet(cfg->outEdges, block));
+
+        printf("\n");
+    });
+    printf("-------- /cfg\n");
+}
 
 static CFG *MakeCFG(List *blocks) {
     
-    CFG *cfg = NewCFG();
     Map *map = NewMap();
     
     // fill lookup map
-    LIST_EACH(blocks, List *, block, {
-        LIST_FIRST(block, PAsmOp *, leader, {
+    LIST_EACH(blocks, BasicBlock *, block, {
+        LIST_FIRST(block->ops, PAsmOp *, leader, {
             if (leader->is_label) {
                 void *key = (void *)(intptr_t)leader->label_id;
                 MapPut(map, key, block);
             }
         });
     });
+    
+    CFG *cfg = NewCFG();
+    BasicBlock *prev = cfg->first;
+    
+    printf("first: %d\n", cfg->first->id);
+    printf("last: %d\n", cfg->last->id);
+    
+    // connect the blocks
+    LIST_EACH(blocks, BasicBlock *, block, {
+    
+        if (prev != 0) {
+            // connect, prev -> block
+            CFGConnect(cfg, prev, block);
+        }
+    
+        prev = block;
+    
+        LIST_LAST(block->ops, PAsmOp, *op, {
+            if (op->is_jump) {
+                void *key = (void *)(intptr_t)op->label_id;
+                BasicBlock *target = MapGet(map, key);
+                
+                // connect, block -> target
+                CFGConnect(cfg, block, target);
+                
+                if (!op->is_cjump) {
+                    prev = 0;
+                }
+            } else if (op->is_ret) {
+                // connect, block -> last
+                CFGConnect(cfg, block, cfg->last);
+                prev = 0;
+            }
+        });
+    });
+    
+    assert(prev == 0);
     
     DeleteMap(map);
     return cfg;
@@ -259,26 +410,27 @@ void PAsmAllocateFunction2(PAsmModule *mod, PAsmFunction *func) {
     printf("-------- blockify\n");
     printf("\n");
     
-    int counter = 0;
-    
     List *blocks = Blockify(func->body);
-    LIST_EACH(blocks, List *, block, {
-        printf("---- block %d\n", counter);
+    LIST_EACH(blocks, BasicBlock *, block, {
+        printf("---- block %d\n", block->id);
         
-        LIST_EACH(block, PAsmOp *, op, {
+        LIST_EACH(block->ops, PAsmOp *, op, {
             PAsmPrintOp(op, func->coloring, stdout);
         });
         
-        printf("---- /block %d\n", counter++);
+        printf("---- /block %d\n", block->id);
         printf("\n");
-        DeleteList(block);
     });
     
     printf("-------- /blockify\n");
     
     CFG *cfg = MakeCFG(blocks);
+    CFGPrint(cfg);
     DeleteCFG(cfg);
     
+    LIST_EACH(blocks, BasicBlock *, block, {
+        DeleteBasicBlock(block);
+    });
     DeleteList(blocks);
 }
 

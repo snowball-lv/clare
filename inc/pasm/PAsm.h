@@ -57,6 +57,7 @@ typedef struct {
     int is_jump;
     int is_ret;
     int label_id;
+    int is_cjump;
 } PAsmOp;
 
 HEAP_DECL(PAsmOp)
