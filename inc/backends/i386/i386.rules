@@ -111,21 +111,21 @@ RULE(IR.Ret(0), {
         // nothing
     }
     
-    EMIT(OP({
-        .fmt = "mov $vr, $vr\n",
-        .oprs[0] = { .vreg = ESP },
-        .oprs[1] = { .vreg = EBP },
-        .use = { EBP },
-        .def = { ESP }
-    }));
-    EMIT(OP({ 
-        .fmt = "pop $vr\n",
-        .oprs[0] = { .vreg = EBP },
-        .def = { EBP }
-    }));
+    // EMIT(OP({
+    //     .fmt = "mov $vr, $vr\n",
+    //     .oprs[0] = { .vreg = ESP },
+    //     .oprs[1] = { .vreg = EBP },
+    //     .use = { EBP },
+    //     .def = { ESP }
+    // }));
+    // EMIT(OP({ 
+    //     .fmt = "pop $vr\n",
+    //     .oprs[0] = { .vreg = EBP },
+    //     .def = { EBP }
+    // }));
     
     EMIT(OP({
-        .fmt = "ret\n",
+        .fmt = "jmp .epilogue\n",
         .use = { EAX },
         .is_ret = 1
     }));

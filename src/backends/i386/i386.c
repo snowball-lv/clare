@@ -276,6 +276,11 @@ static List *_GenPrologue(PAsmFunction *func) {
     EMIT({ .fmt = "push ebp\n" });
     EMIT({ .fmt = "mov ebp, esp\n" });
     
+    EMIT({ 
+        .fmt = "sub esp, $i32\n",
+        .oprs[0] = { .i32 = func->stack_space }
+    });
+    
     // save callee-saved registers used in this function
     if (SetContains(definedPRegs, PRegColor(EBX))) {
         EMIT({ .fmt = "push ebx\n" });
@@ -286,11 +291,6 @@ static List *_GenPrologue(PAsmFunction *func) {
     if (SetContains(definedPRegs, PRegColor(EDI))) {
         EMIT({ .fmt = "push edi\n" });
     }
-    
-    EMIT({ 
-        .fmt = "sub esp, $i32\n",
-        .oprs[0] = { .i32 = func->stack_space }
-    });
     
     EMIT({ .fmt = ";-------- /prologue\n" });
     
@@ -324,6 +324,8 @@ static List *_GenEpilogue(PAsmFunction *func) {
 
     EMIT({ .fmt = ";-------- epilogue\n" });
     
+    EMIT({ .fmt = ".epilogue:\n" });
+    
     // restore callee-saved registers used in this function
     // reverse order from prologue
     if (SetContains(definedPRegs, PRegColor(EDI))) {
@@ -335,7 +337,7 @@ static List *_GenEpilogue(PAsmFunction *func) {
     if (SetContains(definedPRegs, PRegColor(EBX))) {
         EMIT({ .fmt = "pop ebx\n" });
     }
-
+    
     EMIT({ .fmt = "mov esp, ebp\n" });
     EMIT({ .fmt = "pop ebp\n" });
     EMIT({ .fmt = "ret\n" });
