@@ -484,10 +484,7 @@ static void SolveLiveness(CFG *cfg) {
     }
 }
 
-void PAsmAllocateFunction2(PAsmModule *mod, PAsmFunction *func) {
-    
-    UNUSED(mod);
-    UNUSED(func);
+void PAsmAllocateFunction_CFG(PAsmModule *mod, PAsmFunction *func) {
     
     printf("-------- blockify\n");
     printf("\n");
@@ -511,15 +508,73 @@ void PAsmAllocateFunction2(PAsmModule *mod, PAsmFunction *func) {
     SolveLiveness(cfg);
     DeleteCFG(cfg);
     
+    // build the RIG from the liveness information
+    
+    RIG *rig = NewRIG();
+    
     LIST_EACH(blocks, BasicBlock *, block, {
+        
+        Set *live = SetCopy(block->live_out);
+        
+        SET_EACH(live, PAsmVReg *, a, {
+            SET_EACH(live, PAsmVReg *, b, {
+                RIGAdd(rig, a);
+                RIGAdd(rig, b);
+                if (a != b) {
+                    RIGConnect(rig, a, b);
+                }
+            });
+        });
+        
+        LIST_REV(block->ops, PAsmOp *, op, {
+        
+            for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+                PAsmVReg *vreg = op->def[i];
+                if (vreg != 0) {
+                    // def'd
+                    SetRemove(live, vreg);
+                    RIGAdd(rig, vreg);
+                }
+            }
+        
+            for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+                PAsmVReg *vreg = op->use[i];
+                if (vreg != 0) {
+                    // used
+                    SetAdd(live, vreg);
+                    RIGAdd(rig, vreg);
+                }
+            }
+        
+            SET_EACH(live, PAsmVReg *, a, {
+                SET_EACH(live, PAsmVReg *, b, {
+                    if (a != b) {
+                        RIGConnect(rig, a, b);
+                    }
+                });
+            });
+        });
+        
+        DeleteSet(live);
         DeleteBasicBlock(block);
     });
+    
     DeleteList(blocks);
+    
+    Backend *backend = mod->backend;
+    
+    Coloring *coloring = ColorRIG(
+        rig,
+        backend->Colors(),
+        backend->Precoloring(),
+        (void *)SPILL);
+    
+    DeleteRIG(rig);
+    
+    func->coloring = coloring;
 }
 
-static void PAsmAllocateFunction(PAsmModule *mod, PAsmFunction *func) {
-    
-    PAsmAllocateFunction2(mod, func);
+void PAsmAllocateFunction_Old(PAsmModule *mod, PAsmFunction *func) {
     
     List *ops = func->body;
     Set *live = NewSet();
@@ -571,7 +626,8 @@ static void PAsmAllocateFunction(PAsmModule *mod, PAsmFunction *func) {
 
 void PAsmAllocate(PAsmModule *mod) {
     LIST_EACH(mod->funcs, PAsmFunction *, func, {
-        PAsmAllocateFunction(mod, func);
+        // PAsmAllocateFunction_Old(mod, func);
+        PAsmAllocateFunction_CFG(mod, func);
     });
 }
 
