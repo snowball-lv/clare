@@ -39,11 +39,12 @@ struct PAsmVReg {
 HEAP_DECL(PAsmVReg)
 
 typedef struct {
-    int dummy;
     PAsmVReg *vreg;
-    const char *str;
-    int32_t i32;
-    float f;
+    union {
+        const char *str;
+        int32_t i32;
+        float f;
+    };
 } PAsmOpr;
 
 #define PASM_OP_MAX_OPRS    4
@@ -53,11 +54,13 @@ typedef struct {
     PAsmOpr oprs[PASM_OP_MAX_OPRS];
     PAsmVReg *use[PASM_OP_MAX_OPRS];
     PAsmVReg *def[PASM_OP_MAX_OPRS];
-    int is_label;
-    int is_jump;
-    int is_ret;
+    
+    unsigned int is_label   : 1;
+    unsigned int is_jump    : 1;
+    unsigned int is_ret     : 1;
+    unsigned int is_cjump   : 1;
+    
     int label_id;
-    int is_cjump;
 } PAsmOp;
 
 HEAP_DECL(PAsmOp)

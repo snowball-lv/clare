@@ -55,6 +55,9 @@ int main(int argc, char **argv) {
     
     run_compiler(&args);
     
+    printf("allocations: %zu\n", MemAllocations());
+    printf("allocation size: %zu\n", MemAllocationSize());
+    
     assert(MemEmpty());
     return 0;
 }
