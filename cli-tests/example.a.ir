@@ -9,14 +9,8 @@ func clare_main
         
         $k = i32(0)
         while lt($k, i32(10)) do
-            
-            $n = i32(0)
-            while lt($n, i32(10)) do
-                
-                $sum = add($sum, $n)
-                
-                $n = add($n, i32(1))
-            end
+        
+            $sum = add($sum, $k)
             
             $k = add($k, i32(1))
         end

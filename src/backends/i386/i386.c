@@ -11,11 +11,15 @@ static Set *_ColorSet = 0;
 static Map *_PrecoloringMap = 0;
 
 static PAsmVReg *EAX = 0;
+static PAsmVReg *EDX = 0;
+static PAsmVReg *ECX = 0;
+
 static PAsmVReg *EBP = 0;
 static PAsmVReg *ESP = 0;
 
-static PAsmVReg *EDX = 0;
-static PAsmVReg *ECX = 0;
+static PAsmVReg *EBX = 0;
+static PAsmVReg *ESI = 0;
+static PAsmVReg *EDI = 0;
 
 static Map *_TmpToVregMap = 0;
 
@@ -45,36 +49,48 @@ static void _Init() {
     EDX = NewSpecialPAsmVReg();
     ECX = NewSpecialPAsmVReg();
     
+    EBX = NewSpecialPAsmVReg();
+    ESI = NewSpecialPAsmVReg();
+    EDI = NewSpecialPAsmVReg();
+    
     _ColorSet = NewSet();
     
     SetAdd(_ColorSet, "eax");
-    // SetAdd(_ColorSet, "ebx");
     SetAdd(_ColorSet, "ecx");
     SetAdd(_ColorSet, "edx");
     
-    // SetAdd(_ColorSet, "esi");
-    // SetAdd(_ColorSet, "edi");
+    SetAdd(_ColorSet, "ebx");
+    SetAdd(_ColorSet, "esi");
+    SetAdd(_ColorSet, "edi");
     // SetAdd(_ColorSet, "ebp");
     // SetAdd(_ColorSet, "esp");
     
     _PrecoloringMap = NewMap();
     
     MapPut(_PrecoloringMap, EAX, "eax");
+    MapPut(_PrecoloringMap, EDX, "edx");
+    MapPut(_PrecoloringMap, ECX, "ecx");
+    
     MapPut(_PrecoloringMap, EBP, "ebp");
     MapPut(_PrecoloringMap, ESP, "esp");
     
-    MapPut(_PrecoloringMap, EDX, "edx");
-    MapPut(_PrecoloringMap, ECX, "ecx");
+    MapPut(_PrecoloringMap, EBX, "ebx");
+    MapPut(_PrecoloringMap, ESI, "esi");
+    MapPut(_PrecoloringMap, EDI, "edi");
 }
 
 static void _Deinit() {
     
     MemFree(EAX);
+    MemFree(EDX);
+    MemFree(ECX);
+    
     MemFree(EBP);
     MemFree(ESP);
     
-    MemFree(EDX);
-    MemFree(ECX);
+    MemFree(EBX);
+    MemFree(ESI);
+    MemFree(EDI);
         
     DeleteSet(_ColorSet);
     DeleteMap(_PrecoloringMap);
