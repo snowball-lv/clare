@@ -59,9 +59,10 @@ static void _Init() {
     SetAdd(_ColorSet, "ecx");
     SetAdd(_ColorSet, "edx");
     
-    // SetAdd(_ColorSet, "ebx");
-    // SetAdd(_ColorSet, "esi");
-    // SetAdd(_ColorSet, "edi");
+    SetAdd(_ColorSet, "ebx");
+    SetAdd(_ColorSet, "esi");
+    SetAdd(_ColorSet, "edi");
+    
     // SetAdd(_ColorSet, "ebp");
     // SetAdd(_ColorSet, "esp");
     
@@ -247,6 +248,10 @@ static void _StoreVReg(PAsmFunction *func, PAsmVReg *spill, PAsmVReg *tmp) {
     #undef OP
 }
 
+static void *PRegColor(PAsmVReg *preg) {
+    return MapGet(_PrecoloringMap, preg);
+}
+
 static List *_GenPrologue(PAsmFunction *func) {
     
     List *ops = NewList();
@@ -254,18 +259,43 @@ static List *_GenPrologue(PAsmFunction *func) {
     #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
     #define EMIT(...)   ListAdd(ops, OP(__VA_ARGS__))
     
-    UNUSED(func);
+    Set *definedPRegs = NewSet();
+
+    Coloring *coloring = func->coloring;
+    LIST_EACH(func->body, PAsmOp *, op, {
+        for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+            PAsmVReg *vreg = op->def[i];
+            if (vreg != 0) {
+                SetAdd(definedPRegs, ColoringGetColor(coloring, vreg));
+            }
+        }
+    });
     
     EMIT({ .fmt = ";-------- prologue\n" });
     
     EMIT({ .fmt = "push ebp\n" });
     EMIT({ .fmt = "mov ebp, esp\n" });
+    
+    // save callee-saved registers used in this function
+    if (SetContains(definedPRegs, PRegColor(EBX))) {
+        EMIT({ .fmt = "push ebx\n" });
+    }
+    if (SetContains(definedPRegs, PRegColor(ESI))) {
+        EMIT({ .fmt = "push esi\n" });
+    }
+    if (SetContains(definedPRegs, PRegColor(EDI))) {
+        EMIT({ .fmt = "push edi\n" });
+    }
+    
     EMIT({ 
         .fmt = "sub esp, $i32\n",
         .oprs[0] = { .i32 = func->stack_space }
     });
     
     EMIT({ .fmt = ";-------- /prologue\n" });
+    
+    
+    DeleteSet(definedPRegs);
     
     return ops;
     
@@ -279,17 +309,41 @@ static List *_GenEpilogue(PAsmFunction *func) {
 
     #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
     #define EMIT(...)   ListAdd(ops, OP(__VA_ARGS__))
-
-    UNUSED(func);
+    
+    Set *definedPRegs = NewSet();
+    
+    Coloring *coloring = func->coloring;
+    LIST_EACH(func->body, PAsmOp *, op, {
+        for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+            PAsmVReg *vreg = op->def[i];
+            if (vreg != 0) {
+                SetAdd(definedPRegs, ColoringGetColor(coloring, vreg));
+            }
+        }
+    });
 
     EMIT({ .fmt = ";-------- epilogue\n" });
+    
+    // restore callee-saved registers used in this function
+    // reverse order from prologue
+    if (SetContains(definedPRegs, PRegColor(EDI))) {
+        EMIT({ .fmt = "pop edi\n" });
+    }
+    if (SetContains(definedPRegs, PRegColor(ESI))) {
+        EMIT({ .fmt = "pop esi\n" });
+    }
+    if (SetContains(definedPRegs, PRegColor(EBX))) {
+        EMIT({ .fmt = "pop ebx\n" });
+    }
 
     EMIT({ .fmt = "mov esp, ebp\n" });
     EMIT({ .fmt = "pop ebp\n" });
     EMIT({ .fmt = "ret\n" });
 
     EMIT({ .fmt = ";-------- /epilogue\n" });
-
+    
+    DeleteSet(definedPRegs);
+    
     return ops;
 
     #undef EMIT
