@@ -59,9 +59,9 @@ static void _Init() {
     SetAdd(_ColorSet, "ecx");
     SetAdd(_ColorSet, "edx");
     
-    SetAdd(_ColorSet, "ebx");
-    SetAdd(_ColorSet, "esi");
-    SetAdd(_ColorSet, "edi");
+    // SetAdd(_ColorSet, "ebx");
+    // SetAdd(_ColorSet, "esi");
+    // SetAdd(_ColorSet, "edi");
     // SetAdd(_ColorSet, "ebp");
     // SetAdd(_ColorSet, "esp");
     

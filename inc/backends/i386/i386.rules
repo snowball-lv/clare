@@ -201,6 +201,50 @@ RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
     
 })
 
+RULE(IR.Branch(IR.Lt(0, 0), 0, 0), {
+    
+    MUNCH(root->kids[0]);
+    
+    int label_true  = NextLabel();
+    int label_end   = NextLabel();
+    
+    EMIT(OP({
+        .fmt = "jl .L_T_$i32\n",
+        .oprs[0] = { .i32 = label_true },
+        .is_jump = 1,
+        .is_cjump = 1,
+        .label_id = label_true
+    }));
+    
+    // false
+    MUNCH(root->kids[2]);
+    
+    EMIT(OP({
+        .fmt = "jmp .L_E_$i32\n",
+        .oprs[0] = { .i32 = label_end },
+        .is_jump = 1,
+        .label_id = label_end
+    }));
+    
+    EMIT(OP({
+        .fmt = ".L_T_$i32:\n",
+        .oprs[0] = { .i32 = label_true },
+        .is_label = 1,
+        .label_id = label_true
+    }));
+    
+    // true
+    MUNCH(root->kids[1]);
+    
+    EMIT(OP({
+        .fmt = ".L_E_$i32:\n",
+        .oprs[0] = { .i32 = label_end },
+        .is_label = 1,
+        .label_id = label_end
+    }));
+    
+})
+
 RULE(IR.Loop(IR.Eq(0, 0), 0), {
     
     int label_start = NextLabel();

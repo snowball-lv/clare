@@ -7,12 +7,10 @@ func clare_main
     $i = i32(0)
     while lt($i, i32(10)) do
         
-        $k = i32(0)
-        while lt($k, i32(10)) do
-        
-            $sum = add($sum, $k)
-            
-            $k = add($k, i32(1))
+        if lt($i, i32(5)) then
+            $sum = add($sum, $i)
+        else
+            $sum = add($sum, i32(1000))
         end
         
         $i = add($i, i32(1))
