@@ -33,6 +33,7 @@ enum {
     TOK(L_PAREN),
     TOK(R_PAREN),
     TOK(COMMA),
+    TOK(ASG),
 };
 #undef TOK
 
@@ -48,6 +49,7 @@ static const char *TokName(Token tok) {
             TOK(L_PAREN)
             TOK(R_PAREN)
             TOK(COMMA)
+            TOK(ASG)
         #undef TOK
     }
     return "{unknown tok type}";
@@ -70,6 +72,7 @@ static Token NextToken(Source *src) {
         case '(': return (Token) { .type = TOK_L_PAREN };
         case ')': return (Token) { .type = TOK_R_PAREN };
         case ',': return (Token) { .type = TOK_COMMA};
+        case '=': return (Token) { .type = TOK_ASG};
         case EOF: return (Token) { .type = TOK_EOF };
         case '$': tok = TOK_TMP; break;
         default: {
@@ -171,6 +174,8 @@ static IRModule *_SourceToIRModule(FILE *source_file) {
     return irMod;
 }
 
+static Node *ParseStm(Token tok, Source *src, Map *tmpCache);
+
 static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
     
     #define ParseNode(tok, src) ParseNode(tok, src, tmpCache)
@@ -217,11 +222,11 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             
             while (1) {
                 Token tok = NextToken(src);
-                assert(tok.type == TOK_ID);
+                assert(tok.type == TOK_ID || tok.type == TOK_TMP);
                 if (strcmp(tok.id, "else") != 0) {
                     t = IR.Seq(
                         t,
-                        ParseNode(tok, src));
+                        ParseStm(tok, src, tmpCache));
                 } else {
                     break;
                 }
@@ -231,11 +236,11 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             
             while (1) {
                 Token tok = NextToken(src);
-                assert(tok.type == TOK_ID);
+                assert(tok.type == TOK_ID || tok.type == TOK_TMP);
                 if (strcmp(tok.id, "end") != 0) {
                     f = IR.Seq(
                         f,
-                        ParseNode(tok, src));
+                        ParseStm(tok, src, tmpCache));
                 } else {
                     break;
                 }
@@ -255,11 +260,11 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             
             while (1) {
                 Token tok = NextToken(src);
-                assert(tok.type == TOK_ID);
+                assert(tok.type == TOK_ID || tok.type == TOK_TMP);
                 if (strcmp(tok.id, "end") != 0) {
                     t = IR.Seq(
                         t,
-                        ParseNode(tok, src));
+                        ParseStm(tok, src, tmpCache));
                 } else {
                     break;
                 }
@@ -382,6 +387,21 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
     
     #undef ParseNode
 }
+
+static Node *ParseStm(Token tok, Source *src, Map *tmpCache) {
+    switch (tok.type) {
+        
+        case TOK_TMP: {
+            Node *a = ParseNode(tok, src, tmpCache);
+            assert(NextToken(src).type == TOK_ASG);
+            Node *b = ParseNode(NextToken(src), src, tmpCache);
+            return IR.Mov(a, b);
+        }
+
+        default:
+            return ParseNode(tok, src, tmpCache);
+    }
+}
     
 static void ParseFunction(Token tok, IRModule *mod, Source *src) {
     
@@ -398,8 +418,12 @@ static void ParseFunction(Token tok, IRModule *mod, Source *src) {
     
     while (1) {
         Token tok = NextToken(src);
-        assert(tok.type == TOK_ID);
-        if (strcmp(tok.id, "end") != 0) {
+        assert(tok.type == TOK_ID || tok.type == TOK_TMP);
+        if (tok.type == TOK_TMP) {
+            body = IR.Seq(
+                body,
+                ParseStm(tok, src, tmpCache));
+        } else if (strcmp(tok.id, "end") != 0) {
             body = IR.Seq(
                 body,
                 ParseNode(tok, src, tmpCache));
