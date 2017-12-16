@@ -1,25 +1,5 @@
 
 
 func clare_main
-
-    $x = arg(0)
-    $y = arg(1)
-    
-    $sum = i32(0)
-    
-    $i = i32(0)
-    while lt($i, $x) do
-    
-        $k = i32(0)
-        while lt($k, $y) do
-        
-            $sum = add($sum, i32(1))
-                
-            $k = add($k, i32(1))
-        end
-            
-        $i = add($i, i32(1))
-    end
-    
-    ret($sum)
+    ret(float(1337))
 end

@@ -63,7 +63,7 @@ RULE(IR.I32(0), {
 
 RULE(IR.Float(0), {
     EMIT(OP({
-        .fmt = "fld dword [_const_$f]\n",
+        .fmt = "fld dword [_const_f_$f]\n",
         .oprs[0] = { .f = root->f }
     }));
 })
@@ -357,6 +357,7 @@ RULE(IR.Call(0, 0), {
 
 RULE(IR.Any(), {
     printf("no instruction selection rule for: %s\n", NodeName(root));
+    exit(1);
 })
 
 #undef OP

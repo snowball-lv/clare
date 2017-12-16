@@ -6,6 +6,7 @@
 
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 
 static Set *_ColorSet = 0;
 static Map *_PrecoloringMap = 0;
@@ -105,7 +106,7 @@ static int NextLabel() {
     return _Label_Counter++;
 }
 
-#define MANGLE(name)     i386_v2_ ## name
+#define MANGLE(name)     i386_text_ ## name
 #define RULE_FILE       <backends/i386/i386.rules>
 #define RET_TYPE        PAsmVReg *
 #define RET_DEFAULT     0
@@ -115,15 +116,15 @@ static int NextLabel() {
 #undef RULE_FILE
 #undef MANGLE
 
-// #define MANGLE(name)     i386_rodata_ ## name
-// #define RULE_FILE       <backends/i386/i386.rodata.rules>
-// #define RET_TYPE        void *
-// #define RET_DEFAULT     0
-//     #include <ir/muncher.def>
-// #undef RET_DEFAULT
-// #undef RET_TYPE
-// #undef RULE_FILE
-// #undef MANGLE
+#define MANGLE(name)     i386_rodata_ ## name
+#define RULE_FILE       <backends/i386/i386.rodata.rules>
+#define RET_TYPE        void *
+#define RET_DEFAULT     0
+    #include <ir/muncher.def>
+#undef RET_DEFAULT
+#undef RET_TYPE
+#undef RULE_FILE
+#undef MANGLE
 
 static Set *_Colors() {
     return _ColorSet;
@@ -149,6 +150,17 @@ static PAsmFunction *IRToPAsmFunction(PAsmModule *mod, IRFunction *func) {
         .fmt = ";-------- start of function: [$str]\n",
         .oprs[0] = { .str = name }
     }));
+    
+    ListAdd(pasmFunc->header, HEAP(PAsmOp, {
+        .fmt = "section .rodata\n"
+    }));
+    
+    List *rodata_ops = i386_rodata_Munch(IRFunctionBody(func));
+    LIST_EACH(rodata_ops, PAsmOp *, op, {
+        ListAdd(pasmFunc->header, op);
+    });
+    DeleteList(rodata_ops);
+    
     ListAdd(pasmFunc->header, HEAP(PAsmOp, {
         .fmt = "section .text\n"
     }));
@@ -161,7 +173,7 @@ static PAsmFunction *IRToPAsmFunction(PAsmModule *mod, IRFunction *func) {
         .oprs[0] = { .str = name }
     }));
     
-    List *ops = i386_v2_Munch(IRFunctionBody(func));
+    List *ops = i386_text_Munch(IRFunctionBody(func));
     LIST_EACH(ops, PAsmOp *, op, {
         ListAdd(pasmFunc->body, op);
     });
