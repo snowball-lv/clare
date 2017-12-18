@@ -9,8 +9,11 @@
 
 typedef struct Node Node;
 struct Node {
+    
     int type;
+    int data_type;
     Node *kids[IR_MAX_KIDS];
+    
     union {
         int32_t i32;
         float f;
@@ -22,6 +25,20 @@ struct Node {
         };
     };
 };
+
+#define IR_DT(name)     IR_DT_ ## name
+
+enum {
+    #define TYPE(name)      IR_DT(name),
+    TYPE(Invalid)
+    TYPE(None)
+    TYPE(Void)
+    TYPE(I32)
+    TYPE(Float)
+    #undef TYPE
+};
+
+const char *IRDataTypeName(int data_type);
 
 HEAP_DECL(Node)
 

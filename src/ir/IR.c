@@ -1,6 +1,7 @@
 #include <ir/IR.h>
 
 #include <helpers/Unused.h>
+#include <helpers/Error.h>
 #include <collections/Set.h>
 #include <collections/Map.h>
 
@@ -185,4 +186,17 @@ List *IRModuleFunctions(IRModule *mod) {
 
 Node *IRFunctionBody(IRFunction *func) {
     return func->body;
+}
+
+const char *IRDataTypeName(int data_type) {
+    switch (data_type) {
+        #define TYPE(name) case IR_DT(name): return #name;
+        TYPE(Invalid)
+        TYPE(None)
+        TYPE(Void)
+        TYPE(I32)
+        TYPE(Float)
+        #undef TYPE
+    }
+    ERROR("Unknown data type: %d\n", data_type);
 }
