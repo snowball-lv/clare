@@ -5,10 +5,8 @@
 extern int clare_fib(int n);
 
 int main(int argc, char **argv) {
-    printf("clare_fib(0): %d\n", clare_fib(0));
-    printf("clare_fib(1): %d\n", clare_fib(1));
-    printf("clare_fib(2): %d\n", clare_fib(2));
-    printf("clare_fib(3): %d\n", clare_fib(3));
-    printf("clare_fib(4): %d\n", clare_fib(4));
+    for (int i = 0; i < 10; i++) {
+        printf("clare_fib(%d): %d\n", i, clare_fib(i));
+    }
     return 0;
 }

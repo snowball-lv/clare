@@ -360,7 +360,15 @@ RULE(IR.Call(0, 0), {
         .def = { ESP }
     }));
     
-    return EAX;
+    PAsmVReg *tmp = NewPAsmVReg();
+    EMIT(OP({
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = tmp },
+        .oprs[1] = { .vreg = EAX },
+        .use = { EAX },
+        .def = { tmp }
+    }));
+    return tmp;
 })
 
 RULE(IR.Any(), {
