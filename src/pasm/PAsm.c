@@ -1,6 +1,7 @@
 #include <pasm/PAsm.h>
 
 #include <helpers/Unused.h>
+#include <helpers/Error.h>
 #include <collections/List.h>
 #include <collections/Graph.h>
 #include <collections/Map.h>
@@ -10,6 +11,7 @@
 
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 
 HEAP_DEF(PAsmOp)
@@ -103,8 +105,6 @@ void PAsmModuleAddFunc(PAsmModule *mod, PAsmFunction *func) {
 }
 
 static void PAsmPrintOp(PAsmOp *op, Coloring *coloring, FILE *output) {
-    
-    UNUSED(output);
     
     #define printf(...)     fprintf(output, __VA_ARGS__)
     
@@ -224,13 +224,14 @@ static void BasicBlockPrintName(BasicBlock *block) {
 }
 
 static List *Blockify(List *ops) {
-    
-    UNUSED(ops);
 
     List *blocks = NewList();
     BasicBlock *current = 0;
     
     LIST_EACH(ops, PAsmOp *, op, {
+        
+        PAsmPrintOp(op, 0, stdout);
+        
         if (current == 0) {
             current = NewBasicBlock();
             ListAdd(current->ops, op);
@@ -248,8 +249,13 @@ static List *Blockify(List *ops) {
             }
         }
     });
+    
+    if (current != 0) {
+        ListAdd(blocks, current);
+        current = 0;
+    }
 
-    assert(current == 0);
+    ASSERT(current == 0);
     
     return blocks;
 }
@@ -296,6 +302,16 @@ TYPE_DEF(CFG, {
     DeleteSet(self->blocks);
 })
 
+static void CFGAddBlock(CFG *cfg, BasicBlock *block) {
+    SetAdd(cfg->blocks, block);
+    if (!MapContains(cfg->inEdges, block)) {
+        MapPut(cfg->inEdges, block, NewSet());
+    }
+    if (!MapContains(cfg->outEdges, block)) {
+        MapPut(cfg->outEdges, block, NewSet());
+    }
+}
+
 static void CFGConnect(CFG *cfg, BasicBlock *from, BasicBlock *to) {
     
     BasicBlockPrintName(from);
@@ -303,21 +319,10 @@ static void CFGConnect(CFG *cfg, BasicBlock *from, BasicBlock *to) {
     BasicBlockPrintName(to);
     printf("\n");
     
-    SetAdd(cfg->blocks, from);
-    SetAdd(cfg->blocks, to);
-    
-    if (!MapContains(cfg->outEdges, from)) {
-        MapPut(cfg->outEdges, from, NewSet());
-    }
     Set *out = MapGet(cfg->outEdges, from);
-    
     SetAdd(out, to);
     
-    if (!MapContains(cfg->inEdges, to)) {
-        MapPut(cfg->inEdges, to, NewSet());
-    }
     Set *in = MapGet(cfg->inEdges, to);
-    
     SetAdd(in, from);
 }
 
@@ -376,10 +381,16 @@ static void CFGPrint(CFG *cfg) {
 
 static CFG *MakeCFG(List *blocks) {
     
+    CFG *cfg = NewCFG();
     Map *map = NewMap();
     
-    // fill lookup map
+    // fill lookup map & init block in/out edges
     LIST_EACH(blocks, BasicBlock *, block, {
+        
+        // init in/out edge set
+        CFGAddBlock(cfg, block);
+        
+        // save in lookup map
         LIST_FIRST(block->ops, PAsmOp *, leader, {
             if (leader->is_label) {
                 void *key = (void *)(intptr_t)leader->label_id;
@@ -388,7 +399,6 @@ static CFG *MakeCFG(List *blocks) {
         });
     });
     
-    CFG *cfg = NewCFG();
     BasicBlock *prev = cfg->first;
     
     printf("first: %d\n", cfg->first->id);
@@ -423,7 +433,13 @@ static CFG *MakeCFG(List *blocks) {
         });
     });
     
-    assert(prev == 0);
+    if (prev != 0) {
+        // connect, prev -> last
+        CFGConnect(cfg, prev, cfg->last);
+        prev = 0;
+    }
+    
+    ASSERT(prev == 0);
     
     DeleteMap(map);
     return cfg;

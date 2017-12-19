@@ -79,7 +79,7 @@ static Token NextToken(Source *src) {
             if (isalpha(c) || c == '_') {
                 PUSH(c);
                 tok = TOK_ID;
-            } else if (isdigit(c)) {
+            } else if (isdigit(c) || c == '-') {
                 PUSH(c);
                 tok = TOK_NUM;
             } else {

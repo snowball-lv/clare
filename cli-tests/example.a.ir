@@ -1,5 +1,20 @@
 
 
-func clare_main
-    ret(float(1337))
+
+
+
+func clare_fib
+    $n = arg(0)
+    if eq($n, i32(0)) then
+        ret(i32(0))
+    else
+        if eq($n, i32(1)) then
+            ret(i32(1))
+        else
+            $a = call(clare_fib, add($n, i32(-1)))
+            $b = call(clare_fib, add($n, i32(-2)))
+            $c = add($a, $b)
+            ret($c)
+        end
+    end
 end
