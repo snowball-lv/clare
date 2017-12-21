@@ -162,10 +162,10 @@ void IRFunctionSetBody(IRFunction *func, Node *body) {
 }
 
 #define MANGLE(name)    IRPrinter ## name
-#define RULE_FILE       <ir/new-printer.rules>
+#define RULE_FILE       <ir/printer.rules>
 #define RET_TYPE        int
 #define RET_DEFAULT     0
-    #include <ir/new-muncher-2.def>
+    #include <ir/muncher.def>
 #undef RET_DEFAULT
 #undef RET_TYPE
 #undef RULE_FILE
