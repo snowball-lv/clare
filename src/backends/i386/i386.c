@@ -133,9 +133,13 @@ int NextLabel() {
 
 #define MANGLE(name)     i386_rodata_ ## name
 #define RULE_FILE       <backends/i386/i386.rodata.rules>
-#define RET_TYPE        void *
+#define RET_TYPE        int
 #define RET_DEFAULT     0
-    #include <ir/muncher.def>
+#define EMIT(op)        ListAdd(state, op)
+#define STATE_T         List *
+    #include <ir/new-muncher-2.def>
+#undef STATE_T
+#undef EMIT
 #undef RET_DEFAULT
 #undef RET_TYPE
 #undef RULE_FILE
@@ -170,7 +174,8 @@ static PAsmFunction *IRToPAsmFunction(PAsmModule *mod, IRFunction *func) {
         .fmt = "section .rodata\n"
     }));
     
-    List *rodata_ops = i386_rodata_Munch(IRFunctionBody(func));
+    List *rodata_ops = NewList();
+    i386_rodata_Munch(IRFunctionBody(func), rodata_ops);
     LIST_EACH(rodata_ops, PAsmOp *, op, {
         ListAdd(pasmFunc->header, op);
     });

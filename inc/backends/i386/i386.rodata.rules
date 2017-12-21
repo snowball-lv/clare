@@ -1,34 +1,42 @@
 
 
 #define OP(...)     HEAP(PAsmOp, __VA_ARGS__)
+#define NTYPE(nt, action)   RULE({ return root->type == nt; }, action)
 
-RULE(IR.Seq(0, 0), {
+
+NTYPE(IR_NT_Seq, {
     MUNCH(root->kids[0]);
     MUNCH(root->kids[1]);
 })
 
-RULE(IR.Mov(IR.Tmp(), 0), {
+RULE({
+    if (root->type == IR_NT_Mov) {
+        if (root->kids[0]->type == IR_NT_Tmp) {
+            return 1;
+        }
+    }
+}, {
     MUNCH(root->kids[1]);
 })
 
-RULE(IR.Add(0, 0), {
+NTYPE(IR_NT_Add, {
     MUNCH(root->kids[0]);
     MUNCH(root->kids[1]);
 })
 
-RULE(IR.Tmp(), {
+NTYPE(IR_NT_Tmp, {
 
 })
 
-RULE(IR.Arg(0), {
+NTYPE(IR_NT_Arg, {
     
 })
 
-RULE(IR.I32(0), {
+NTYPE(IR_NT_I32, {
     
 })
 
-RULE(IR.Float(0), {
+NTYPE(IR_NT_Float, {
     EMIT(OP({
         .fmt = "_const_f_$f: dd $f\n",
         .oprs[0] = { .f = root->f },
@@ -36,34 +44,45 @@ RULE(IR.Float(0), {
     }));
 })
 
-RULE(IR.Ret(0), {
+NTYPE(IR_NT_Ret, {
     MUNCH(root->kids[0]);
 })
 
-RULE(IR.Nop(), {
+NTYPE(IR_NT_Nop, {
     // do nothing
 })
 
-RULE(IR.Eq(0, 0), {
+NTYPE(IR_NT_Eq, {
     MUNCH(root->kids[0]);
     MUNCH(root->kids[1]);
 })
 
-RULE(IR.Branch(IR.Eq(0, 0), 0, 0), {
+RULE({
+    if (root->type == IR_NT_Branch) {
+        if (root->kids[0]->type == IR_NT_Eq) {
+            return 1;
+        }
+    }
+}, {
     MUNCH(root->kids[0]);
     MUNCH(root->kids[2]);
     MUNCH(root->kids[1]);
 })
 
-RULE(IR.Call(0, 0), {
+NTYPE(IR_NT_Call, {
     LIST_REV(root->args, Node *, arg, {
         MUNCH(arg);
     });
 })
 
-RULE(IR.Any(), {
-    printf("no instruction selection rule for: %s\n", NodeName(root));
-    exit(1);
+RULE({ return 1; }, {
+    ERROR(
+        "No matching instruction selection rule!\n"
+        "Node: %s, Type %s\n",
+        NodeName(root),
+        IRDataTypeName(root->data_type));
 })
 
+
+#undef NTYPE
 #undef OP
