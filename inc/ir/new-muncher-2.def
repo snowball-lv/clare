@@ -1,0 +1,55 @@
+
+
+#ifdef STATE_T
+    static RET_TYPE MANGLE(Munch)(Node *root, STATE_T state)
+#else
+    static RET_TYPE MANGLE(Munch)(Node *root)
+#endif
+{
+    
+    #ifdef STATE_T
+        UNUSED(state);
+    #endif
+    
+    int _test_id = 0;
+    int _matched_id = 0;
+    
+    #define return      ret =
+    #define RULE(test_body, action) {       \
+        _test_id++;                         \
+        int ret = 0; test_body; if (ret) {  \
+            _matched_id = _test_id;         \
+            goto EXECUTE_ACTION;            \
+        }                                   \
+    }
+    
+        #include RULE_FILE
+    
+    #undef RULE
+    #undef return
+    
+    EXECUTE_ACTION:;
+    
+    int _action_id = 0;
+    
+    #ifdef STATE_T
+        #define MUNCH(node)     MANGLE(Munch)(node, state)
+    #else
+        #define MUNCH(node)     MANGLE(Munch)(node)
+    #endif
+    
+    #define RULE(test_body, action) {       \
+        _action_id++;                       \
+        if (_action_id == _matched_id) {    \
+            action;                         \
+            return RET_DEFAULT;             \
+        }                                   \
+    }
+    
+        #include RULE_FILE
+    
+    #undef RULE
+    #undef MUNCH
+    
+    return RET_DEFAULT;
+}

@@ -1,6 +1,7 @@
 #include <backends/i386/i386.h>
 
 #include <helpers/Unused.h>
+#include <helpers/Error.h>
 #include <pasm/PAsm.h>
 #include <helpers/Unused.h>
 
@@ -32,7 +33,7 @@ static void PAsmDeinit() {
     DeleteMap(_TmpToVregMap);
 }
 
-static PAsmVReg *PAsmVRegFromTmp(Node *tmp) {
+PAsmVReg *PAsmVRegFromTmp(Node *tmp) {
     if (!MapContains(_TmpToVregMap, tmp)) {
         MapPut(_TmpToVregMap, tmp, NewPAsmVReg());
     }
@@ -102,15 +103,29 @@ static void _Deinit() {
 
 static int _Label_Counter = 1;
 
-static int NextLabel() {
+int NextLabel() {
     return _Label_Counter++;
 }
 
+// #define MANGLE(name)     i386_text_ ## name
+// #define RULE_FILE       <backends/i386/i386.rules>
+// #define RET_TYPE        PAsmVReg *
+// #define RET_DEFAULT     0
+//     #include <ir/muncher.def>
+// #undef RET_DEFAULT
+// #undef RET_TYPE
+// #undef RULE_FILE
+// #undef MANGLE
+
 #define MANGLE(name)     i386_text_ ## name
-#define RULE_FILE       <backends/i386/i386.rules>
+#define RULE_FILE       <backends/i386/new-i386.rules>
 #define RET_TYPE        PAsmVReg *
 #define RET_DEFAULT     0
-    #include <ir/muncher.def>
+#define EMIT(op)        ListAdd(state, op)
+#define STATE_T         List *
+    #include <ir/new-muncher-2.def>
+#undef STATE_T
+#undef EMIT
 #undef RET_DEFAULT
 #undef RET_TYPE
 #undef RULE_FILE
@@ -173,7 +188,8 @@ static PAsmFunction *IRToPAsmFunction(PAsmModule *mod, IRFunction *func) {
         .oprs[0] = { .str = name }
     }));
     
-    List *ops = i386_text_Munch(IRFunctionBody(func));
+    List *ops = NewList();
+    i386_text_Munch(IRFunctionBody(func), ops);
     LIST_EACH(ops, PAsmOp *, op, {
         ListAdd(pasmFunc->body, op);
     });
