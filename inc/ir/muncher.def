@@ -1,9 +1,21 @@
 
 
-#ifdef STATE_T
-    static RET_TYPE MANGLE(Munch)(Node *root, STATE_T state)
+#ifdef RET_TYPE 
+    #define _RET_TYPE   RET_TYPE
 #else
-    static RET_TYPE MANGLE(Munch)(Node *root)
+    #define _RET_TYPE   int
+#endif
+
+#ifdef RET_DEFAULT
+    #define _RET_DEFAULT     RET_DEFAULT
+#else
+    #define _RET_DEFAULT     0
+#endif
+
+#ifdef STATE_T
+    static _RET_TYPE MANGLE(Munch)(Node *root, STATE_T state)
+#else
+    static _RET_TYPE MANGLE(Munch)(Node *root)
 #endif
 {
     
@@ -42,7 +54,7 @@
         _action_id++;                       \
         if (_action_id == _matched_id) {    \
             action;                         \
-            return RET_DEFAULT;             \
+            return _RET_DEFAULT;            \
         }                                   \
     }
     
@@ -51,5 +63,10 @@
     #undef RULE
     #undef MUNCH
     
-    return RET_DEFAULT;
+    return _RET_DEFAULT;
 }
+
+
+#undef _RET_DEFAULT
+#undef _RET_TYPE
+

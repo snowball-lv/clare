@@ -107,31 +107,27 @@ int NextLabel() {
     return _Label_Counter++;
 }
 
-#define MANGLE(name)     i386_text_ ## name
+#define MANGLE(name)    i386_text_ ## name
 #define RULE_FILE       <backends/i386/i386.text.rules>
 #define RET_TYPE        PAsmVReg *
 #define RET_DEFAULT     0
-#define EMIT(op)        ListAdd(state, op)
 #define STATE_T         List *
+#define EMIT(op)        ListAdd(state, op)
     #include <ir/muncher.def>
-#undef STATE_T
 #undef EMIT
+#undef STATE_T
 #undef RET_DEFAULT
 #undef RET_TYPE
 #undef RULE_FILE
 #undef MANGLE
 
-#define MANGLE(name)     i386_rodata_ ## name
+#define MANGLE(name)    i386_rodata_ ## name
 #define RULE_FILE       <backends/i386/i386.rodata.rules>
-#define RET_TYPE        int
-#define RET_DEFAULT     0
-#define EMIT(op)        ListAdd(state, op)
 #define STATE_T         List *
+#define EMIT(op)        ListAdd(state, op)
     #include <ir/muncher.def>
-#undef STATE_T
 #undef EMIT
-#undef RET_DEFAULT
-#undef RET_TYPE
+#undef STATE_T
 #undef RULE_FILE
 #undef MANGLE
 
