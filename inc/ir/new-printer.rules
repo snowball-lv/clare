@@ -1,0 +1,108 @@
+
+
+
+// #define RULE(test_body, action)
+
+#define NTYPE(nt, action)   RULE({ return root->type == nt; }, action)
+
+
+NTYPE(IR_NT_Add, {
+    printf("add(");
+    MUNCH(root->kids[0]);
+    printf(", ");
+    MUNCH(root->kids[1]);
+    printf(")");
+})
+
+NTYPE(IR_NT_Ret, {
+    printf("return(");
+    MUNCH(root->kids[0]);
+    printf(")\n");
+})
+
+NTYPE(IR_NT_Arg, {
+    printf("arg(%d)", root->arg_index);
+})
+
+NTYPE(IR_NT_I32, {
+    printf("i32(%d)", root->i32);
+})
+
+NTYPE(IR_NT_Float, {
+    printf("float(%f)", root->f);
+})
+
+NTYPE(IR_NT_Tmp, {
+    printf("$tmp%d", root->id);
+})
+
+NTYPE(IR_NT_Mov, {
+    printf("mov(");
+    MUNCH(root->kids[0]);
+    printf(", ");
+    MUNCH(root->kids[1]);
+    printf(")\n");
+})
+
+NTYPE(IR_NT_Seq, {
+    MUNCH(root->kids[0]);
+    MUNCH(root->kids[1]);
+})
+
+NTYPE(IR_NT_Nop, {
+    // do nothing
+})
+
+NTYPE(IR_NT_Call, {
+    printf("call(%s", root->fname);
+    LIST_EACH(root->args, Node *, arg, {
+        printf(", ");
+        MUNCH(arg);
+    });
+    printf(")");
+})
+
+NTYPE(IR_NT_Branch, {
+    printf("if ");
+    MUNCH(root->kids[0]);
+    printf(" {\n");
+    MUNCH(root->kids[1]);
+    printf("} else {\n");
+    MUNCH(root->kids[2]);
+    printf("}\n");
+})
+
+NTYPE(IR_NT_Loop, {
+    printf("while ");
+    MUNCH(root->kids[0]);
+    printf(" {\n");
+    MUNCH(root->kids[1]);
+    printf("}\n");
+})
+
+NTYPE(IR_NT_Eq, {
+    printf("(");
+    MUNCH(root->kids[0]);
+    printf(" == ");
+    MUNCH(root->kids[1]);
+    printf(")");
+})
+
+NTYPE(IR_NT_Lt, {
+    printf("(");
+    MUNCH(root->kids[0]);
+    printf(" < ");
+    MUNCH(root->kids[1]);
+    printf(")");
+})
+
+RULE({ return 1; }, {
+    ERROR(
+        "No matching print rule!\n"
+        "Node: %s, Type %s\n",
+        NodeName(root),
+        IRDataTypeName(root->data_type));
+})
+
+
+#undef NTYPE

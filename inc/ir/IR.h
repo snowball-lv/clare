@@ -42,7 +42,7 @@ const char *IRDataTypeName(int data_type);
 
 HEAP_DECL(Node)
 
-#define NT(name)    NT ## name
+#define NT(name)    IR_NT_ ## name
 
 enum {
     
