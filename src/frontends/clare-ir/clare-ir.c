@@ -1,6 +1,7 @@
 #include <frontends/clare-ir/clare-ir.h>
 
 #include <helpers/Unused.h>
+#include <helpers/Error.h>
 #include <ir/IR.h>
 #include <collections/Map.h>
 
@@ -376,8 +377,9 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
         if (tmp != 0) {
             return tmp;
         } else {
-            MapPut(tmpCache, (void *) tok.tmp, IR.Tmp());
-            return MapGet(tmpCache, (void *) tok.tmp);
+            ERROR("temp. \"%s\" has not been initialized\n", tok.tmp)
+            // MapPut(tmpCache, (void *) tok.tmp, IR.Tmp());
+            // return MapGet(tmpCache, (void *) tok.tmp);
         }
         
     } else {
@@ -392,10 +394,14 @@ static Node *ParseStm(Token tok, Source *src, Map *tmpCache) {
     switch (tok.type) {
         
         case TOK_TMP: {
-            Node *a = ParseNode(tok, src, tmpCache);
+            
             assert(NextToken(src).type == TOK_ASG);
-            Node *b = ParseNode(NextToken(src), src, tmpCache);
-            return IR.Mov(a, b);
+            Node *value = ParseNode(NextToken(src), src, tmpCache);
+            
+            MapPut(tmpCache, (void *) tok.tmp, IR.Tmp(value->data_type));
+            Node *tmp = MapGet(tmpCache, (void *) tok.tmp);
+            
+            return IR.Mov(tmp, value);
         }
 
         default:

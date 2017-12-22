@@ -13,3 +13,7 @@
 #define ASSERT(cond) { if (!(cond)) {   \
     ERROR("Failed: " #cond "\n");       \
 }}
+
+#define ASSERTM(cond, ...) { if (!(cond)) {     \
+    ERROR("Failed: " #cond "\n" __VA_ARGS__);   \
+}}

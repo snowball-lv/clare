@@ -195,3 +195,18 @@ const char *IRDataTypeName(int data_type) {
     }
     ERROR("Unknown data type: %d\n", data_type);
 }
+
+int IRIsScalar(int data_type) {
+    switch (data_type) {
+        #define TYPE(name) case IR_DT(name):
+        TYPE(Invalid)
+        TYPE(None)
+        TYPE(Void)
+            return 0;
+        TYPE(I32)
+        TYPE(Float)
+            return 1;
+        #undef TYPE
+    }
+    ERROR("Unknown data type: %d\n", data_type);
+}

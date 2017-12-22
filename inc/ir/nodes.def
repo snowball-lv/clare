@@ -9,33 +9,84 @@ SIMPLE(Any)
 SIMPLE(Nop)
 
 NODE(Mov, (Node *dst, Node *src), {
+    
+    ASSERTM(
+        IRIsScalar(dst->data_type),
+        "Node: %s, Type: %s\n",
+        NodeName(dst),
+        IRDataTypeName(dst->data_type));
+            
+    ASSERTM(
+        IRIsScalar(src->data_type),
+        "Node: %s, Type: %s\n",
+        NodeName(src),
+        IRDataTypeName(src->data_type));
+    
+    ASSERTM(
+        dst->data_type == src->data_type,
+        "Node: %s, Type: %s\n"
+        "Node: %s, Type: %s\n",
+        NodeName(dst),
+        IRDataTypeName(dst->data_type),
+        NodeName(src),
+        IRDataTypeName(src->data_type));
+    
+    self->data_type = IR_DT_None;
     self->kids[0] = dst;
     self->kids[1] = src;
 })
 
-NODE(Tmp, (), {
+NODE(Tmp, (int data_type), {
+    self->data_type = data_type;
     self->id = NewTmpID();
 })
 
 NODE(Add, (Node *left, Node *right), {
+    
+    ASSERTM(
+        IRIsScalar(left->data_type),
+        "Node: %s, Type: %s\n",
+        NodeName(left),
+        IRDataTypeName(left->data_type));
+            
+    ASSERTM(
+        IRIsScalar(right->data_type),
+        "Node: %s, Type: %s\n",
+        NodeName(right),
+        IRDataTypeName(right->data_type));
+        
+    ASSERTM(
+        left->data_type == right->data_type,
+        "Node: %s, Type: %s\n"
+        "Node: %s, Type: %s\n",
+        NodeName(left),
+        IRDataTypeName(left->data_type),
+        NodeName(right),
+        IRDataTypeName(right->data_type));
+        
+    self->data_type = left->data_type;
     self->kids[0] = left;
     self->kids[1] = right;
 })
 
 NODE(I32, (int32_t i32), {
+    self->data_type = IR_DT_I32;
     self->i32 = i32;
 })
 
 NODE(Float, (float f), {
+    self->data_type = IR_DT_Float;
     self->f = f;
 })
 
 NODE(Seq, (Node *left, Node *right), {
+    self->data_type = IR_DT_None;
     self->kids[0] = left;
     self->kids[1] = right;
 })
 
 NODE(Ret, (Node *node), {
+    self->data_type = IR_DT_None;
     self->kids[0] = node;
 })
 
@@ -49,22 +100,70 @@ NODE(Call, (const char *fname, List *args), {
 })
 
 NODE(Branch, (Node *cond, Node *t, Node *f), {
+    self->data_type = IR_DT_None;
     self->kids[0] = cond;
     self->kids[1] = t;
     self->kids[2] = f;
 })
 
 NODE(Loop, (Node *cond, Node *t), {
+    self->data_type = IR_DT_None;
     self->kids[0] = cond;
     self->kids[1] = t;
 })
 
 NODE(Eq, (Node *left, Node *right), {
+    
+    ASSERTM(
+        IRIsScalar(left->data_type),
+        "Node: %s, Type: %s\n",
+        NodeName(left),
+        IRDataTypeName(left->data_type));
+            
+    ASSERTM(
+        IRIsScalar(right->data_type),
+        "Node: %s, Type: %s\n",
+        NodeName(right),
+        IRDataTypeName(right->data_type));
+        
+    ASSERTM(
+        left->data_type == right->data_type,
+        "Node: %s, Type: %s\n"
+        "Node: %s, Type: %s\n",
+        NodeName(left),
+        IRDataTypeName(left->data_type),
+        NodeName(right),
+        IRDataTypeName(right->data_type));
+        
+    self->data_type = IR_DT_None;
     self->kids[0] = left;
     self->kids[1] = right;
 })
 
 NODE(Lt, (Node *left, Node *right), {
+    
+    ASSERTM(
+        IRIsScalar(left->data_type),
+        "Node: %s, Type: %s\n",
+        NodeName(left),
+        IRDataTypeName(left->data_type));
+            
+    ASSERTM(
+        IRIsScalar(right->data_type),
+        "Node: %s, Type: %s\n",
+        NodeName(right),
+        IRDataTypeName(right->data_type));
+        
+    ASSERTM(
+        left->data_type == right->data_type,
+        "Node: %s, Type: %s\n"
+        "Node: %s, Type: %s\n",
+        NodeName(left),
+        IRDataTypeName(left->data_type),
+        NodeName(right),
+        IRDataTypeName(right->data_type));
+        
+    self->data_type = IR_DT_None;
     self->kids[0] = left;
     self->kids[1] = right;
 })
