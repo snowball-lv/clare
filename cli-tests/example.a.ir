@@ -4,8 +4,16 @@
 
 
 func clare_fib
-    $a = i32(1)
-    $b = i32(2)
-    $c = add($a, $b)
-    ret($c)
+    $n = arg(0, i32)
+    if eq($n, i32(0)) then
+        ret(i32(0))
+    else
+        if eq($n, i32(1)) then
+            ret(i32(1))
+        else
+            ret(add(
+                call(i32, clare_fib, add($n, i32(-1))),
+                call(i32, clare_fib, add($n, i32(-2)))))
+        end
+    end
 end

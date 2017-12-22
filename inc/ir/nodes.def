@@ -37,6 +37,7 @@ NODE(Mov, (Node *dst, Node *src), {
 })
 
 NODE(Tmp, (int data_type), {
+    ASSERT(IRIsScalar(data_type));
     self->data_type = data_type;
     self->id = NewTmpID();
 })
@@ -86,15 +87,20 @@ NODE(Seq, (Node *left, Node *right), {
 })
 
 NODE(Ret, (Node *node), {
+    ASSERT(IRIsScalar(node->data_type));
     self->data_type = IR_DT_None;
     self->kids[0] = node;
 })
 
-NODE(Arg, (int arg_index), {
+NODE(Arg, (int arg_index, int data_type), {
+    ASSERT(IRIsScalar(data_type));
+    self->data_type = data_type;
     self->arg_index = arg_index;
 })
 
-NODE(Call, (const char *fname, List *args), {
+NODE(Call, (int data_type, const char *fname, List *args), {
+    ASSERT(IRIsScalar(data_type));
+    self->data_type = data_type;
     self->fname = fname;
     self->args = args;
 })

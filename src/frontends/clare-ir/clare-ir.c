@@ -196,11 +196,27 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
         } else if (strcmp(tok.id, "arg") == 0) {
             
             assert(NextToken(src).type == TOK_L_PAREN);
-            Token tok = NextToken(src);
-            assert(tok.type == TOK_NUM);
+            
+            Token tok_index = NextToken(src);
+            assert(tok_index.type == TOK_NUM);
+            
+            assert(NextToken(src).type == TOK_COMMA);
+            
+            Token tok_type = NextToken(src);
+            assert(tok_type.type == TOK_ID);
+            int data_type = IR_DT_Invalid;
+            
+            if (strcmp(tok_type.id, "i32") == 0) {
+                data_type = IR_DT_I32;
+            } else if (strcmp(tok_type.id, "float") == 0) {
+                data_type = IR_DT_Float;
+            } else {
+                ERROR("Unknown data type: %s\n", tok_type.id);
+            }
+            
             assert(NextToken(src).type == TOK_R_PAREN);
             
-            return IR.Arg(tok.num);
+            return IR.Arg(tok_index.num, data_type);
             
         } else if (strcmp(tok.id, "i32") == 0) {
             
@@ -335,6 +351,21 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
         } else if (strcmp(tok.id, "call") == 0) {
             
             assert(NextToken(src).type == TOK_L_PAREN);
+            
+            Token tok_type = NextToken(src);
+            assert(tok_type.type == TOK_ID);
+            int data_type = IR_DT_Invalid;
+            
+            if (strcmp(tok_type.id, "i32") == 0) {
+                data_type = IR_DT_I32;
+            } else if (strcmp(tok_type.id, "float") == 0) {
+                data_type = IR_DT_Float;
+            } else {
+                ERROR("Unknown data type: %s\n", tok_type.id);
+            }
+            
+            assert(NextToken(src).type == TOK_COMMA);
+            
             Token fname = NextToken(src);
             assert(fname.type == TOK_ID);
             
@@ -357,7 +388,7 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
                 }
             }
             
-            return IR.Call(fname.id, args);
+            return IR.Call(data_type, fname.id, args);
             
         } else {
             fprintf(stderr, "no such IR node: %s\n", tok.id);
