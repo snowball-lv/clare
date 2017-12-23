@@ -9,6 +9,27 @@
 #include <assert.h>
 #include <stdlib.h>
 
+typedef struct {
+    List *ops;
+    Map *map;
+    int label_counter;
+} MunchState;
+
+static void InitState(MunchState *state) {
+    state->ops = NewList();
+    state->map = NewMap();
+    state->label_counter = 1;
+}
+
+static void DeinitState(MunchState *state) {
+    DeleteList(state->ops);
+    DeleteMap(state->map);
+}
+
+static int NextLabel(MunchState *state) {
+    return state->label_counter++;
+}
+
 static Set *_ColorSet = 0;
 static Map *_PrecoloringMap = 0;
 
@@ -23,26 +44,14 @@ static PAsmVReg *EBX = 0;
 static PAsmVReg *ESI = 0;
 static PAsmVReg *EDI = 0;
 
-static Map *_TmpToVregMap = 0;
-
-static void PAsmInit() {
-    _TmpToVregMap = NewMap();
-}
-
-static void PAsmDeinit() {
-    DeleteMap(_TmpToVregMap);
-}
-
-PAsmVReg *PAsmVRegFromTmp(Node *tmp) {
-    if (!MapContains(_TmpToVregMap, tmp)) {
-        MapPut(_TmpToVregMap, tmp, NewPAsmVReg());
+static PAsmVReg *GetOrCreateVReg(MunchState *state, Node *tmp) {
+    if (!MapContains(state->map, tmp)) {
+        MapPut(state->map, tmp, NewPAsmVReg());
     }
-    return MapGet(_TmpToVregMap, tmp);
+    return MapGet(state->map, tmp);
 }
 
 static void _Init() {
-    
-    PAsmInit();
     
     EAX = NewSpecialPAsmVReg();
     EBP = NewSpecialPAsmVReg();
@@ -97,22 +106,14 @@ static void _Deinit() {
         
     DeleteSet(_ColorSet);
     DeleteMap(_PrecoloringMap);
-    
-    PAsmDeinit();
-}
-
-static int _Label_Counter = 1;
-
-int NextLabel() {
-    return _Label_Counter++;
 }
 
 #define MANGLE(name)    i386_text_ ## name
 #define RULE_FILE       <backends/i386/i386.text.rules>
 #define RET_TYPE        PAsmVReg *
 #define RET_DEFAULT     0
-#define STATE_T         List *
-#define EMIT(op)        ListAdd(state, op)
+#define STATE_T         MunchState *
+#define EMIT(op)        ListAdd(state->ops, op)
     #include <ir/muncher.def>
 #undef EMIT
 #undef STATE_T
@@ -179,12 +180,15 @@ static PAsmFunction *IRToPAsmFunction(PAsmModule *mod, IRFunction *func) {
         .oprs[0] = { .str = name }
     }));
     
-    List *ops = NewList();
-    i386_text_Munch(IRFunctionBody(func), ops);
-    LIST_EACH(ops, PAsmOp *, op, {
+    MunchState state;
+    InitState(&state);
+    i386_text_Munch(IRFunctionBody(func), &state);
+    
+    LIST_EACH(state.ops, PAsmOp *, op, {
         ListAdd(pasmFunc->body, op);
     });
-    DeleteList(ops);
+    
+    DeinitState(&state);
     
     ListAdd(pasmFunc->footer, HEAP(PAsmOp, {
         .fmt = ";-------- end of function: [$str]\n",

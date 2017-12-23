@@ -18,7 +18,7 @@ RULE({
     }
 }, {
     Node *tmp_dst = root->kids[0];
-    PAsmVReg *dst = PAsmVRegFromTmp(tmp_dst);
+    PAsmVReg *dst = GetOrCreateVReg(state, tmp_dst);
     PAsmVReg *src = MUNCH(root->kids[1]);
     EMIT(OP({
         .fmt = "mov $vr, $vr\n",
@@ -49,7 +49,7 @@ RULE({
 })
 
 NTYPE(IR_NT_Tmp, {
-    return PAsmVRegFromTmp(root);
+    return GetOrCreateVReg(state, root);
 })
 
 NTYPE(IR_NT_Arg, {
@@ -183,8 +183,8 @@ RULE({
     
     MUNCH(root->kids[0]);
     
-    int label_true  = NextLabel();
-    int label_end   = NextLabel();
+    int label_true  = NextLabel(state);
+    int label_end   = NextLabel(state);
     
     EMIT(OP({
         .fmt = "je .L_T_$i32\n",
@@ -233,8 +233,8 @@ RULE({
     
     MUNCH(root->kids[0]);
     
-    int label_true  = NextLabel();
-    int label_end   = NextLabel();
+    int label_true  = NextLabel(state);
+    int label_end   = NextLabel(state);
     
     EMIT(OP({
         .fmt = "jl .L_T_$i32\n",
@@ -281,7 +281,7 @@ RULE({
     }
 }, {
     
-    int label_start = NextLabel();
+    int label_start = NextLabel(state);
     
     EMIT(OP({
         .fmt = ".L_S_$i32:\n",
@@ -292,7 +292,7 @@ RULE({
     
     MUNCH(root->kids[0]);
     
-    int label_end = NextLabel();
+    int label_end = NextLabel(state);
     
     EMIT(OP({
         .fmt = "jne .L_E_$i32\n",
@@ -328,7 +328,7 @@ RULE({
     }
 }, {
     
-    int label_start = NextLabel();
+    int label_start = NextLabel(state);
     
     EMIT(OP({
         .fmt = ".L_S_$i32:\n",
@@ -339,7 +339,7 @@ RULE({
     
     MUNCH(root->kids[0]);
     
-    int label_end = NextLabel();
+    int label_end = NextLabel(state);
     
     EMIT(OP({
         .fmt = "jnl .L_E_$i32\n",
