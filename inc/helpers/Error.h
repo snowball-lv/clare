@@ -17,3 +17,5 @@
 #define ASSERTM(cond, ...) { if (!(cond)) {     \
     ERROR("Failed: " #cond "\n" __VA_ARGS__);   \
 }}
+
+#define GERROR  ERROR("General error.")

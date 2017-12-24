@@ -116,18 +116,13 @@ NTYPE(IR_NT_Nop, {
     // do nothing
 })
 
-NTYPE(IR_NT_Eq, {
-    PAsmVReg *left = MUNCH(root->kids[0]);
-    PAsmVReg *right = MUNCH(root->kids[1]);
-    EMIT(OP({
-        .fmt = "cmp $vr, $vr\n",
-        .oprs[0] = { .vreg = left },
-        .oprs[1] = { .vreg = right },
-        .use = { left, right}
-    }));
-})
-
-NTYPE(IR_NT_Lt, {
+RULE({
+    if (
+        (root->type == IR_NT_Eq || root->type == IR_NT_Lt) &&
+        root->kids[0]->data_type == IR_DT_I32 &&
+        root->kids[1]->data_type == IR_DT_I32
+    ) { return 1; }
+}, {
     PAsmVReg *left = MUNCH(root->kids[0]);
     PAsmVReg *right = MUNCH(root->kids[1]);
     EMIT(OP({
@@ -139,11 +134,11 @@ NTYPE(IR_NT_Lt, {
 })
 
 RULE({
-    if (root->type == IR_NT_Branch) {
-        if (root->kids[0]->type == IR_NT_Eq) {
-            return 1;
-        }
-    }
+    if (
+        root->type == IR_NT_Branch &&
+        root->kids[0]->kids[0]->data_type == IR_DT_I32 &&
+        root->kids[0]->kids[1]->data_type == IR_DT_I32
+    ) { return 1; }
 }, {
     
     MUNCH(root->kids[0]);
@@ -151,9 +146,17 @@ RULE({
     int label_true  = NextLabel(state);
     int label_end   = NextLabel(state);
     
+    const char *cjmp_type = 0;
+    switch (root->kids[0]->type) {
+        case IR_NT_Eq: cjmp_type = "je"; break;
+        case IR_NT_Lt: cjmp_type = "jl"; break;
+        default: GERROR;
+    }
+    
     EMIT(OP({
-        .fmt = "je .L_T_$i32\n",
-        .oprs[0] = { .i32 = label_true },
+        .fmt = "$str .L_T_$i32\n",
+        .oprs[0] = { .str = cjmp_type },
+        .oprs[1] = { .i32 = label_true },
         .is_jump = 1,
         .is_cjump = 1,
         .label_id = label_true
@@ -189,62 +192,12 @@ RULE({
 })
 
 RULE({
-    if (root->type == IR_NT_Branch) {
-        if (root->kids[0]->type == IR_NT_Lt) {
-            return 1;
-        }
-    }
-}, {
-    
-    MUNCH(root->kids[0]);
-    
-    int label_true  = NextLabel(state);
-    int label_end   = NextLabel(state);
-    
-    EMIT(OP({
-        .fmt = "jl .L_T_$i32\n",
-        .oprs[0] = { .i32 = label_true },
-        .is_jump = 1,
-        .is_cjump = 1,
-        .label_id = label_true
-    }));
-    
-    // false
-    MUNCH(root->kids[2]);
-    
-    EMIT(OP({
-        .fmt = "jmp .L_E_$i32\n",
-        .oprs[0] = { .i32 = label_end },
-        .is_jump = 1,
-        .label_id = label_end
-    }));
-    
-    EMIT(OP({
-        .fmt = ".L_T_$i32:\n",
-        .oprs[0] = { .i32 = label_true },
-        .is_label = 1,
-        .label_id = label_true
-    }));
-    
-    // true
-    MUNCH(root->kids[1]);
-    
-    EMIT(OP({
-        .fmt = ".L_E_$i32:\n",
-        .oprs[0] = { .i32 = label_end },
-        .is_label = 1,
-        .label_id = label_end
-    }));
-    
-})
-
-RULE({
-    if (root->type == IR_NT_Loop) {
-        if (root->kids[0]->type == IR_NT_Eq) {
-            return 1;
-        }
-    }
-}, {
+    if (
+        root->type == IR_NT_Loop &&
+        root->kids[0]->kids[0]->data_type == IR_DT_I32 &&
+        root->kids[0]->kids[1]->data_type == IR_DT_I32
+    ) { return 1; }
+},  {
     
     int label_start = NextLabel(state);
     
@@ -259,56 +212,17 @@ RULE({
     
     int label_end = NextLabel(state);
     
-    EMIT(OP({
-        .fmt = "jne .L_E_$i32\n",
-        .oprs[0] = { .i32 = label_end },
-        .is_jump = 1,
-        .is_cjump = 1,
-        .label_id = label_end
-    }));
-    
-    // true
-    MUNCH(root->kids[1]);
-    
-    EMIT(OP({
-        .fmt = "jmp .L_S_$i32\n",
-        .oprs[0] = { .i32 = label_start },
-        .is_jump = 1,
-        .label_id = label_start
-    }));
-    
-    EMIT(OP({
-        .fmt = ".L_E_$i32:\n",
-        .oprs[0] = { .i32 = label_end },
-        .is_label = 1,
-        .label_id = label_end
-    }));
-})
-
-RULE({
-    if (root->type == IR_NT_Loop) {
-        if (root->kids[0]->type == IR_NT_Lt) {
-            return 1;
-        }
+    const char *cjmp_type = 0;
+    switch (root->kids[0]->type) {
+        case IR_NT_Eq: cjmp_type = "jne"; break;
+        case IR_NT_Lt: cjmp_type = "jnl"; break;
+        default: GERROR;
     }
-}, {
-    
-    int label_start = NextLabel(state);
     
     EMIT(OP({
-        .fmt = ".L_S_$i32:\n",
-        .oprs[0] = { .i32 = label_start },
-        .is_label = 1,
-        .label_id = label_start
-    }));
-    
-    MUNCH(root->kids[0]);
-    
-    int label_end = NextLabel(state);
-    
-    EMIT(OP({
-        .fmt = "jnl .L_E_$i32\n",
-        .oprs[0] = { .i32 = label_end },
+        .fmt = "$str .L_E_$i32\n",
+        .oprs[0] = { .str = cjmp_type },
+        .oprs[1] = { .i32 = label_end },
         .is_jump = 1,
         .is_cjump = 1,
         .label_id = label_end
