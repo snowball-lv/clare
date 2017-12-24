@@ -34,11 +34,8 @@ static Set *_ColorSet = 0;
 static Map *_PrecoloringMap = 0;
 
 static PAsmVReg *EAX = 0;
-static PAsmVReg *EDX = 0;
 static PAsmVReg *ECX = 0;
-
-static PAsmVReg *EBP = 0;
-static PAsmVReg *ESP = 0;
+static PAsmVReg *EDX = 0;
 
 static PAsmVReg *EBX = 0;
 static PAsmVReg *ESI = 0;
@@ -54,11 +51,8 @@ static PAsmVReg *GetOrCreateVReg(MunchState *state, Node *tmp) {
 static void _Init() {
     
     EAX = NewSpecialPAsmVReg();
-    EBP = NewSpecialPAsmVReg();
-    ESP = NewSpecialPAsmVReg();
-    
-    EDX = NewSpecialPAsmVReg();
     ECX = NewSpecialPAsmVReg();
+    EDX = NewSpecialPAsmVReg();
     
     EBX = NewSpecialPAsmVReg();
     ESI = NewSpecialPAsmVReg();
@@ -74,17 +68,11 @@ static void _Init() {
     SetAdd(_ColorSet, "esi");
     SetAdd(_ColorSet, "edi");
     
-    // SetAdd(_ColorSet, "ebp");
-    // SetAdd(_ColorSet, "esp");
-    
     _PrecoloringMap = NewMap();
     
     MapPut(_PrecoloringMap, EAX, "eax");
     MapPut(_PrecoloringMap, EDX, "edx");
     MapPut(_PrecoloringMap, ECX, "ecx");
-    
-    MapPut(_PrecoloringMap, EBP, "ebp");
-    MapPut(_PrecoloringMap, ESP, "esp");
     
     MapPut(_PrecoloringMap, EBX, "ebx");
     MapPut(_PrecoloringMap, ESI, "esi");
@@ -96,9 +84,6 @@ static void _Deinit() {
     MemFree(EAX);
     MemFree(EDX);
     MemFree(ECX);
-    
-    MemFree(EBP);
-    MemFree(ESP);
     
     MemFree(EBX);
     MemFree(ESI);
@@ -230,13 +215,11 @@ static void _LoadVReg(PAsmFunction *func, PAsmVReg *spill, PAsmVReg *tmp) {
     }
     
     EMIT({
-        .fmt = "mov $vr, [$vr - $i32]    ;load $id\n",
+        .fmt = "mov $vr, [ebp - $i32]    ;load $id\n",
         .oprs[0] = { .vreg = tmp },
-        .oprs[1] = { .vreg = EBP },
-        .oprs[2] = { .i32 = offset },
-        .oprs[3] = { .vreg = spill },
-        .def = { tmp },
-        .use = { EBP }
+        .oprs[1] = { .i32 = offset },
+        .oprs[2] = { .vreg = spill },
+        .def = { tmp }
     });
     
     #undef EMIT
@@ -259,12 +242,11 @@ static void _StoreVReg(PAsmFunction *func, PAsmVReg *spill, PAsmVReg *tmp) {
     }
     
     EMIT({
-        .fmt = "mov [$vr - $i32], $vr    ;store $id\n",
-        .oprs[0] = { .vreg = EBP },
-        .oprs[1] = { .i32 = offset },
-        .oprs[2] = { .vreg = tmp },
-        .oprs[3] = { .vreg = spill },
-        .use = { EBP, tmp }
+        .fmt = "mov [ebp - $i32], $vr    ;store $id\n",
+        .oprs[0] = { .i32 = offset },
+        .oprs[1] = { .vreg = tmp },
+        .oprs[2] = { .vreg = spill },
+        .use = { tmp }
     });
     
     #undef EMIT

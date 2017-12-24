@@ -45,12 +45,10 @@ RULE({
 }, {
     PAsmVReg *vreg = NewPAsmVReg();
     EMIT(OP({
-        .fmt = "mov $vr, [$vr + $i32]\n",
+        .fmt = "mov $vr, [ebp + $i32]\n",
         .oprs[0] = { .vreg = vreg },
-        .oprs[1] = { .vreg = EBP },
-        .oprs[2] = { .i32 = 8 + root->arg_index * 4 },
-        .def = { vreg },
-        .use = { EBP }
+        .oprs[1] = { .i32 = 8 + root->arg_index * 4 },
+        .def = { vreg }
     }));
     return vreg;
 })
@@ -353,10 +351,8 @@ NTYPE(IR_NT_Call, {
     }));
     
     EMIT(OP({
-        .fmt = "add $vr, $i32\n",
-        .oprs[0] = { .vreg = ESP },
-        .oprs[1] = { .i32 = ListSize(root->args) * 4 },
-        .def = { ESP }
+        .fmt = "add esp, $i32\n",
+        .oprs[0] = { .i32 = ListSize(root->args) * 4 }
     }));
     
     PAsmVReg *tmp = NewPAsmVReg();
