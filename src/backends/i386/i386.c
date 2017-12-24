@@ -8,22 +8,29 @@
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 
 typedef struct {
     List *ops;
     Map *map;
     int label_counter;
+    List *data_labels;
 } MunchState;
 
 static void InitState(MunchState *state) {
     state->ops = NewList();
     state->map = NewMap();
     state->label_counter = 1;
+    state->data_labels = NewList();
 }
 
 static void DeinitState(MunchState *state) {
     DeleteList(state->ops);
     DeleteMap(state->map);
+    LIST_EACH(state->data_labels, char *, str, {
+        MemFree(str);
+    });
+    DeleteList(state->data_labels);
 }
 
 static int NextLabel(MunchState *state) {
@@ -109,8 +116,8 @@ static void _Deinit() {
 
 #define MANGLE(name)    i386_rodata_ ## name
 #define RULE_FILE       <backends/i386/i386.rodata.rules>
-#define STATE_T         List *
-#define EMIT(op)        ListAdd(state, op)
+#define STATE_T         MunchState *
+#define EMIT(op)        ListAdd(state->ops, op)
     #include <ir/muncher.def>
 #undef EMIT
 #undef STATE_T
@@ -146,12 +153,15 @@ static PAsmFunction *IRToPAsmFunction(PAsmModule *mod, IRFunction *func) {
         .fmt = "section .rodata\n"
     }));
     
-    List *rodata_ops = NewList();
-    i386_rodata_Munch(IRFunctionBody(func), rodata_ops);
-    LIST_EACH(rodata_ops, PAsmOp *, op, {
+    MunchState rodata_state;
+    InitState(&rodata_state);
+    
+    i386_rodata_Munch(IRFunctionBody(func), &rodata_state);
+    LIST_EACH(rodata_state.ops, PAsmOp *, op, {
         ListAdd(pasmFunc->header, op);
     });
-    DeleteList(rodata_ops);
+    
+    DeinitState(&rodata_state);
     
     ListAdd(pasmFunc->header, HEAP(PAsmOp, {
         .fmt = "section .text\n"

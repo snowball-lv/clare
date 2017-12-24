@@ -280,11 +280,162 @@ NTYPE(IR_NT_Call, {
     return tmp;
 })
 
+/* ---------------- float rules ---------------- */
+
+RULE({
+    if (
+        (root->type == IR_NT_Eq || root->type == IR_NT_Lt) &&
+        root->kids[0]->data_type == IR_DT_Float &&
+        root->kids[1]->data_type == IR_DT_Float
+    ) { return 1; }
+}, {
+    PAsmVReg *left = MUNCH(root->kids[0]);
+    PAsmVReg *right = MUNCH(root->kids[1]);
+    EMIT(OP({
+        .fmt = "cmp $vr, $vr\n",
+        .oprs[0] = { .vreg = left },
+        .oprs[1] = { .vreg = right },
+        .use = { left, right}
+    }));
+})
+
+RULE({
+    if (
+        root->type == IR_NT_Branch &&
+        root->kids[0]->kids[0]->data_type == IR_DT_Float &&
+        root->kids[0]->kids[1]->data_type == IR_DT_Float
+    ) { return 1; }
+}, {
+    
+    MUNCH(root->kids[0]);
+    
+    int label_true  = NextLabel(state);
+    int label_end   = NextLabel(state);
+    
+    const char *cjmp_type = 0;
+    switch (root->kids[0]->type) {
+        case IR_NT_Eq: cjmp_type = "je"; break;
+        case IR_NT_Lt: cjmp_type = "jl"; break;
+        default: GERROR;
+    }
+    
+    EMIT(OP({
+        .fmt = "$str .L_T_$i32\n",
+        .oprs[0] = { .str = cjmp_type },
+        .oprs[1] = { .i32 = label_true },
+        .is_jump = 1,
+        .is_cjump = 1,
+        .label_id = label_true
+    }));
+    
+    // false
+    MUNCH(root->kids[2]);
+    
+    EMIT(OP({
+        .fmt = "jmp .L_E_$i32\n",
+        .oprs[0] = { .i32 = label_end },
+        .is_jump = 1,
+        .label_id = label_end
+    }));
+    
+    EMIT(OP({
+        .fmt = ".L_T_$i32:\n",
+        .oprs[0] = { .i32 = label_true },
+        .is_label = 1,
+        .label_id = label_true
+    }));
+    
+    // true
+    MUNCH(root->kids[1]);
+    
+    EMIT(OP({
+        .fmt = ".L_E_$i32:\n",
+        .oprs[0] = { .i32 = label_end },
+        .is_label = 1,
+        .label_id = label_end
+    }));
+    
+})
+
+RULE({
+    if (
+        root->type == IR_NT_Tmp && root->data_type == IR_DT_Float
+    ) { return 1; }
+}, {
+    return GetOrCreateVReg(state, root);
+})
+
+RULE({
+    if (
+        root->type == IR_NT_Arg && root->data_type == IR_DT_Float
+    ) { return 1; }
+}, {
+    PAsmVReg *vreg = NewPAsmVReg();
+    EMIT(OP({
+        .fmt = "mov $vr, [ebp + $i32]\n",
+        .oprs[0] = { .vreg = vreg },
+        .oprs[1] = { .i32 = 8 + root->arg_index * 4 },
+        .def = { vreg }
+    }));
+    return vreg;
+})
+
+RULE({
+    if (
+        root->type == IR_NT_Mov &&
+        root->kids[0]->type == IR_NT_Tmp && 
+        root->kids[0]->data_type == IR_DT_Float &&
+        root->kids[1]->data_type == IR_DT_Float
+    ) { return 1; }
+}, {
+    Node *tmp_dst = root->kids[0];
+    PAsmVReg *dst = GetOrCreateVReg(state, tmp_dst);
+    PAsmVReg *src = MUNCH(root->kids[1]);
+    EMIT(OP({
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = dst },
+        .oprs[1] = { .vreg = src },
+        .use = { src },
+        .def = { dst }
+    }));
+})
+
+NTYPE(IR_NT_Float, {
+    PAsmVReg *vreg = NewPAsmVReg();
+    EMIT(OP({
+        .fmt = "mov $vr, [_const_f_$f]\n",
+        .oprs[0] = { .vreg = vreg },
+        .oprs[1] = { .f = root->f },
+        .def = { vreg }
+    }));
+    return vreg;
+})
+
+RULE({
+    if (
+        root->type == IR_NT_Ret &&
+        root->kids[0]->data_type == IR_DT_Float
+    ) { return 1; }
+}, {
+    PAsmVReg *vreg = MUNCH(root->kids[0]);
+    EMIT(OP({
+        .fmt = "push $vr\n",
+        .oprs[0] = { .vreg = vreg },
+        .use = { vreg }
+    }));
+    EMIT(OP({ .fmt = "fld dword [esp]\n" }));
+    EMIT(OP({ .fmt = "add esp, 4\n" }));
+    EMIT(OP({
+        .fmt = "jmp .epilogue\n",
+        .use = { EAX },
+        .is_ret = 1
+    }));
+})
 
 RULE({ return 1; }, {
     ERROR(
         "No matching instruction selection rule!\n"
-        "Node: %s, Type %s\n",
+        "Node: %s, Type: %s\n",
         NodeName(root),
         IRDataTypeName(root->data_type));
 })

@@ -1,6 +1,19 @@
 
 
 
+func clare_fibf
+    $n = arg(0, float)
+    if eq($n, float(0)) then
+        ret(float(0))
+    else
+        if eq($n, float(1)) then
+            ret(float(1))
+        else
+            ret(float(2))
+        end
+    end
+    ret($n)
+end
 
 
 func clare_fib

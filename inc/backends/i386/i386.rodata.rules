@@ -37,11 +37,25 @@ NTYPE(IR_NT_I32, {
 })
 
 NTYPE(IR_NT_Float, {
+    
+    char name[256];
+    sprintf(name, "_const_f_%f", root->f);
+    
+    LIST_EACH(state->data_labels, const char *, str, {
+        if (strcmp(name, str) == 0) {
+            return 0;
+        }
+    });
+    
     EMIT(OP({
         .fmt = "_const_f_$f: dd $f\n",
         .oprs[0] = { .f = root->f },
         .oprs[1] = { .f = root->f }
     }));
+    
+    char *dst = MemAlloc(strlen(name) + 1);
+    strcpy(dst, name);
+    ListAdd(state->data_labels, dst);
 })
 
 NTYPE(IR_NT_Ret, {
