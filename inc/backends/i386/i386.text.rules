@@ -11,11 +11,12 @@ NTYPE(IR_NT_Seq, {
 })
 
 RULE({
-    if (root->type == IR_NT_Mov) {
-        if (root->kids[0]->type == IR_NT_Tmp) {
-            return 1;
-        }
-    }
+    if (
+        root->type == IR_NT_Mov &&
+        root->kids[0]->type == IR_NT_Tmp && 
+        root->kids[0]->data_type == IR_DT_I32 &&
+        root->kids[1]->data_type == IR_DT_I32
+    ) { return 1; }
 }, {
     Node *tmp_dst = root->kids[0];
     PAsmVReg *dst = GetOrCreateVReg(state, tmp_dst);
@@ -30,29 +31,18 @@ RULE({
 })
 
 RULE({
-    if (root->type == IR_NT_Add) {
-        if (root->kids[0]->type == IR_NT_I32 && root->kids[1]->type == IR_NT_I32) {
-            return 1;
-        }
-    }
+    if (
+        root->type == IR_NT_Tmp && root->data_type == IR_DT_I32
+    ) { return 1; }
 }, {
-    PAsmVReg *a = MUNCH(root->kids[0]);
-    PAsmVReg *b = MUNCH(root->kids[1]);
-    EMIT(OP({
-        .fmt = "add $vr, $vr\n",
-        .oprs[0] = { .vreg = a },
-        .oprs[1] = { .vreg = b },
-        .use = { a, b },
-        .def = { a }
-    }));
-    return a;
-})
-
-NTYPE(IR_NT_Tmp, {
     return GetOrCreateVReg(state, root);
 })
 
-NTYPE(IR_NT_Arg, {
+RULE({
+    if (
+        root->type == IR_NT_Arg && root->data_type == IR_DT_I32
+    ) { return 1; }
+}, {
     PAsmVReg *vreg = NewPAsmVReg();
     EMIT(OP({
         .fmt = "mov $vr, [$vr + $i32]\n",
@@ -76,70 +66,47 @@ NTYPE(IR_NT_I32, {
     return vreg;
 })
 
-NTYPE(IR_NT_Float, {
+RULE({
+    if (
+        root->type == IR_NT_Add &&
+        root->kids[0]->data_type == IR_DT_I32 &&
+        root->kids[1]->data_type == IR_DT_I32
+    ) { return 1; }
+}, {
+    PAsmVReg *left = MUNCH(root->kids[0]);
+    PAsmVReg *right = MUNCH(root->kids[1]);
+    PAsmVReg *tmp = NewPAsmVReg();
     EMIT(OP({
-        .fmt = "fld dword [_const_f_$f]\n",
-        .oprs[0] = { .f = root->f }
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = tmp },
+        .oprs[1] = { .vreg = left },
+        .use = { left },
+        .def = { tmp }
     }));
+    EMIT(OP({
+        .fmt = "add $vr, $vr\n",
+        .oprs[0] = { .vreg = tmp },
+        .oprs[1] = { .vreg = right },
+        .use = { tmp, right },
+        .def = { tmp }
+    }));
+    return tmp;
 })
 
 RULE({
-    if (root->type == IR_NT_Add) {
-        if (root->kids[0]->type == IR_NT_Float && root->kids[1]->type == IR_NT_Float) {
-            return 1;
-        }
-    }
+    if (
+        root->type == IR_NT_Ret &&
+        root->kids[0]->data_type == IR_DT_I32
+    ) { return 1; }
 }, {
-    MUNCH(root->kids[0]);
-    MUNCH(root->kids[1]);
-    EMIT(OP({
-        .fmt = "faddp\n"
-    }));
-})
-
-NTYPE(IR_NT_Add, {
-    PAsmVReg *left = MUNCH(root->kids[0]);
-    PAsmVReg *right = MUNCH(root->kids[1]);
-    if (left == 0 && right == 0) {
-        EMIT(OP({
-            .fmt = "faddp\n"
-        }));
-    } else {
-        PAsmVReg *tmp = NewPAsmVReg();
-        EMIT(OP({
-            .fmt = "mov $vr, $vr\n",
-            .oprs[0] = { .vreg = tmp },
-            .oprs[1] = { .vreg = left },
-            .use = { left },
-            .def = { tmp }
-        }));
-        EMIT(OP({
-            .fmt = "add $vr, $vr\n",
-            .oprs[0] = { .vreg = tmp },
-            .oprs[1] = { .vreg = right },
-            .use = { tmp, right },
-            .def = { tmp }
-        }));
-        return tmp;
-    }
-})
-
-NTYPE(IR_NT_Ret, {
-    
     PAsmVReg *vreg = MUNCH(root->kids[0]);
-    
-    if (vreg != 0) {
-        EMIT(OP({
-            .fmt = "mov $vr, $vr\n",
-            .oprs[0] = { .vreg = EAX },
-            .oprs[1] = { .vreg = vreg },
-            .use = { vreg },
-            .def = { EAX }
-        }));
-    } else {
-        // nothing
-    }
-    
+    EMIT(OP({
+        .fmt = "mov $vr, $vr\n",
+        .oprs[0] = { .vreg = EAX },
+        .oprs[1] = { .vreg = vreg },
+        .use = { vreg },
+        .def = { EAX }
+    }));
     EMIT(OP({
         .fmt = "jmp .epilogue\n",
         .use = { EAX },
