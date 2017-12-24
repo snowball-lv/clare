@@ -284,18 +284,83 @@ NTYPE(IR_NT_Call, {
 
 RULE({
     if (
+        root->type == IR_NT_Add &&
+        root->kids[0]->data_type == IR_DT_Float &&
+        root->kids[1]->data_type == IR_DT_Float
+    ) { return 1; }
+}, {
+    
+    // load left opr in float stack
+    PAsmVReg *left = MUNCH(root->kids[0]);
+    EMIT(OP({
+        .fmt = "push $vr\n",
+        .oprs[0] = { .vreg = left },
+        .use = { left }
+    }));
+    EMIT(OP({ .fmt = "fld dword [esp]\n" }));
+    
+    // load right opr in float stack
+    PAsmVReg *right = MUNCH(root->kids[1]);
+    EMIT(OP({
+        .fmt = "push $vr\n",
+        .oprs[0] = { .vreg = right },
+        .use = { right }
+    }));
+    EMIT(OP({ .fmt = "fld dword [esp]\n" }));
+    
+    // restore esp
+    EMIT(OP({ .fmt = "add esp, 8\n" }));
+    
+    // add top 2 entries and pop st(0)
+    EMIT(OP({ .fmt = "faddp\n" }));
+    
+    // store result in general register
+    PAsmVReg *tmp = NewPAsmVReg();
+    EMIT(OP({ .fmt = "sub esp, 4\n" }));
+    EMIT(OP({ .fmt = "fstp dword [esp]\n" }));
+    EMIT(OP({
+        .fmt = "mov $vr, [esp]\n",
+        .oprs[0] = { .vreg = tmp },
+        .def = { tmp }
+    }));
+    EMIT(OP({ .fmt = "add esp, 4\n" }));
+    return tmp;
+})
+
+RULE({
+    if (
         (root->type == IR_NT_Eq || root->type == IR_NT_Lt) &&
         root->kids[0]->data_type == IR_DT_Float &&
         root->kids[1]->data_type == IR_DT_Float
     ) { return 1; }
 }, {
+    
     PAsmVReg *left = MUNCH(root->kids[0]);
+    EMIT(OP({
+        .fmt = "push $vr\n",
+        .oprs[0] = { .vreg = left },
+        .use = { left }
+    }));
+    EMIT(OP({ .fmt = "fld dword [esp]\n" }));
+    
     PAsmVReg *right = MUNCH(root->kids[1]);
     EMIT(OP({
-        .fmt = "cmp $vr, $vr\n",
-        .oprs[0] = { .vreg = left },
-        .oprs[1] = { .vreg = right },
-        .use = { left, right}
+        .fmt = "push $vr\n",
+        .oprs[0] = { .vreg = right },
+        .use = { right }
+    }));
+    EMIT(OP({ .fmt = "fld dword [esp]\n" }));
+    
+    EMIT(OP({ .fmt = "add esp, 8\n" }));
+    
+    EMIT(OP({ .fmt = "fcompp\n" }));
+    EMIT(OP({
+        .fmt = "fstsw ax\n",
+        .def = { EAX }
+    }));
+    EMIT(OP({
+        .fmt = "sahf\n",
+        .use = { EAX }
     }));
 })
 
@@ -315,7 +380,7 @@ RULE({
     const char *cjmp_type = 0;
     switch (root->kids[0]->type) {
         case IR_NT_Eq: cjmp_type = "je"; break;
-        case IR_NT_Lt: cjmp_type = "jl"; break;
+        case IR_NT_Lt: cjmp_type = "jb"; break;
         default: GERROR;
     }
     
@@ -402,12 +467,27 @@ RULE({
 
 NTYPE(IR_NT_Float, {
     PAsmVReg *vreg = NewPAsmVReg();
-    EMIT(OP({
-        .fmt = "mov $vr, [_const_f_$f]\n",
-        .oprs[0] = { .vreg = vreg },
-        .oprs[1] = { .f = root->f },
-        .def = { vreg }
-    }));
+    if (root->f > 0.0f) {
+        EMIT(OP({
+            .fmt = "mov $vr, [_const_f_pos_$f]\n",
+            .oprs[0] = { .vreg = vreg },
+            .oprs[1] = { .f = fabs(root->f) },
+            .def = { vreg }
+        }));
+    } else if (root->f < 0.0f) {
+        EMIT(OP({
+            .fmt = "mov $vr, [_const_f_neg_$f]\n",
+            .oprs[0] = { .vreg = vreg },
+            .oprs[1] = { .f = fabs(root->f) },
+            .def = { vreg }
+        }));
+    } else {
+        EMIT(OP({
+            .fmt = "mov $vr, [_const_f_zero]\n",
+            .oprs[0] = { .vreg = vreg },
+            .def = { vreg }
+        }));
+    }
     return vreg;
 })
 

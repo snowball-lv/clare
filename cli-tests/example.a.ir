@@ -9,10 +9,11 @@ func clare_fibf
         if eq($n, float(1)) then
             ret(float(1))
         else
-            ret(float(2))
+            ret(add(
+                float(-1),
+                float(-2)))
         end
     end
-    ret($n)
 end
 
 

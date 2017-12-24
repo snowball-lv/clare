@@ -39,7 +39,13 @@ NTYPE(IR_NT_I32, {
 NTYPE(IR_NT_Float, {
     
     char name[256];
-    sprintf(name, "_const_f_%f", root->f);
+    if (root->f > 0.0f) {
+        sprintf(name, "_const_f_pos_%f", fabs(root->f));
+    } else if (root->f < 0.0f) {
+        sprintf(name, "_const_f_neg_%f", fabs(root->f));
+    } else {
+        sprintf(name, "_const_f_zero");
+    }
     
     LIST_EACH(state->data_labels, const char *, str, {
         if (strcmp(name, str) == 0) {
@@ -47,11 +53,24 @@ NTYPE(IR_NT_Float, {
         }
     });
     
-    EMIT(OP({
-        .fmt = "_const_f_$f: dd $f\n",
-        .oprs[0] = { .f = root->f },
-        .oprs[1] = { .f = root->f }
-    }));
+    if (root->f > 0.0f) {
+        EMIT(OP({
+            .fmt = "_const_f_pos_$f: dd $f\n",
+            .oprs[0] = { .f = fabs(root->f) },
+            .oprs[1] = { .f = root->f }
+        }));
+    } else if (root->f < 0.0f) {
+        EMIT(OP({
+            .fmt = "_const_f_neg_$f: dd $f\n",
+            .oprs[0] = { .f = fabs(root->f) },
+            .oprs[1] = { .f = root->f }
+        }));
+    } else {
+        EMIT(OP({
+            .fmt = "_const_f_zero: dd $f\n",
+            .oprs[0] = { .f = root->f }
+        }));
+    }
     
     char *dst = MemAlloc(strlen(name) + 1);
     strcpy(dst, name);
