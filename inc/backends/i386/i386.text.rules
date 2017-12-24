@@ -246,7 +246,11 @@ RULE({
     }));
 })
 
-NTYPE(IR_NT_Call, {
+RULE({
+    if (
+        root->type == IR_NT_Call && root->data_type == IR_DT_I32
+    ) { return 1; }
+}, {
 
     LIST_REV(root->args, Node *, arg, {
         PAsmVReg *vreg = MUNCH(arg);
@@ -281,6 +285,46 @@ NTYPE(IR_NT_Call, {
 })
 
 /* ---------------- float rules ---------------- */
+
+RULE({
+    if (
+        root->type == IR_NT_Call && root->data_type == IR_DT_Float
+    ) { return 1; }
+}, {
+
+    LIST_REV(root->args, Node *, arg, {
+        PAsmVReg *vreg = MUNCH(arg);
+        EMIT(OP({ 
+            .fmt = "push $vr\n",
+            .oprs[0] = { .vreg = vreg },
+            .use = { vreg }
+        }));
+    });
+    
+    EMIT(OP({
+        .fmt = "call $str\n",
+        .oprs[0] = { .str = root->fname },
+        .use = { EAX, EDX, ECX },
+        .def = { EAX }
+    }));
+    
+    EMIT(OP({
+        .fmt = "add esp, $i32\n",
+        .oprs[0] = { .i32 = ListSize(root->args) * 4 }
+    }));
+    
+    // store result in general register
+    PAsmVReg *tmp = NewPAsmVReg();
+    EMIT(OP({ .fmt = "sub esp, 4\n" }));
+    EMIT(OP({ .fmt = "fstp dword [esp]\n" }));
+    EMIT(OP({
+        .fmt = "mov $vr, [esp]\n",
+        .oprs[0] = { .vreg = tmp },
+        .def = { tmp }
+    }));
+    EMIT(OP({ .fmt = "add esp, 4\n" }));
+    return tmp;
+})
 
 RULE({
     if (

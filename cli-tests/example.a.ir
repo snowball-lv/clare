@@ -10,8 +10,8 @@ func clare_fibf
             ret(float(1))
         else
             ret(add(
-                float(-1),
-                float(-2)))
+                call(float, clare_fibf, add($n, float(-1))),
+                call(float, clare_fibf, add($n, float(-2)))))
         end
     end
 end
