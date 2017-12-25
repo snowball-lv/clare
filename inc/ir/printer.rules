@@ -24,6 +24,18 @@ NTYPE(IR_NT_Arg, {
     printf("arg(%d)", root->arg_index);
 })
 
+NTYPE(IR_NT_Ftd, {
+    printf("ftd(");
+    MUNCH(root->kids[0]);
+    printf(")");
+})
+
+NTYPE(IR_NT_Itf, {
+    printf("itf(");
+    MUNCH(root->kids[0]);
+    printf(")");
+})
+
 NTYPE(IR_NT_I32, {
     printf("i32(%d)", root->i32);
 })

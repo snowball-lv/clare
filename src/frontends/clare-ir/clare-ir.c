@@ -364,6 +364,22 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             
             return IR.Ret(node);
             
+        } else if (strcmp(tok.id, "ftd") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Node *node = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Ftd(node);
+            
+        } else if (strcmp(tok.id, "itf") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Node *node = ParseNode(NextToken(src), src);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Itf(node);
+            
         } else if (strcmp(tok.id, "branch") == 0) {
             
             assert(NextToken(src).type == TOK_L_PAREN);

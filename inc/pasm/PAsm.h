@@ -34,6 +34,8 @@ typedef struct PAsmVReg PAsmVReg;
 struct PAsmVReg {
     int id;
     int special;
+    PAsmVReg *low;
+    PAsmVReg *high;
 };
 
 HEAP_DECL(PAsmVReg)

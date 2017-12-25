@@ -190,6 +190,7 @@ const char *IRDataTypeName(int data_type) {
         TYPE(None)
         TYPE(Void)
         TYPE(I32)
+        TYPE(Double)
         TYPE(Str)
         TYPE(Float)
         #undef TYPE
@@ -204,6 +205,7 @@ int IRIsScalar(int data_type) {
         TYPE(None)
         TYPE(Void)
         TYPE(Str)
+        TYPE(Double)
             return 0;
         TYPE(I32)
         TYPE(Float)

@@ -37,6 +37,7 @@ enum {
     TYPE(I32)
     TYPE(Str)
     TYPE(Float)
+    TYPE(Double)
     #undef TYPE
 };
 

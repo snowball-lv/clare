@@ -252,15 +252,26 @@ RULE({
     ) { return 1; }
 }, {
     
-    printf("------------------- args: %d\n", ListSize(root->args));
-
     LIST_REV(root->args, Node *, arg, {
         PAsmVReg *vreg = MUNCH(arg);
-        EMIT(OP({ 
-            .fmt = "push $vr\n",
-            .oprs[0] = { .vreg = vreg },
-            .use = { vreg }
-        }));
+        if (arg->data_type == IR_DT_Double) {
+            EMIT(OP({ 
+                .fmt = "push $vr\n",
+                .oprs[0] = { .vreg = vreg->high },
+                .use = { vreg->high }
+            }));
+            EMIT(OP({ 
+                .fmt = "push $vr\n",
+                .oprs[0] = { .vreg = vreg->low },
+                .use = { vreg->low }
+            }));
+        } else {
+            EMIT(OP({ 
+                .fmt = "push $vr\n",
+                .oprs[0] = { .vreg = vreg },
+                .use = { vreg }
+            }));
+        }
     });
     
     if (strncmp("ext_", root->fname, 4) == 0) {
@@ -305,6 +316,75 @@ RULE({
 })
 
 /* ---------------- float rules ---------------- */
+
+NTYPE(IR_NT_Itf, {
+    
+    PAsmVReg *f = MUNCH(root->kids[0]);
+    
+    // load int into the stack
+    EMIT(OP({
+        .fmt = "push $vr\n",
+        .oprs[0] = { .vreg = f },
+        .use = { f }
+    }));
+    EMIT(OP({ .fmt = "fild dword [esp]\n" }));
+    EMIT(OP({ .fmt = "add esp, 4\n" }));
+    
+    // reserve space for a float
+    EMIT(OP({ .fmt = "sub esp, 4\n" }));
+    EMIT(OP({ .fmt = "fstp dword [esp]\n" }));
+    
+    PAsmVReg *vreg = NewPAsmVReg();
+    
+    EMIT(OP({
+        .fmt = "mov $vr, [esp]\n",
+        .oprs[0] = { .vreg = vreg },
+        .def = { vreg }
+    }));
+    
+    EMIT(OP({ .fmt = "add esp, 4\n" }));
+    
+    return vreg;
+})
+
+NTYPE(IR_NT_Ftd, {
+    
+    PAsmVReg *f = MUNCH(root->kids[0]);
+    
+    // load float into the stack
+    EMIT(OP({
+        .fmt = "push $vr\n",
+        .oprs[0] = { .vreg = f },
+        .use = { f }
+    }));
+    EMIT(OP({ .fmt = "fld dword [esp]\n" }));
+    EMIT(OP({ .fmt = "add esp, 4\n" }));
+    
+    // reserve space for a double
+    EMIT(OP({ .fmt = "sub esp, 8\n" }));
+    EMIT(OP({ .fmt = "fstp qword [esp]\n" }));
+    
+    PAsmVReg *vreg = NewPAsmVReg();
+    vreg->low = NewPAsmVReg();
+    vreg->high = NewPAsmVReg();
+    
+    EMIT(OP({
+        .fmt = "mov $vr, [esp]\n",
+        .oprs[0] = { .vreg = vreg->low },
+        .oprs[1] = { .vreg = vreg },
+        .def = { vreg->low }
+    }));
+    EMIT(OP({
+        .fmt = "mov $vr, [esp + 4]\n",
+        .oprs[0] = { .vreg = vreg->high },
+        .oprs[1] = { .vreg = vreg },
+        .def = { vreg->high }
+    }));
+    
+    EMIT(OP({ .fmt = "add esp, 8\n" }));
+    
+    return vreg;
+})
 
 RULE({
     if (

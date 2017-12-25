@@ -97,6 +97,18 @@ NODE(Ret, (Node *node), {
     self->kids[0] = node;
 })
 
+NODE(Ftd, (Node *f), {
+    ASSERT(f->data_type == IR_DT_Float);
+    self->data_type = IR_DT_Double;
+    self->kids[0] = f;
+})
+
+NODE(Itf, (Node *i32), {
+    ASSERT(i32->data_type == IR_DT_I32);
+    self->data_type = IR_DT_Float;
+    self->kids[0] = i32;
+})
+
 NODE(Arg, (int arg_index, int data_type), {
     ASSERT(IRIsScalar(data_type));
     self->data_type = data_type;
