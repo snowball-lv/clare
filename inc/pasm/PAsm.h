@@ -44,6 +44,7 @@ typedef struct {
         const char *str;
         int32_t i32;
         float f;
+        void *ptr;
     };
 } PAsmOpr;
 

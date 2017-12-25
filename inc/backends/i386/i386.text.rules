@@ -511,27 +511,20 @@ RULE({
 
 NTYPE(IR_NT_Float, {
     PAsmVReg *vreg = NewPAsmVReg();
-    if (root->f > 0.0f) {
-        EMIT(OP({
-            .fmt = "mov $vr, [_const_f_pos_$f]\n",
-            .oprs[0] = { .vreg = vreg },
-            .oprs[1] = { .f = fabs(root->f) },
-            .def = { vreg }
-        }));
-    } else if (root->f < 0.0f) {
-        EMIT(OP({
-            .fmt = "mov $vr, [_const_f_neg_$f]\n",
-            .oprs[0] = { .vreg = vreg },
-            .oprs[1] = { .f = fabs(root->f) },
-            .def = { vreg }
-        }));
-    } else {
-        EMIT(OP({
-            .fmt = "mov $vr, [_const_f_zero]\n",
-            .oprs[0] = { .vreg = vreg },
-            .def = { vreg }
-        }));
-    }
+    
+    ListAdd(state->footer, OP({
+        .fmt = "._const_f_$ptr: dd $f\n",
+        .oprs[0] = { .ptr = &root->f },
+        .oprs[1] = { .f = root->f }
+    }));
+    
+    EMIT(OP({
+        .fmt = "mov $vr, [._const_f_$ptr]\n",
+        .oprs[0] = { .vreg = vreg },
+        .oprs[1] = { .ptr = &root->f },
+        .def = { vreg }
+    }));
+    
     return vreg;
 })
 

@@ -158,6 +158,10 @@ static void PAsmPrintOp(PAsmOp *op, Coloring *coloring, FILE *output) {
             printf("loc($vr%d)", OPR->vreg->id);
         });
         
+        RULE("$ptr", {
+            printf("%p", OPR->ptr);
+        });
+        
         printf("%s", ptr);
         break;
     }
