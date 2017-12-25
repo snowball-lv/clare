@@ -28,6 +28,10 @@ NTYPE(IR_NT_I32, {
     printf("i32(%d)", root->i32);
 })
 
+NTYPE(IR_NT_Str, {
+    printf("str(\"%s\")", root->str);
+})
+
 NTYPE(IR_NT_Float, {
     printf("float(%f)", root->f);
 })

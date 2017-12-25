@@ -20,6 +20,7 @@ typedef struct {
         const char *id;
         const char *tmp;
         int num; 
+        const char *str;
     };
 } Token;
 
@@ -35,6 +36,7 @@ enum {
     TOK(R_PAREN),
     TOK(COMMA),
     TOK(ASG),
+    TOK(STR),
 };
 #undef TOK
 
@@ -51,6 +53,7 @@ static const char *TokName(Token tok) {
             TOK(R_PAREN)
             TOK(COMMA)
             TOK(ASG)
+            TOK(STR)
         #undef TOK
     }
     return "{unknown tok type}";
@@ -83,6 +86,8 @@ static Token NextToken(Source *src) {
             } else if (isdigit(c) || c == '-') {
                 PUSH(c);
                 tok = TOK_NUM;
+            } else if (c == '"') {
+                tok = TOK_STR;
             } else {
                 fprintf(stderr, "illegal character: %c\n", (char) c);
                 exit(1);
@@ -93,6 +98,20 @@ static Token NextToken(Source *src) {
     while (1) {
         c = fgetc(src->file);
         switch (tok) {
+            
+            case TOK_STR: {
+                if (c == '"') {
+                    return (Token) {
+                        .type = TOK_STR,
+                        .str = strcpy(malloc(strlen(buffer) + 1), buffer)
+                    };
+                } else if (c == EOF) {
+                    GERROR;
+                } else {
+                    PUSH(c);
+                }
+                break;
+            }
             
             case TOK_ID: {
                 if (isalnum(c) || c == '_') {
@@ -226,6 +245,15 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
             assert(NextToken(src).type == TOK_R_PAREN);
             
             return IR.I32(tok.num);
+            
+        } else if (strcmp(tok.id, "str") == 0) {
+            
+            assert(NextToken(src).type == TOK_L_PAREN);
+            Token tok = NextToken(src);
+            assert(tok.type == TOK_STR);
+            assert(NextToken(src).type == TOK_R_PAREN);
+            
+            return IR.Str(tok.str);
             
         } else if (strcmp(tok.id, "if") == 0) {
             
@@ -376,7 +404,7 @@ static Node *ParseNode(Token tok, Source *src, Map *tmpCache) {
                 if (tok.type == TOK_COMMA) {
                     
                     Token id_tok = NextToken(src);
-                    assert(id_tok.type == TOK_ID);
+                    assert(id_tok.type == TOK_ID || id_tok.type == TOK_TMP);
                     Node *arg = ParseNode(id_tok, src);
                     ListAdd(args, arg);
                         
@@ -429,8 +457,18 @@ static Node *ParseStm(Token tok, Source *src, Map *tmpCache) {
             assert(NextToken(src).type == TOK_ASG);
             Node *value = ParseNode(NextToken(src), src, tmpCache);
             
-            MapPut(tmpCache, (void *) tok.tmp, IR.Tmp(value->data_type));
-            Node *tmp = MapGet(tmpCache, (void *) tok.tmp);
+            Node *tmp = 0;
+            MAP_EACH(tmpCache, char *, key, Node *, value, {
+                if (strcmp(key, tok.tmp) == 0) {
+                    tmp = value;
+                    break;
+                }
+            });
+            
+            if (tmp == 0) {
+                MapPut(tmpCache, (void *) tok.tmp, IR.Tmp(value->data_type));
+                tmp = MapGet(tmpCache, (void *) tok.tmp);
+            }
             
             return IR.Mov(tmp, value);
         }

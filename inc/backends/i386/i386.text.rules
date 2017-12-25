@@ -251,6 +251,8 @@ RULE({
         root->type == IR_NT_Call && root->data_type == IR_DT_I32
     ) { return 1; }
 }, {
+    
+    printf("------------------- args: %d\n", ListSize(root->args));
 
     LIST_REV(root->args, Node *, arg, {
         PAsmVReg *vreg = MUNCH(arg);
@@ -261,12 +263,30 @@ RULE({
         }));
     });
     
-    EMIT(OP({
-        .fmt = "call $str\n",
-        .oprs[0] = { .str = root->fname },
-        .use = { EAX, EDX, ECX },
-        .def = { EAX }
-    }));
+    if (strncmp("ext_", root->fname, 4) == 0) {
+        
+        ListAdd(state->header, OP({
+            .fmt = "extern $str\n",
+            .oprs[0] = { .str = root->fname + 4 }
+        }));
+        
+        EMIT(OP({
+            .fmt = "call $str\n",
+            .oprs[0] = { .str = root->fname + 4 },
+            .use = { EAX, EDX, ECX },
+            .def = { EAX }
+        }));
+        
+    } else {
+        
+        EMIT(OP({
+            .fmt = "call $str\n",
+            .oprs[0] = { .str = root->fname },
+            .use = { EAX, EDX, ECX },
+            .def = { EAX }
+        }));
+    }
+    
     
     EMIT(OP({
         .fmt = "add esp, $i32\n",
@@ -285,6 +305,61 @@ RULE({
 })
 
 /* ---------------- float rules ---------------- */
+
+RULE({
+    if (
+        root->type == IR_NT_Loop &&
+        root->kids[0]->kids[0]->data_type == IR_DT_Float &&
+        root->kids[0]->kids[1]->data_type == IR_DT_Float
+    ) { return 1; }
+},  {
+    
+    int label_start = NextLabel(state);
+    
+    EMIT(OP({
+        .fmt = ".L_S_$i32:\n",
+        .oprs[0] = { .i32 = label_start },
+        .is_label = 1,
+        .label_id = label_start
+    }));
+    
+    MUNCH(root->kids[0]);
+    
+    int label_end = NextLabel(state);
+    
+    const char *cjmp_type = 0;
+    switch (root->kids[0]->type) {
+        case IR_NT_Eq: cjmp_type = "jne"; break;
+        case IR_NT_Lt: cjmp_type = "jnb"; break;
+        default: GERROR;
+    }
+    
+    EMIT(OP({
+        .fmt = "$str .L_E_$i32\n",
+        .oprs[0] = { .str = cjmp_type },
+        .oprs[1] = { .i32 = label_end },
+        .is_jump = 1,
+        .is_cjump = 1,
+        .label_id = label_end
+    }));
+    
+    // true
+    MUNCH(root->kids[1]);
+    
+    EMIT(OP({
+        .fmt = "jmp .L_S_$i32\n",
+        .oprs[0] = { .i32 = label_start },
+        .is_jump = 1,
+        .label_id = label_start
+    }));
+    
+    EMIT(OP({
+        .fmt = ".L_E_$i32:\n",
+        .oprs[0] = { .i32 = label_end },
+        .is_label = 1,
+        .label_id = label_end
+    }));
+})
 
 RULE({
     if (
@@ -379,7 +454,7 @@ RULE({
     ) { return 1; }
 }, {
     
-    PAsmVReg *left = MUNCH(root->kids[0]);
+    PAsmVReg *left = MUNCH(root->kids[1]);
     EMIT(OP({
         .fmt = "push $vr\n",
         .oprs[0] = { .vreg = left },
@@ -387,7 +462,7 @@ RULE({
     }));
     EMIT(OP({ .fmt = "fld dword [esp]\n" }));
     
-    PAsmVReg *right = MUNCH(root->kids[1]);
+    PAsmVReg *right = MUNCH(root->kids[0]);
     EMIT(OP({
         .fmt = "push $vr\n",
         .oprs[0] = { .vreg = right },
@@ -423,7 +498,7 @@ RULE({
     
     const char *cjmp_type = 0;
     switch (root->kids[0]->type) {
-        case IR_NT_Eq: cjmp_type = "je"; break;
+        case IR_NT_Eq: cjmp_type = "jz"; break;
         case IR_NT_Lt: cjmp_type = "jb"; break;
         default: GERROR;
     }
@@ -548,6 +623,28 @@ RULE({
         .is_ret = 1
     }));
 })
+
+/* ---------------- str rules ---------------- */
+
+NTYPE(IR_NT_Str, {
+    PAsmVReg *vreg = NewPAsmVReg();
+    
+    ListAdd(state->footer, OP({
+        .fmt = "._const_str_$ptr: db `$str`, 0\n",
+        .oprs[0] = { .ptr = &root->str },
+        .oprs[1] = { .str = root->str }
+    }));
+    
+    EMIT(OP({
+        .fmt = "mov $vr, ._const_str_$ptr\n",
+        .oprs[0] = { .vreg = vreg },
+        .oprs[1] = { .ptr = &root->str },
+        .def = { vreg }
+    }));
+    
+    return vreg;
+})
+
 
 RULE({ return 1; }, {
     ERROR(

@@ -23,6 +23,7 @@ struct Node {
             const char *fname;
             List *args;
         };
+        const char *str;
     };
 };
 
@@ -34,6 +35,7 @@ enum {
     TYPE(None)
     TYPE(Void)
     TYPE(I32)
+    TYPE(Str)
     TYPE(Float)
     #undef TYPE
 };

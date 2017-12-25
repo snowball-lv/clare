@@ -16,6 +16,7 @@ typedef struct {
     Map *map;
     int label_counter;
     List *data_labels;
+    List *header;
     List *footer;
 } MunchState;
 
@@ -25,6 +26,7 @@ static void InitState(MunchState *state) {
     state->label_counter = 1;
     state->data_labels = NewList();
     state->footer = NewList();
+    state->header = NewList();
 }
 
 static void DeinitState(MunchState *state) {
@@ -35,6 +37,7 @@ static void DeinitState(MunchState *state) {
     });
     DeleteList(state->data_labels);
     DeleteList(state->footer);
+    DeleteList(state->header);
 }
 
 static int NextLabel(MunchState *state) {
@@ -164,6 +167,9 @@ static PAsmFunction *IRToPAsmFunction(PAsmModule *mod, IRFunction *func) {
     });
     LIST_EACH(state.footer, PAsmOp *, op, {
         ListAdd(pasmFunc->footer, op);
+    });
+    LIST_EACH(state.header, PAsmOp *, op, {
+        ListAdd(pasmFunc->header, op);
     });
     
     DeinitState(&state);

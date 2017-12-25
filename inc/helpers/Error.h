@@ -18,4 +18,4 @@
     ERROR("Failed: " #cond "\n" __VA_ARGS__);   \
 }}
 
-#define GERROR  ERROR("General error.")
+#define GERROR  ERROR("General error.\n")

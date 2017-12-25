@@ -80,6 +80,11 @@ NODE(Float, (float f), {
     self->f = f;
 })
 
+NODE(Str, (const char *str), {
+    self->data_type = IR_DT_Str;
+    self->str = str;
+})
+
 NODE(Seq, (Node *left, Node *right), {
     self->data_type = IR_DT_None;
     self->kids[0] = left;

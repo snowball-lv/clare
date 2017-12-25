@@ -1,33 +1,16 @@
 
 
 
-func clare_fibf
-    $n = arg(0, float)
-    if eq($n, float(0)) then
-        ret(float(0))
-    else
-        if eq($n, float(1)) then
-            ret(float(1))
-        else
-            ret(add(
-                call(float, clare_fibf, add($n, float(-1))),
-                call(float, clare_fibf, add($n, float(-2)))))
-        end
+func main
+        
+    $f = float(0)
+    while lt($f, float(10)) do
+        $ignore = call(i32, ext_printf,
+            str("%f\n"),
+            $f)
+        $f = add($f, float(1))
     end
+        
+    ret(i32(0))
 end
 
-
-func clare_fib
-    $n = arg(0, i32)
-    if eq($n, i32(0)) then
-        ret(i32(0))
-    else
-        if eq($n, i32(1)) then
-            ret(i32(1))
-        else
-            ret(add(
-                call(i32, clare_fib, add($n, i32(-1))),
-                call(i32, clare_fib, add($n, i32(-2)))))
-        end
-    end
-end
