@@ -1,7 +1,7 @@
 #include <assert.h>
 
 #include <mem/Mem.h>
-#include <color/Rig.h>
+#include <color/RIG.h>
 
 int main() {
 
