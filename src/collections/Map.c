@@ -1,6 +1,7 @@
 #include <collections/Map.h>
 
 #include <mem/Mem.h>
+#include <helpers/Error.h>
 #include <collections/List.h>
 #include <collections/Set.h>
 
@@ -44,22 +45,22 @@ void DeleteMap(Map *map) {
     MemFree(map);
 }
 
-static int HashKey(void *key) {
+static size_t HashKey(void *key) {
     return (intptr_t) key;
 }
 
-static int KeyIndex(Map *map, void *key) {
+static size_t KeyIndex(Map *map, void *key) {
     return HashKey(key) % map->capacity;
 }
 
 static MapEntry *GetEntry(Map *map, void *key) {
-    int index = KeyIndex(map, key);
+    size_t index = KeyIndex(map, key);
     return &map->entries[index];
 }
 
 static void GrowMap(Map *map) {
 
-    int ncapacity = map->capacity * 2;
+    int ncapacity = map->capacity * 2 - 1;
     Map *tmp = MapFromCapacity(ncapacity);
 
     for (int i = 0; i < map->capacity; i++) {
@@ -82,6 +83,11 @@ void MapPut(Map *map, void *key, void *value) {
     MapEntry *entry = GetEntry(map, key);
     if (entry->used) {
         if (entry->key != key) {
+            
+            // collision
+            if (HashKey(key) == HashKey(entry->key)) {
+                ERROR("Critical hash collision.\n");
+            }
 
             GrowMap(map);
             MapPut(map, key, value);
