@@ -23,8 +23,11 @@ task :default do
         sh "./#{bin}"
         
         puts
-        Dir["*.dot"].each do |dot|
+        Dir["*.cfg.dot"].each do |dot|
             sh "dot #{dot} -T jpg > #{dot.ext('jpg')}"
+        end
+        Dir["*.rig.dot"].each do |dot|
+            sh "neato #{dot} -T jpg > #{dot.ext('jpg')}"
         end
     end
 end

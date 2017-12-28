@@ -504,6 +504,29 @@ static void SolveLiveness(CFG *cfg) {
     }
 }
 
+static void OutputRIGGraph(RIG *rig, FILE *dot, Map *precoloring) {
+    fprintf(dot, "overlap=false\n");
+    Set *nodes = RIGNodes(rig);
+    SET_EACH(nodes, PAsmVReg *, a, {
+        
+        fprintf(dot, "%i [label=\"", a->id);
+        char *color = MapGet(precoloring, a);
+        if (color != 0) {
+            fprintf(dot, "%s", color);
+        } else {
+            fprintf(dot, "$vr%i", a->id);
+        }
+        fprintf(dot, "\"]\n");
+        
+        Set *edges = RIGEdges(rig, a);
+        SET_EACH(edges, PAsmVReg *, b, {
+            fprintf(dot, "%i -- %i\n", a->id, b->id);
+        });
+        DeleteSet(edges);
+    });
+    DeleteSet(nodes);
+}
+
 void PAsmAllocateFunction_CFG(PAsmModule *mod, PAsmFunction *func) {
     
     printf("-------- blockify\n");
@@ -623,6 +646,17 @@ void PAsmAllocateFunction_CFG(PAsmModule *mod, PAsmFunction *func) {
     DeleteList(blocks);
     
     Backend *backend = mod->backend;
+    
+    // output rig to .dot file
+    char fname[128];
+    sprintf(fname, "%s.rig.dot", func->name);
+    FILE *dot = fopen(fname, "w");
+    fprintf(dot, "strict graph %s {\n", func->name);
+    
+    OutputRIGGraph(rig, dot, backend->Precoloring());
+    
+    fprintf(dot, "}\n");
+    fclose(dot);
     
     Coloring *coloring = ColorRIG(
         rig,
