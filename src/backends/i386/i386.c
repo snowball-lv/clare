@@ -137,6 +137,7 @@ static PAsmFunction *IRToPAsmFunction(PAsmModule *mod, IRFunction *func) {
     const char *name = IRFunctionName(func);
     
     PAsmFunction *pasmFunc = NewPAsmFunction();
+    pasmFunc->name = name;
     
     ListAdd(pasmFunc->header, HEAP(PAsmOp, {
         .fmt = "\n"

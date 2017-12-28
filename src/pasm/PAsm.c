@@ -536,44 +536,85 @@ void PAsmAllocateFunction_CFG(PAsmModule *mod, PAsmFunction *func) {
         
         Set *live = SetCopy(block->live_out);
         
-        SET_EACH(live, PAsmVReg *, a, {
-            SET_EACH(live, PAsmVReg *, b, {
-                RIGAdd(rig, a);
-                RIGAdd(rig, b);
-                if (a != b) {
-                    RIGConnect(rig, a, b);
-                }
-            });
-        });
-        
         LIST_REV(block->ops, PAsmOp *, op, {
-        
+            
             for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
                 PAsmVReg *vreg = op->def[i];
                 if (vreg != 0) {
                     // def'd
-                    SetRemove(live, vreg);
                     RIGAdd(rig, vreg);
+                    
+                    // interferes with live set
+                    SET_EACH(live, PAsmVReg *, l, {
+                        if (vreg != l) {
+                            RIGAdd(rig, l);
+                            RIGConnect(rig, vreg, l);
+                        }
+                    });
+                    
+                    // interferes with other defs
+                    for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+                        PAsmVReg *d = op->def[i];
+                        if (d != 0 && vreg != d) {
+                            RIGAdd(rig, d);
+                            RIGConnect(rig, vreg, d);
+                        }
+                    }
+                    
+                    SetRemove(live, vreg);
                 }
             }
-        
+            
             for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
                 PAsmVReg *vreg = op->use[i];
                 if (vreg != 0) {
                     // used
                     SetAdd(live, vreg);
-                    RIGAdd(rig, vreg);
                 }
             }
-        
-            SET_EACH(live, PAsmVReg *, a, {
-                SET_EACH(live, PAsmVReg *, b, {
-                    if (a != b) {
-                        RIGConnect(rig, a, b);
-                    }
-                });
-            });
+            
         });
+        
+        // ---------------------------------------------
+        
+        // SET_EACH(live, PAsmVReg *, a, {
+        //     SET_EACH(live, PAsmVReg *, b, {
+        //         RIGAdd(rig, a);
+        //         RIGAdd(rig, b);
+        //         if (a != b) {
+        //             RIGConnect(rig, a, b);
+        //         }
+        //     });
+        // });
+        // 
+        // LIST_REV(block->ops, PAsmOp *, op, {
+        // 
+        //     for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+        //         PAsmVReg *vreg = op->def[i];
+        //         if (vreg != 0) {
+        //             // def'd
+        //             SetRemove(live, vreg);
+        //             RIGAdd(rig, vreg);
+        //         }
+        //     }
+        // 
+        //     for (int i = 0; i < PASM_OP_MAX_OPRS; i++) {
+        //         PAsmVReg *vreg = op->use[i];
+        //         if (vreg != 0) {
+        //             // used
+        //             SetAdd(live, vreg);
+        //             RIGAdd(rig, vreg);
+        //         }
+        //     }
+        // 
+        //     SET_EACH(live, PAsmVReg *, a, {
+        //         SET_EACH(live, PAsmVReg *, b, {
+        //             if (a != b) {
+        //                 RIGConnect(rig, a, b);
+        //             }
+        //         });
+        //     });
+        // });
         
         DeleteSet(live);
         DeleteBasicBlock(block);
@@ -797,4 +838,97 @@ int PAsmSpill(PAsmModule *mod) {
     }
     
     return has_spilled;
+}
+
+static void OutputPAsmFunctionCFG(PAsmFunction *func) {
+    
+    List *blocks = Blockify(func->body);
+    CFG *cfg = MakeCFG(blocks);
+    SolveLiveness(cfg);
+    
+    char fname[128];
+    sprintf(fname, "%s.cfg.dot", func->name);
+    FILE *dot = fopen(fname, "w");
+    fprintf(dot, "digraph %s {\n", func->name);
+    
+    Set *worklist = SetCopy(cfg->blocks);
+    while (SetSize(worklist) > 0) {
+        SET_ANY(worklist, BasicBlock *, from, {
+            Set *edges = MapGet(cfg->outEdges, from);
+            SET_EACH(edges, BasicBlock *, to, {
+                
+                if (from->name != 0) {
+                    fprintf(dot, "%s", from->name);
+                } else {
+                    fprintf(dot, "%d", from->id);
+                }
+                
+                fprintf(dot, " -> ");
+                
+                if (to->name != 0) {
+                    fprintf(dot, "%s", to->name);
+                } else {
+                    fprintf(dot, "%d", to->id);
+                }
+                
+                fprintf(dot, " [");
+                fprintf(dot, " label=\"[");
+                
+                SET_EACH(from->live_out, PAsmVReg *, vreg, {
+                    fprintf(dot, " $vr%i", vreg->id);
+                });
+                
+                fprintf(dot, " ]\" ");
+                fprintf(dot, " ]");
+                
+                fprintf(dot, "\n");
+                
+            });
+            SetRemove(worklist, from);
+        });
+    }
+    DeleteSet(worklist);
+    
+    SET_EACH(cfg->blocks, BasicBlock *, block, {
+        
+        if (block->name != 0) {
+            fprintf(dot, "%s", block->name);
+        } else {
+            fprintf(dot, "%d", block->id);
+        }
+        
+        fprintf(dot, " [");
+        
+        if (block == cfg->first) {
+            fprintf(dot, " shape=Mdiamond ");
+        } else if (block == cfg->last) {
+            fprintf(dot, " shape=Msquare ");
+        } else {
+            fprintf(dot, " shape=box ");
+            fprintf(dot, " label=\"");
+            LIST_EACH(block->ops, PAsmOp *, op, {
+                PAsmPrintOp(op, 0, dot);
+                // replace \n with \l
+                fseek(dot, -1, SEEK_CUR);
+                fprintf(dot, "\\l");
+            });
+            fprintf(dot, "\"");
+        }
+        fprintf(dot, " ]\n");
+    });
+    
+    fprintf(dot, "}\n");
+    fclose(dot);
+    
+    DeleteCFG(cfg);
+    LIST_EACH(blocks, BasicBlock *, block, {
+        DeleteBasicBlock(block);
+    });
+    DeleteList(blocks);
+}
+
+void OutputPAsmModuleCFG(PAsmModule *mod) {
+    LIST_EACH(mod->funcs, PAsmFunction *, func, {
+        OutputPAsmFunctionCFG(func);
+    });
 }

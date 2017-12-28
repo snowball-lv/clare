@@ -284,8 +284,7 @@ RULE({
         EMIT(OP({
             .fmt = "call $str\n",
             .oprs[0] = { .str = root->fname + 4 },
-            .use = { EAX, EDX, ECX },
-            .def = { EAX }
+            .def = { EAX, EDX, ECX },
         }));
         
     } else {
@@ -293,8 +292,7 @@ RULE({
         EMIT(OP({
             .fmt = "call $str\n",
             .oprs[0] = { .str = root->fname },
-            .use = { EAX, EDX, ECX },
-            .def = { EAX }
+            .def = { EAX, EDX, ECX },
         }));
     }
     
@@ -459,8 +457,7 @@ RULE({
     EMIT(OP({
         .fmt = "call $str\n",
         .oprs[0] = { .str = root->fname },
-        .use = { EAX, EDX, ECX },
-        .def = { EAX }
+        .def = { EAX, EDX, ECX },
     }));
     
     EMIT(OP({

@@ -19,6 +19,7 @@ TYPE_DECL(PAsmModule)
 
 typedef struct PAsmFunction PAsmFunction;
 struct PAsmFunction {
+    const char *name;
     int dummy;
     List *header;
     List *body;
@@ -79,3 +80,5 @@ int PAsmSpill(PAsmModule *mod);
 PAsmModule *PAsmModuleFromBackend(Backend *backend);
 
 void PrintPAsmModule(PAsmModule *mod, FILE *output);
+
+void OutputPAsmModuleCFG(PAsmModule *mod);

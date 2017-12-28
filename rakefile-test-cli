@@ -22,5 +22,9 @@ task :default do
         sh "tcc #{obj} #{glue} -o #{bin}"
         sh "./#{bin}"
         
+        puts
+        Dir["*.dot"].each do |dot|
+            sh "dot #{dot} -T jpg > #{dot.ext('jpg')}"
+        end
     end
 end
