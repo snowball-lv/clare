@@ -1,4 +1,6 @@
+
 #include <helpers/Unused.h>
+#include <helpers/Error.h>
 #include <mem/Mem.h>
 #include <cli/Args.h>
 
@@ -15,13 +17,9 @@ static void run_compiler(Args *args);
 int main(int argc, char **argv) {
     assert(MemEmpty());
     
-    UNUSED(argc);
-    UNUSED(argv);
-    
     Args args = { 0 };
     
     for (int i = 1; i < argc; i++) {
-        // printf("%s\n", argv[i]);
         
         if (strcmp("-f", argv[i]) == 0) {
             
@@ -48,8 +46,7 @@ int main(int argc, char **argv) {
             continue;
             
         } else {
-            printf("stray argument: %s\n", argv[i]);
-            exit(1);
+            ERROR("stray argument: %s\n", argv[i]);
         }
     }
     
@@ -117,6 +114,8 @@ static void compile_file(   FILE *src,
     backend->Init();
     PAsmModule *pasmMod = backend->IRToPAsmModule(irMod);
     
+    DeleteIRModule(irMod);
+    
     OutputPAsmModuleCFG(pasmMod);
     
     int i = 1;
@@ -133,6 +132,4 @@ static void compile_file(   FILE *src,
     
     DeletePAsmModule(pasmMod);
     backend->Deinit();
-    
-    DeleteIRModule(irMod);
 }
