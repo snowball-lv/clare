@@ -1,6 +1,7 @@
 #pragma once
 
 
+#include <helpers/Types.h>
 #include <collections/List.h>
 #include <color/Coloring.h>
 
@@ -51,6 +52,9 @@ typedef struct {
     Coloring *coloring;
     Map *locations;
 } PAsmFunction;
+
+HEAP_DECL(PAsmVReg)
+HEAP_DECL(PAsmOp)
 
 PAsmFunction *NewPAsmFunction();
 void DeletePAsmFunction(PAsmFunction *self);

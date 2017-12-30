@@ -11,7 +11,6 @@
 // referencing each other
 
 typedef struct PAsmModule PAsmModule;
-typedef struct PAsmVReg PAsmVReg;
 
 struct Backend {
     int dummy;

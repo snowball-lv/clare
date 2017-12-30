@@ -18,10 +18,6 @@ typedef struct Backend Backend;
 
 TYPE_DECL(PAsmModule)
 
-HEAP_DECL(PAsmVReg)
-
-HEAP_DECL(PAsmOp)
-
 void PAsmModuleAddFunc(PAsmModule *mod, PAsmFunction *func);
 
 PAsmVReg *NewPAsmVReg();
