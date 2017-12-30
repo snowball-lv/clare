@@ -12,7 +12,6 @@
 
 typedef struct PAsmModule PAsmModule;
 typedef struct PAsmVReg PAsmVReg;
-typedef struct PAsmFunction PAsmFunction;
 
 struct Backend {
     int dummy;

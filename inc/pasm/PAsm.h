@@ -1,11 +1,12 @@
 #pragma once
 
+#include <pasm/PAsmTypes.h>
+
 #include <helpers/Types.h>
 #include <ir/IR.h>
 #include <collections/Set.h>
 #include <collections/Map.h>
 #include <backend/Backend.h>
-#include <color/Coloring.h>
 
 #include <stdint.h>
 #include <stdio.h>
@@ -17,55 +18,7 @@ typedef struct Backend Backend;
 
 TYPE_DECL(PAsmModule)
 
-typedef struct PAsmFunction PAsmFunction;
-struct PAsmFunction {
-    const char *name;
-    int dummy;
-    List *header;
-    List *body;
-    List *footer;
-    int stack_space;
-    Coloring *coloring;
-    Map *locations;
-};
-PAsmFunction *NewPAsmFunction();
-void DeletePAsmFunction(PAsmFunction *self);
-
-typedef struct PAsmVReg PAsmVReg;
-struct PAsmVReg {
-    int id;
-    int special;
-    PAsmVReg *low;
-    PAsmVReg *high;
-};
-
 HEAP_DECL(PAsmVReg)
-
-typedef struct {
-    PAsmVReg *vreg;
-    union {
-        const char *str;
-        int32_t i32;
-        float f;
-        void *ptr;
-    };
-} PAsmOpr;
-
-#define PASM_OP_MAX_OPRS    4
-
-typedef struct {
-    const char *fmt;
-    PAsmOpr oprs[PASM_OP_MAX_OPRS];
-    PAsmVReg *use[PASM_OP_MAX_OPRS];
-    PAsmVReg *def[PASM_OP_MAX_OPRS];
-    
-    unsigned int is_label   : 1;
-    unsigned int is_jump    : 1;
-    unsigned int is_ret     : 1;
-    unsigned int is_cjump   : 1;
-    
-    int label_id;
-} PAsmOp;
 
 HEAP_DECL(PAsmOp)
 
