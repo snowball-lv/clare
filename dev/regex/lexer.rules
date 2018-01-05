@@ -1,0 +1,14 @@
+
+
+
+RULE("#include", {
+    printf("matched #include [%s]\n", text);
+})
+
+RULE("[a-z_A-Z]", {
+    printf("matched [a-z_A-Z] [%s]\n", text);
+})
+
+RULE(".", {
+    printf("matched . [%s]\n", text);
+})

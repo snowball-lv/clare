@@ -1,5 +1,8 @@
 #pragma once
 
+#include <stdio.h>
+#include <stdlib.h>
+
 #define ERROR(...) {                \
     fprintf(stderr, "\n");          \
     fprintf(stderr, "\x1b[31m");    \

@@ -1,0 +1,44 @@
+
+
+
+static void Lex(FILE *input) {
+    while (1) {
+        
+        long _old_pos;
+        _old_pos = ftell(input);
+        
+        #define RULE(regex, action) {                   \
+            if (RegExMatchStream(regex, input)) {       \
+                long size = ftell(input) - _old_pos;    \
+                char *text = malloc(size + 1);          \
+                fseek(input, _old_pos, SEEK_SET);       \
+                fread(text, 1, size, input);            \
+                text[size] = 0;                         \
+                action;                                 \
+                free(text);                             \
+                goto FOOTER;                            \
+            }                                           \
+        }
+            #include RULE_FILE
+        #undef RULE
+        
+        FOOTER:
+        
+        if (!feof(input)) {
+            int c = fgetc(input);
+            if (c == EOF) {
+                return;
+            } else {
+                ungetc(c, input);
+            }
+        }
+        
+        if (feof(input)) {
+            ERROR("End of stream.\n");
+        } else if (ferror(input)) {
+            ERROR("Stream error.\n");
+        } else if (_old_pos == ftell(input)) {
+            ERROR("No rules matched.\n");
+        }
+    }
+}
