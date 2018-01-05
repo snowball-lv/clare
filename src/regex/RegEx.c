@@ -3,7 +3,9 @@
 #include <helpers/Unused.h>
 #include <helpers/Error.h>
 #include <stdlib.h>
+#include <limits.h>
 #include <collections/Set.h>
+#include <mem/Mem.h>
 
 
 enum {
@@ -87,12 +89,153 @@ static void Advance(Input *in) {
     in->cur = NextToken(in);
 }
 
+typedef struct {
+    int id;
+    int final;
+    Set *out;
+} State;
 
-static void CompileBracketExp(Input *in) {
+static int _StateIDCounter = 1;
+
+static State *EmptyState() {
+    State *state = ALLOC(State);
+    state->out = NewSet();
+    state->id = _StateIDCounter++;
+    state->final = 0;
+    return state;
+}
+
+#define SYM_E       (INT_MAX - 1)
+#define SYM_ANY     (INT_MAX - 2)
+#define SYM_FAKE    (INT_MAX - 3)
+
+typedef struct {
+    int sym;
+    State *target;
+} Edge;
+
+static Edge *EmptyEdge() {
+    Edge *edge = ALLOC(Edge);
+    edge->sym = 0;
+    edge->target = 0;
+    return edge;
+}
+
+typedef struct {
+    Edge *start;
+    State *end;
+} NFA;
+
+static NFA SimpleNFA() {
+    NFA nfa = {
+        .start = EmptyEdge(),
+        .end = EmptyState()
+    };
+    nfa.start->sym = SYM_E;
+    nfa.start->target = nfa.end;
+    return nfa;
+}
+
+static NFA CharNFA(char c) {
+    NFA nfa = SimpleNFA();
+    nfa.start->sym = c;
+    return nfa;
+}
+
+static NFA AnyNFA() {
+    NFA nfa = SimpleNFA();
+    nfa.start->sym = SYM_ANY;
+    return nfa;
+}
+
+static NFA Alternate(NFA a, NFA b) {
+    NFA in = SimpleNFA();
+    SetAdd(in.end->out, a.start);
+    SetAdd(in.end->out, b.start);
+    NFA out = SimpleNFA();
+    SetAdd(a.end->out, out.start);
+    SetAdd(b.end->out, out.start);
+    NFA nfa = {
+        .start = in.start,
+        .end = out.end
+    };
+    return nfa;
+}
+
+static NFA RangeNFA(char from, char to) {
+    ASSERT(from <= to);
+    NFA in = SimpleNFA();
+    NFA out = SimpleNFA();
+    for (int c = from; c <= to; c++) {
+        NFA nfa = CharNFA(c);
+        SetAdd(in.end->out, nfa.start);
+        SetAdd(nfa.end->out, out.start);
+    }
+    NFA nfa = {
+        .start = in.start,
+        .end = out.end
+    };
+    return nfa;
+}
+
+static NFA Concat(NFA a, NFA b) {
+    SetAdd(a.end->out, b.start);
+    NFA nfa = {
+        .start = a.start,
+        .end = b.end
+    };
+    return nfa;
+}
+
+static void PrinteEdge(Edge *edge, Set *printed);
+
+static void PrintState(State *state, Set *printed) {
+    if (SetContains(printed, state)) {
+        return;
+    }
+    SetAdd(printed, state);
+    SET_EACH(state->out, Edge *, edge, {
+        if (edge->sym != SYM_FAKE) {
+            if (state->final) {
+                printf("%i (f) -> ", state->id);
+            } else {
+                printf("%i -> ", state->id);
+            }
+            PrinteEdge(edge, printed);
+        }
+    });
+}
+
+static void PrinteEdge(Edge *edge, Set *printed) {
+    if (edge->sym == SYM_FAKE) {
+        return;
+    }
+    switch (edge->sym) {
+        case SYM_E:     printf("[epsilon]");    break;
+        case SYM_ANY:   printf("[any]");        break;
+        case SYM_FAKE:  printf("[fake]");       break;
+        default:        printf("%c", edge->sym);
+    }
+    if (edge->target->final) {
+        printf(" -> %i (f)\n", edge->target->id);
+    } else {
+        printf(" -> %i\n", edge->target->id);
+    }
+    PrintState(edge->target, printed);
+}
+
+static void PrintNFA(NFA nfa) {
+    Set *printed = NewSet();
+    PrinteEdge(nfa.start, printed);
+}
+
+static NFA CompileBracketExp(Input *in) {
     ASSERT(in->cur.type == T_L_BRACKET);
     Advance(in);
+    NFA nfa = SimpleNFA();
+    nfa.start->sym = SYM_FAKE;
     printf("bracket start\n");
-    while (in->cur.type != T_EOF) {
+    while (1) {
         switch (in->cur.type) {
             
             case T_CHAR:;
@@ -103,21 +246,24 @@ static void CompileBracketExp(Input *in) {
                     ASSERT(in->cur.type == T_CHAR);
                     Token b = in->cur;
                     printf("range: %c to %c\n", a.c, b.c);
+                    nfa = Alternate(nfa, RangeNFA(a.c, b.c));
                     Advance(in);
                 } else {
                     printf("char: %c\n", a.c);
+                    nfa = Alternate(nfa, CharNFA(a.c));
                 }
                 continue;
                     
             case T_ANY:
                 printf("Any\n");
+                nfa = Alternate(nfa, AnyNFA());
                 Advance(in);
                 continue;
                     
             case T_R_BRACKET:
                 Advance(in);
                 printf("bracket end\n");
-                return;
+                return nfa;
                 
             default:
                 ERROR("Unhandled token: %s\n", TokTypeName(in->cur));
@@ -125,29 +271,33 @@ static void CompileBracketExp(Input *in) {
     }
 }
 
-static void Compile(Input *in) {
+static NFA Compile(Input *in) {
+    NFA nfa = SimpleNFA();
     Advance(in);
     while (in->cur.type != T_EOF) {
         switch (in->cur.type) {
             
             case T_CHAR:
                 printf("char: %c\n", in->cur.c);
+                nfa = Concat(nfa, CharNFA(in->cur.c));
                 Advance(in);
-                continue;
-                    
-            case T_L_BRACKET:
-                CompileBracketExp(in);
                 continue;
                     
             case T_ANY:
                 printf("Any\n");
+                nfa = Concat(nfa, AnyNFA());
                 Advance(in);
+                continue;
+                    
+            case T_L_BRACKET:
+                nfa = Concat(nfa, CompileBracketExp(in));
                 continue;
                 
             default:
                 ERROR("Unhandled token: %s\n", TokTypeName(in->cur));
         }
     }
+    return nfa;
 }
 
 int RegExMatchStream(const char *regex, FILE *input) {
@@ -159,7 +309,10 @@ int RegExMatchStream(const char *regex, FILE *input) {
     printf("\n");
     printf("--- %s\n", regex);
     Input in = { .regex = regex };
-    Compile(&in);
+    NFA nfa = Compile(&in);
+    nfa.end->final = 1;
+    printf("--- NFA\n");
+    PrintNFA(nfa);
     
     return 0;
 }
