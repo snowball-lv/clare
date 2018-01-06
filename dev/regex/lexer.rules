@@ -5,7 +5,7 @@ RULE("#include", {
     printf("matched #include [%s]\n", text);
 })
 
-RULE("[a-d]", {
+RULE("[a-d0-4_]", {
     printf("matched ID [%s]\n", text);
 })
 

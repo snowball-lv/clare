@@ -305,10 +305,8 @@ static void DumpEdge(Edge *edge, FILE *dot, Set *dumped) {
     // PrintState(edge->target, printed);
 }
 
-static void DumpNFA(const char *regex, NFA nfa) {
+static void DumpNFA(const char *regex, const char *fname, NFA nfa) {
     
-    char fname[128];
-    sprintf(fname, "r-%s.nfa.dot", regex);
     FILE *dot = fopen(fname, "w");
     fprintf(dot, "strict digraph \"%s\" {\n", regex);
     fprintf(dot, "overlap=false\n");
@@ -414,6 +412,15 @@ static void DeleteNFA(NFA nfa) {
     DeleteSet(edges);
 }
 
+static NFA NFAToDFA(NFA nfa) {
+    UNUSED(nfa);
+    
+    // TODO
+    
+    NFA dfa = SimpleNFA();
+    return dfa;
+}
+
 int RegExMatchStream(const char *regex, FILE *input) {
     
     UNUSED(input);
@@ -426,10 +433,21 @@ int RegExMatchStream(const char *regex, FILE *input) {
     printf("--- NFA\n");
     PrintNFA(nfa);
     
-    DumpNFA(regex, nfa);
+    char nfa_name[128];
+    sprintf(nfa_name, "r-%s.nfa.dot", regex);
+    DumpNFA(regex, nfa_name, nfa);
     
+    NFA dfa = NFAToDFA(nfa);
+    
+    char dfa_name[128];
+    sprintf(dfa_name, "r-%s.dfa.dot", regex);
+    DumpNFA(regex, dfa_name, dfa);
+    
+    DeleteNFA(dfa);
     DeleteNFA(nfa);
     
-    while (fgetc(input) != EOF);
-    return 1;
+    // while (fgetc(input) != EOF);
+    // return 1;
+
+    return 0;
 }
