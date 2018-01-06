@@ -33,3 +33,5 @@ Set *SetSubtract(Set *a, Set *b);
 
 void SetAddAll(Set *set, Set *values);
 void SetRemoveAll(Set *set, Set *values);
+
+int SetCmp(Set *a, Set *b);

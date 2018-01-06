@@ -5,6 +5,8 @@
 #include <stdlib.h>
 #include <limits.h>
 #include <collections/Set.h>
+#include <collections/Map.h>
+#include <collections/List.h>
 #include <mem/Mem.h>
 
 
@@ -446,7 +448,7 @@ Set *EClosure(State *state) {
     return set;
 }
 
-static void Visit(State *state, Set *visited) {
+void Visit(State *state, Set *visited) {
     if (SetContains(visited, state)) {
         return;
     }
@@ -467,16 +469,103 @@ static void Visit(State *state, Set *visited) {
     });
 }
 
+static Set *AllEdges(Set *state_set) {
+    Set *edges = NewSet();
+    SET_EACH(state_set, State *, state, {
+        SET_EACH(state->out, Edge *, edge, {
+            if (edge->sym != SYM_E && edge->sym != SYM_FAKE) {
+                SetAdd(edges, edge);
+            }
+        });
+    });
+    return edges;
+}
+
+static Set *DFAEdge(Set *state_set, int sym) {
+    Set *set = NewSet();
+    SET_EACH(state_set, State *, state, {
+        Set *c = Closure(state, sym);
+        SetAddAll(set, c);
+        DeleteSet(c);
+    });
+    return set;
+}
+
+static State *GetState(Map *map, Set *state_set) {
+    State *state = 0;
+    MAP_EACH(map, Set *, set, State *, s, {
+        if (SetCmp(state_set, set)) {
+            state = s;
+            break;
+        }
+    });
+    return state;
+}
+
 static NFA NFAToDFA(NFA nfa) {
-    UNUSED(nfa);
     
-    printf("\n");
-    Set *visited = NewSet();
-    State *S = nfa.start->target;
-    Visit(S, visited);
-    DeleteSet(visited);
+    State *S = EmptyState();
     
-    NFA dfa = SimpleNFA();
+    Edge *entry = EmptyEdge();
+    entry->sym = SYM_E;
+    entry->target = S;
+    
+    Set *S_set = EClosure(nfa.start->target);
+    
+    Map *map = NewMap();   
+    MapPut(map, S_set, S);
+    
+    List *state_sets = NewList();
+    ListAdd(state_sets, S_set); 
+    
+    int i = 0;
+    while (i < ListSize(state_sets)) {
+        
+        Set *state_set = ListGet(state_sets, i);
+        State *dfa_state = GetState(map, state_set);
+        ASSERT(dfa_state != 0);
+        
+        Set *all_edges = AllEdges(state_set);
+        SET_EACH(all_edges, Edge *, edge, {
+            
+            Set *set = DFAEdge(state_set, edge->sym);
+            State *dfa_target = GetState(map, set);
+            
+            if (dfa_target == 0) {
+                dfa_target = EmptyState();
+                MapPut(map, set, dfa_target);
+                ListAdd(state_sets, set);
+            } else {
+                DeleteSet(set);
+            }
+            
+            Edge *e = EmptyEdge();
+            e->sym = edge->sym;
+            e->target = dfa_target;
+            SetAdd(dfa_state->out, e);
+        });
+        
+        DeleteSet(all_edges);
+        i++;
+    }
+    
+    MAP_EACH(map, Set *, set, State *, state, {
+        UNUSED(state);
+        DeleteSet(set);
+        // DeleteSet(state->out);
+        // MemFree(state);
+    });
+    DeleteMap(map);
+    
+    // LIST_EACH(state_sets, Set *, set, {
+    //     DeleteSet(set);
+    // });
+    DeleteList(state_sets);
+
+    // NFA dfa = SimpleNFA();
+    NFA dfa = {
+        .start = entry
+    };
     return dfa;
 }
 

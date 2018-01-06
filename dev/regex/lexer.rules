@@ -1,7 +1,7 @@
 
 
 
-RULE("[a-d0-4_]", {
+RULE("[a-d0-4]_lol", {
     printf("matched ID [%s]\n", text);
 })
 

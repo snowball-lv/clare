@@ -86,3 +86,20 @@ void SetRemoveAll(Set *set, Set *values) {
         }
     });
 }
+
+int SetCmp(Set *a, Set *b) {
+    int equality = 1;
+    SET_EACH(a, void *, value, {
+        if (!SetContains(b, value)) {
+            equality = 0;
+            break;
+        }
+    });
+    SET_EACH(b, void *, value, {
+        if (!SetContains(a, value)) {
+            equality = 0;
+            break;
+        }
+    });
+    return equality;
+}
