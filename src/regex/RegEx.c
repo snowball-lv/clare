@@ -480,10 +480,22 @@ static State *GetState(Map *map, Set *state_set) {
     return state;
 }
 
+static int IsSetFinal(Set *set) {
+    int final = 0;
+    SET_EACH(set, State *, state, {
+        if (state->final) {
+            final = 1;
+            break;
+        }
+    });
+    return final;
+}
+
 static NFA NFAToDFA(NFA nfa) {
     
-    State *S = EmptyState();
     Set *S_set = EClosure(nfa.start->target);
+    State *S = EmptyState();
+    S->final = IsSetFinal(S_set);
     
     Map *map = NewMap();   
     MapPut(map, S_set, S);
@@ -506,6 +518,7 @@ static NFA NFAToDFA(NFA nfa) {
             
             if (dfa_target == 0) {
                 dfa_target = EmptyState();
+                dfa_target->final = IsSetFinal(set);
                 MapPut(map, set, dfa_target);
                 ListAdd(state_sets, set);
             } else {
