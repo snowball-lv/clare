@@ -390,7 +390,6 @@ static NFA Compile(Input *in) {
 
 static void CollectStates(Edge *edge, Set *states, Set *edges) {
     SetAdd(edges, edge);
-    UNUSED(edges);
     State *state = edge->target;
     if (!SetContains(states, state)) {
         SetAdd(states, state);
