@@ -389,9 +389,18 @@ static void DeleteNFA(NFA nfa) {
 }
 
 Set *Closure(State *state, int sym) {
+    ASSERT(sym != SYM_FAKE);
     Set *set = NewSet();
     SET_EACH(state->out, Edge *, edge, {
-        if (edge->sym == sym) {
+        if (sym == SYM_ANY) {
+            if (edge->sym != SYM_FAKE && edge->sym != SYM_E) {
+                SetAdd(set, edge->target);
+            }
+        } else if (edge->sym == SYM_ANY) {
+            if (sym != SYM_FAKE && sym != SYM_E) {
+                SetAdd(set, edge->target);
+            }
+        } else if (edge->sym == sym) {
             SetAdd(set, edge->target);
         }
     });
