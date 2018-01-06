@@ -227,6 +227,7 @@ static void PrinteEdge(Edge *edge, Set *printed) {
 static void PrintNFA(NFA nfa) {
     Set *printed = NewSet();
     PrinteEdge(nfa.start, printed);
+    DeleteSet(printed);
 }
 
 static void DumpEdge(Edge *edge, FILE *dot, Set *dumped);
@@ -316,6 +317,7 @@ static void DumpNFA(const char *regex, NFA nfa) {
     fprintf(dot, "S [ shape=plaintext ]\n");
     fprintf(dot, "S");
     DumpEdge(nfa.start, dot, dumped);
+    DeleteSet(dumped);
     
     fprintf(dot, "}\n");
     
@@ -386,6 +388,33 @@ static NFA Compile(Input *in) {
     return nfa;
 }
 
+static void CollectStates(Edge *edge, Set *states, Set *edges) {
+    SetAdd(edges, edge);
+    UNUSED(edges);
+    State *state = edge->target;
+    if (!SetContains(states, state)) {
+        SetAdd(states, state);
+        SET_EACH(state->out, Edge *, edge, {
+            CollectStates(edge, states, edges);
+        });
+    }
+}
+
+static void DeleteNFA(NFA nfa) {
+    Set *states = NewSet();
+    Set *edges = NewSet();
+    CollectStates(nfa.start, states, edges);
+    SET_EACH(states, State *, state, {
+        DeleteSet(state->out);
+        MemFree(state);
+    });
+    DeleteSet(states);
+    SET_EACH(edges, Edge *, edge, {
+        MemFree(edge);
+    });
+    DeleteSet(edges);
+}
+
 int RegExMatchStream(const char *regex, FILE *input) {
     
     UNUSED(input);
@@ -400,5 +429,8 @@ int RegExMatchStream(const char *regex, FILE *input) {
     
     DumpNFA(regex, nfa);
     
-    return 0;
+    DeleteNFA(nfa);
+    
+    while (fgetc(input) != EOF);
+    return 1;
 }
