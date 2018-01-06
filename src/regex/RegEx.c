@@ -229,12 +229,104 @@ static void PrintNFA(NFA nfa) {
     PrinteEdge(nfa.start, printed);
 }
 
+static void DumpEdge(Edge *edge, FILE *dot, Set *dumped);
+
+static void DumpState(State *state, FILE *dot, Set *dumped) {
+    
+    if (SetContains(dumped, state)) {
+        return;
+    }
+    SetAdd(dumped, state);
+    
+    fprintf(dot, "%i [", state->id);
+    
+    if (state->final) {
+        fprintf(dot, "shape=doublecircle");
+    } else {
+        fprintf(dot, "shape=circle");
+    }
+    
+    fprintf(dot, "]\n");
+    
+    SET_EACH(state->out, Edge *, edge, {
+
+        if (edge->sym != SYM_FAKE) {
+            fprintf(dot, "%i", state->id);
+            DumpEdge(edge, dot, dumped);
+        }
+        
+        // if (edge->sym != SYM_FAKE) {
+        //     if (state->final) {
+        //         printf("%i (f) -> ", state->id);
+        //     } else {
+        //         printf("%i -> ", state->id);
+        //     }
+        //     PrinteEdge(edge, printed);
+        // }
+    });
+}
+
+static void DumpEdge(Edge *edge, FILE *dot, Set *dumped) {
+    
+    if (edge->sym == SYM_FAKE) {
+        return;
+    }
+    
+    fprintf(dot, " -> %i\n", edge->target->id);
+    
+    fprintf(dot, " [ ");    
+    fprintf(dot, "label=\"");
+    switch (edge->sym) {
+        case SYM_E:     fprintf(dot, "[E]");            break;
+        case SYM_ANY:   fprintf(dot, "[Any]");          break;
+        case SYM_FAKE:  fprintf(dot, "[Fake]");         break;
+        default:        fprintf(dot, "%c", edge->sym);
+    }
+    fprintf(dot, "\"");
+    fprintf(dot, " ]");
+    
+    DumpState(edge->target, dot, dumped);
+    
+    // if (edge->sym == SYM_FAKE) {
+    //     return;
+    // }
+    // switch (edge->sym) {
+    //     case SYM_E:     printf("[epsilon]");    break;
+    //     case SYM_ANY:   printf("[any]");        break;
+    //     case SYM_FAKE:  printf("[fake]");       break;
+    //     default:        printf("%c", edge->sym);
+    // }
+    // if (edge->target->final) {
+    //     printf(" -> %i (f)\n", edge->target->id);
+    // } else {
+    //     printf(" -> %i\n", edge->target->id);
+    // }
+    // PrintState(edge->target, printed);
+}
+
+static void DumpNFA(const char *regex, NFA nfa) {
+    
+    char fname[128];
+    sprintf(fname, "r-%s.nfa.dot", regex);
+    FILE *dot = fopen(fname, "w");
+    fprintf(dot, "strict digraph \"%s\" {\n", regex);
+    fprintf(dot, "overlap=false\n");
+    
+    Set *dumped = NewSet();
+    fprintf(dot, "S [ shape=plaintext ]\n");
+    fprintf(dot, "S");
+    DumpEdge(nfa.start, dot, dumped);
+    
+    fprintf(dot, "}\n");
+    
+    fclose(dot);
+}
+
 static NFA CompileBracketExp(Input *in) {
     ASSERT(in->cur.type == T_L_BRACKET);
     Advance(in);
     NFA nfa = SimpleNFA();
     nfa.start->sym = SYM_FAKE;
-    printf("bracket start\n");
     while (1) {
         switch (in->cur.type) {
             
@@ -245,24 +337,20 @@ static NFA CompileBracketExp(Input *in) {
                     Advance(in);
                     ASSERT(in->cur.type == T_CHAR);
                     Token b = in->cur;
-                    printf("range: %c to %c\n", a.c, b.c);
                     nfa = Alternate(nfa, RangeNFA(a.c, b.c));
                     Advance(in);
                 } else {
-                    printf("char: %c\n", a.c);
                     nfa = Alternate(nfa, CharNFA(a.c));
                 }
                 continue;
                     
             case T_ANY:
-                printf("Any\n");
                 nfa = Alternate(nfa, AnyNFA());
                 Advance(in);
                 continue;
                     
             case T_R_BRACKET:
                 Advance(in);
-                printf("bracket end\n");
                 return nfa;
                 
             default:
@@ -278,13 +366,11 @@ static NFA Compile(Input *in) {
         switch (in->cur.type) {
             
             case T_CHAR:
-                printf("char: %c\n", in->cur.c);
                 nfa = Concat(nfa, CharNFA(in->cur.c));
                 Advance(in);
                 continue;
                     
             case T_ANY:
-                printf("Any\n");
                 nfa = Concat(nfa, AnyNFA());
                 Advance(in);
                 continue;
@@ -301,10 +387,8 @@ static NFA Compile(Input *in) {
 }
 
 int RegExMatchStream(const char *regex, FILE *input) {
-    UNUSED(regex);
-    UNUSED(input);
     
-    while (fgetc(input) != EOF);
+    UNUSED(input);
     
     printf("\n");
     printf("--- %s\n", regex);
@@ -313,6 +397,8 @@ int RegExMatchStream(const char *regex, FILE *input) {
     nfa.end->final = 1;
     printf("--- NFA\n");
     PrintNFA(nfa);
+    
+    DumpNFA(regex, nfa);
     
     return 0;
 }

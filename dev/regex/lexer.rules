@@ -6,9 +6,9 @@ RULE("#include", {
 })
 
 RULE("[a-d]", {
-    printf("matched [a-z_A-Z] [%s]\n", text);
+    printf("matched ID [%s]\n", text);
 })
 
 RULE(".", {
-    printf("matched . [%s]\n", text);
+    printf("caught [%s]\n", text);
 })

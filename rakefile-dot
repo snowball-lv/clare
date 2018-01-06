@@ -1,0 +1,14 @@
+
+
+require "fileutils"
+
+
+task :default do
+    
+    puts
+    Dir.chdir("bin") do
+        Dir["*.dot"].each do |dot|
+            sh "dot \"#{dot}\" -T jpg > \"#{dot.ext('jpg')}\""
+        end
+    end
+end

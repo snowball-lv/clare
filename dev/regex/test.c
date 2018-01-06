@@ -1,4 +1,3 @@
-
 #include <helpers/Unused.h>
 #include <regex/RegEx.h>
 #include <stdio.h>
@@ -16,7 +15,7 @@ int main(int argc, char **argv) {
     UNUSED(argv);
     assert(MemEmpty());
     
-    FILE *file = fopen("../dev/regex/test.txt", "r");
+    FILE *file = fopen("../dev/regex/test.c", "r");
     Lex(file);
     fclose(file);
     
