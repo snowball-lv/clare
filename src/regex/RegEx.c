@@ -252,20 +252,10 @@ static void DumpState(State *state, FILE *dot, Set *dumped) {
     fprintf(dot, "]\n");
     
     SET_EACH(state->out, Edge *, edge, {
-
         if (edge->sym != SYM_FAKE) {
             fprintf(dot, "%i", state->id);
             DumpEdge(edge, dot, dumped);
         }
-        
-        // if (edge->sym != SYM_FAKE) {
-        //     if (state->final) {
-        //         printf("%i (f) -> ", state->id);
-        //     } else {
-        //         printf("%i -> ", state->id);
-        //     }
-        //     PrinteEdge(edge, printed);
-        // }
     });
 }
 
@@ -275,7 +265,7 @@ static void DumpEdge(Edge *edge, FILE *dot, Set *dumped) {
         return;
     }
     
-    fprintf(dot, " -> %i\n", edge->target->id);
+    fprintf(dot, " -> %i", edge->target->id);
     
     fprintf(dot, " [ ");    
     fprintf(dot, "label=\"");
@@ -286,25 +276,9 @@ static void DumpEdge(Edge *edge, FILE *dot, Set *dumped) {
         default:        fprintf(dot, "%c", edge->sym);
     }
     fprintf(dot, "\"");
-    fprintf(dot, " ]");
+    fprintf(dot, " ]\n");
     
     DumpState(edge->target, dot, dumped);
-    
-    // if (edge->sym == SYM_FAKE) {
-    //     return;
-    // }
-    // switch (edge->sym) {
-    //     case SYM_E:     printf("[epsilon]");    break;
-    //     case SYM_ANY:   printf("[any]");        break;
-    //     case SYM_FAKE:  printf("[fake]");       break;
-    //     default:        printf("%c", edge->sym);
-    // }
-    // if (edge->target->final) {
-    //     printf(" -> %i (f)\n", edge->target->id);
-    // } else {
-    //     printf(" -> %i\n", edge->target->id);
-    // }
-    // PrintState(edge->target, printed);
 }
 
 static void DumpNFA(const char *regex, const char *fname, NFA nfa) {
