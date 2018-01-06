@@ -459,7 +459,11 @@ static Set *DFAEdge(Set *state_set, int sym) {
     Set *set = NewSet();
     SET_EACH(state_set, State *, state, {
         Set *c = Closure(state, sym);
-        SetAddAll(set, c);
+        SET_EACH(c, State *, s, {
+            Set *e = EClosure(s);
+            SetAddAll(set, e);
+            DeleteSet(e);
+        });
         DeleteSet(c);
     });
     return set;
@@ -479,11 +483,6 @@ static State *GetState(Map *map, Set *state_set) {
 static NFA NFAToDFA(NFA nfa) {
     
     State *S = EmptyState();
-    
-    Edge *entry = EmptyEdge();
-    entry->sym = SYM_E;
-    entry->target = S;
-    
     Set *S_set = EClosure(nfa.start->target);
     
     Map *map = NewMap();   
@@ -523,20 +522,17 @@ static NFA NFAToDFA(NFA nfa) {
         i++;
     }
     
-    MAP_EACH(map, Set *, set, State *, state, {
-        UNUSED(state);
-        DeleteSet(set);
-        // DeleteSet(state->out);
-        // MemFree(state);
-    });
     DeleteMap(map);
     
-    // LIST_EACH(state_sets, Set *, set, {
-    //     DeleteSet(set);
-    // });
+    LIST_EACH(state_sets, Set *, set, {
+        DeleteSet(set);
+    });
     DeleteList(state_sets);
-
-    // NFA dfa = SimpleNFA();
+    
+    Edge *entry = EmptyEdge();
+    entry->sym = SYM_E;
+    entry->target = S;
+    
     NFA dfa = {
         .start = entry
     };
