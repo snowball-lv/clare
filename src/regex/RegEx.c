@@ -412,10 +412,69 @@ static void DeleteNFA(NFA nfa) {
     DeleteSet(edges);
 }
 
+Set *Closure(State *state, int sym) {
+    Set *set = NewSet();
+    SET_EACH(state->out, Edge *, edge, {
+        if (edge->sym == sym) {
+            SetAdd(set, edge->target);
+        }
+    });
+    return set;
+}
+
+Set *EClosure(State *state) {
+    Set *set = NewSet();
+    SetAdd(set, state);
+    while (1) {
+        int old_size = SetSize(set);
+        
+        Set *tmp = NewSet();
+        SET_EACH(set, State *, state, {
+            SetAdd(tmp, state);
+            Set *c = Closure(state, SYM_E);
+            SetAddAll(tmp, c);
+            DeleteSet(c);
+        });
+        
+        DeleteSet(set);
+        set = tmp;
+        
+        if (SetSize(set) == old_size) {
+            break;
+        }
+    }
+    return set;
+}
+
+static void Visit(State *state, Set *visited) {
+    if (SetContains(visited, state)) {
+        return;
+    }
+    SetAdd(visited, state);
+    
+    Set *c = EClosure(state);
+    printf("%i ->", state->id);
+    SET_EACH(c, State *, s, {
+        printf(" %i", s->id);
+    });
+    printf("\n");
+    DeleteSet(c);
+    
+    SET_EACH(state->out, Edge *, edge, {
+        if (edge->sym != SYM_FAKE) {
+            Visit(edge->target, visited);
+        }
+    });
+}
+
 static NFA NFAToDFA(NFA nfa) {
     UNUSED(nfa);
     
-    // TODO
+    printf("\n");
+    Set *visited = NewSet();
+    State *S = nfa.start->target;
+    Visit(S, visited);
+    DeleteSet(visited);
     
     NFA dfa = SimpleNFA();
     return dfa;
@@ -446,8 +505,8 @@ int RegExMatchStream(const char *regex, FILE *input) {
     DeleteNFA(dfa);
     DeleteNFA(nfa);
     
-    // while (fgetc(input) != EOF);
-    // return 1;
+    while (fgetc(input) != EOF);
+    return 1;
 
-    return 0;
+    // return 0;
 }
