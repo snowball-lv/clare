@@ -1,7 +1,7 @@
 
 
 
-RULE("_a*_", {
+RULE("_.*_", {
     printf("matched ID [%s]\n", text);
 })
 

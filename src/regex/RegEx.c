@@ -424,17 +424,17 @@ Set *Closure(State *state, int sym) {
     ASSERT(sym != SYM_FAKE);
     Set *set = NewSet();
     SET_EACH(state->out, Edge *, edge, {
-        if (sym == SYM_ANY) {
-            if (edge->sym != SYM_FAKE && edge->sym != SYM_E) {
-                SetAdd(set, edge->target);
-            }
-        } else if (edge->sym == SYM_ANY) {
-            if (sym != SYM_FAKE && sym != SYM_E) {
-                SetAdd(set, edge->target);
-            }
-        } else if (edge->sym == sym) {
+
+        if (edge->sym == SYM_FAKE) {
+            // do nothing
+        } else if (sym == edge->sym) {
+            SetAdd(set, edge->target);
+        } else if (sym == SYM_E || edge->sym == SYM_E) {
+            // do nothing
+        } else if (sym == SYM_ANY || edge->sym == SYM_ANY) {
             SetAdd(set, edge->target);
         }
+        
     });
     return set;
 }
