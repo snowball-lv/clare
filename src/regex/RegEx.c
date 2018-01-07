@@ -20,6 +20,7 @@ enum {
         TOK(HYPHEN)
         TOK(R_BRACKET)
         TOK(ANY)
+        TOK(KLEENE)
     #undef TOK
 };
 
@@ -39,6 +40,7 @@ const char *TokTypeName(Token tok) {
             TOK(HYPHEN)
             TOK(R_BRACKET)
             TOK(ANY)
+            TOK(KLEENE)
         #undef TOK
         default:
             ERROR("Unknown token: %i\n", tok.type);
@@ -75,6 +77,11 @@ static Token NextToken(Input *in) {
             
         case '.':
             tok.type = T_ANY;
+            in->regex += 1;
+            break;
+            
+        case '*':
+            tok.type = T_KLEENE;
             in->regex += 1;
             break;
         
@@ -574,13 +581,15 @@ int RegExMatchStream(const char *regex, FILE *input) {
     PrintNFA(nfa);
     
     char nfa_name[128];
-    sprintf(nfa_name, "r-%s.nfa.dot", regex);
+    // sprintf(nfa_name, "r-%s.nfa.dot", regex);
+    sprintf(nfa_name, "regex.nfa.dot");
     DumpNFA(regex, nfa_name, nfa);
     
     NFA dfa = NFAToDFA(nfa);
     
     char dfa_name[128];
-    sprintf(dfa_name, "r-%s.dfa.dot", regex);
+    // sprintf(dfa_name, "r-%s.dfa.dot", regex);
+    sprintf(dfa_name, "regex.dfa.dot");
     DumpNFA(regex, dfa_name, dfa);
     
     DeleteNFA(dfa);
