@@ -348,43 +348,47 @@ static NFA Compile(Input *in) {
     State *last = 0;
     while (in->cur.type != T_EOF) {
         
+        nfa = Concat(nfa, SimpleNFA());
+        last = nfa.end;
+        
         switch (in->cur.type) {
             
             case T_CHAR:
-                last = nfa.end;
                 nfa = Concat(nfa, CharNFA(in->cur.c));
                 Advance(in);
-                continue;
+                break;
                     
             case T_ANY:
-                last = nfa.end;
                 nfa = Concat(nfa, AnyNFA());
                 Advance(in);
-                continue;
+                break;
                     
             case T_L_BRACKET:
-                last = nfa.end;
                 nfa = Concat(nfa, CompileBracketExp(in));
-                continue;
-                
-            case T_KLEENE:
-                ASSERT(last != 0);
-                
-                Edge *back = EmptyEdge();
-                back->sym = SYM_E;
-                back->target = last;
-                SetAdd(nfa.end->out, back);
-                
-                Edge *skip = EmptyEdge();
-                skip->sym = SYM_E;
-                skip->target = nfa.end;
-                SetAdd(last->out, skip);
-                
-                Advance(in);
-                continue;
+                break;
                 
             default:
                 ERROR("Unhandled token: %s\n", TokTypeName(in->cur));
+        }
+        
+        // handle kleene star
+        if (in->cur.type == T_KLEENE) {
+            ASSERT(last != 0);
+            
+            nfa = Concat(nfa, SimpleNFA());
+            
+            Edge *back = EmptyEdge();
+            back->sym = SYM_E;
+            back->target = last;
+            SetAdd(nfa.end->out, back);
+        
+            Edge *skip = EmptyEdge();
+            skip->sym = SYM_E;
+            skip->target = nfa.end;
+            SetAdd(last->out, skip);
+        
+            Advance(in);
+            continue;
         }
     }
     return nfa;
