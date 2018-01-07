@@ -345,21 +345,34 @@ static NFA CompileBracketExp(Input *in) {
 static NFA Compile(Input *in) {
     NFA nfa = SimpleNFA();
     Advance(in);
+    State *last = 0;
     while (in->cur.type != T_EOF) {
         switch (in->cur.type) {
             
             case T_CHAR:
+                last = nfa.end;
                 nfa = Concat(nfa, CharNFA(in->cur.c));
                 Advance(in);
                 continue;
                     
             case T_ANY:
+                last = nfa.end;
                 nfa = Concat(nfa, AnyNFA());
                 Advance(in);
                 continue;
                     
             case T_L_BRACKET:
+                last = nfa.end;
                 nfa = Concat(nfa, CompileBracketExp(in));
+                continue;
+                
+            case T_KLEENE:
+                ASSERT(last != 0);
+                Edge *loop = EmptyEdge();
+                loop->sym = SYM_E;
+                loop->target = last;
+                SetAdd(nfa.end->out, loop);
+                Advance(in);
                 continue;
                 
             default:
