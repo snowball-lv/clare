@@ -347,6 +347,7 @@ static NFA Compile(Input *in) {
     Advance(in);
     State *last = 0;
     while (in->cur.type != T_EOF) {
+        
         switch (in->cur.type) {
             
             case T_CHAR:
@@ -368,10 +369,17 @@ static NFA Compile(Input *in) {
                 
             case T_KLEENE:
                 ASSERT(last != 0);
-                Edge *loop = EmptyEdge();
-                loop->sym = SYM_E;
-                loop->target = last;
-                SetAdd(nfa.end->out, loop);
+                
+                Edge *back = EmptyEdge();
+                back->sym = SYM_E;
+                back->target = last;
+                SetAdd(nfa.end->out, back);
+                
+                Edge *skip = EmptyEdge();
+                skip->sym = SYM_E;
+                skip->target = nfa.end;
+                SetAdd(last->out, skip);
+                
                 Advance(in);
                 continue;
                 
