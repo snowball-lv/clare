@@ -233,7 +233,7 @@ static void PrinteEdge(Edge *edge, Set *printed) {
     PrintState(edge->target, printed);
 }
 
-static void PrintNFA(NFA nfa) {
+void PrintNFA(NFA nfa) {
     Set *printed = NewSet();
     PrinteEdge(nfa.start, printed);
     DeleteSet(printed);
@@ -291,7 +291,7 @@ static void DumpEdge(Edge *edge, FILE *dot, Set *dumped) {
 static void DumpNFA(const char *regex, const char *fname, NFA nfa) {
     
     FILE *dot = fopen(fname, "w");
-    fprintf(dot, "strict digraph \"%s\" {\n", regex);
+    fprintf(dot, "digraph \"%s\" {\n", regex);
     fprintf(dot, "overlap=false\n");
     
     Set *dumped = NewSet();
@@ -405,10 +405,32 @@ static void CollectStates(Edge *edge, Set *states, Set *edges) {
     }
 }
 
+Set *Closure(State *state, int sym);
+
 static void DeleteNFA(NFA nfa) {
     Set *states = NewSet();
     Set *edges = NewSet();
     CollectStates(nfa.start, states, edges);
+    
+    printf("\n");
+    SET_EACH(states, State *, state, {
+        SET_EACH(state->out, Edge *, edge, {
+            printf("%i -> ", state->id);
+            switch (edge->sym) {
+                case SYM_FAKE:  printf("[fake]");           break;
+                case SYM_E:     printf("[e]");              break;
+                case SYM_ANY:   printf("[any]");            break;
+                default:        printf("[%c]", edge->sym);  break;
+            }
+            Set *c = Closure(state, edge->sym);
+            SET_EACH(c, State *, s, {
+                printf(" %i", s->id);
+            });
+            DeleteSet(c);
+            printf("\n");
+        });
+    });
+    
     SET_EACH(states, State *, state, {
         DeleteSet(state->out);
         MemFree(state);
@@ -425,15 +447,58 @@ Set *Closure(State *state, int sym) {
     Set *set = NewSet();
     SET_EACH(state->out, Edge *, edge, {
 
-        if (edge->sym == SYM_FAKE) {
-            // do nothing
-        } else if (sym == edge->sym) {
-            SetAdd(set, edge->target);
-        } else if (sym == SYM_E || edge->sym == SYM_E) {
-            // do nothing
-        } else if (sym == SYM_ANY || edge->sym == SYM_ANY) {
-            SetAdd(set, edge->target);
+        switch (sym) {
+            
+            case SYM_FAKE:
+                break;
+            
+            case SYM_E:
+                switch (edge->sym) {
+                    case SYM_E:
+                        SetAdd(set, edge->target);
+                        break;
+                    default:
+                        break;
+                }
+                break;
+            
+            case SYM_ANY:
+                switch (sym) {
+                    case SYM_FAKE:
+                    case SYM_E:
+                        break;
+                    default:
+                        SetAdd(set, edge->target);
+                        break;
+                }
+                break;
+            
+            default:
+                switch (sym) {
+                    case SYM_FAKE:
+                    case SYM_E:
+                        break;
+                    case SYM_ANY:
+                        SetAdd(set, edge->target);
+                        break;
+                    default:
+                        if (sym == edge->sym) {
+                            SetAdd(set, edge->target);
+                        }
+                        break;
+                }
+                break;
         }
+
+        // if (edge->sym == SYM_FAKE) {
+        //     // do nothing
+        // } else if (sym == edge->sym) {
+        //     SetAdd(set, edge->target);
+        // } else if (sym == SYM_E || edge->sym == SYM_E) {
+        //     // do nothing
+        // } else if (sym == SYM_ANY || edge->sym == SYM_ANY) {
+        //     SetAdd(set, edge->target);
+        // }
         
     });
     return set;
@@ -603,7 +668,7 @@ int RegExMatchStream(const char *regex, FILE *input) {
     NFA nfa = Compile(&in);
     nfa.end->final = 1;
     printf("--- NFA\n");
-    PrintNFA(nfa);
+    // PrintNFA(nfa);
     
     char nfa_name[128];
     // sprintf(nfa_name, "r-%s.nfa.dot", regex);
