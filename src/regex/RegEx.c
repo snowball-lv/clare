@@ -464,11 +464,10 @@ Set *Closure(State *state, int sym) {
             
             case SYM_ANY:
                 switch (edge->sym) {
-                    case SYM_FAKE:
-                    case SYM_E:
+                    case SYM_ANY:
+                        SetAdd(set, edge->target);
                         break;
                     default:
-                        SetAdd(set, edge->target);
                         break;
                 }
                 break;
@@ -597,6 +596,24 @@ static int IsSetFinal(Set *set) {
     return final;
 }
 
+static void LogTransition(Set *from, Edge *edge, Set *to) {
+    SET_EACH(from, State *, state, {
+        printf("%i ", state->id);
+    });
+    printf("-> ");
+    switch (edge->sym) {
+        case SYM_E:     printf("[epsilon]");    break;
+        case SYM_ANY:   printf("[any]");        break;
+        case SYM_FAKE:  printf("[fake]");       break;
+        default:        printf("[%c]", edge->sym);
+    }
+    printf(" -> ");
+    SET_EACH(to, State *, state, {
+        printf(" %i", state->id);
+    });
+    printf("\n");
+}
+
 static NFA NFAToDFA(NFA nfa) {
     
     Set *S_set = EClosure(nfa.start->target);
@@ -609,6 +626,7 @@ static NFA NFAToDFA(NFA nfa) {
     List *state_sets = NewList();
     ListAdd(state_sets, S_set); 
     
+    printf("\n");
     int i = 0;
     while (i < ListSize(state_sets)) {
         
@@ -621,6 +639,8 @@ static NFA NFAToDFA(NFA nfa) {
             
             Set *set = DFAEdge(state_set, edge->sym);
             State *dfa_target = GetState(map, set);
+            
+            LogTransition(state_set, edge, set);
             
             if (dfa_target == 0) {
                 dfa_target = EmptyState();
