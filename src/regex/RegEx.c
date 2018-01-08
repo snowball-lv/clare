@@ -463,7 +463,7 @@ Set *Closure(State *state, int sym) {
                 break;
             
             case SYM_ANY:
-                switch (sym) {
+                switch (edge->sym) {
                     case SYM_FAKE:
                     case SYM_E:
                         break;
@@ -474,7 +474,7 @@ Set *Closure(State *state, int sym) {
                 break;
             
             default:
-                switch (sym) {
+                switch (edge->sym) {
                     case SYM_FAKE:
                     case SYM_E:
                         break;
