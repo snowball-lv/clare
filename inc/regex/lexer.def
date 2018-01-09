@@ -15,13 +15,12 @@ static void Lex(FILE *input) {
         
         long _old_pos;
         _old_pos = ftell(input);
-        
-        // /*
+
         int _counter = 0;
         #define RULE(regex, action) {                   \
             RegEx *cr = ListGet(_regexes, _counter);    \
             _counter++;                                 \
-            if (RegExMatchStreamNew(cr, input)) {       \
+            if (RegExMatchStream(cr, input)) {          \
                 long size = ftell(input) - _old_pos;    \
                 char *text = malloc(size + 1);          \
                 fseek(input, _old_pos, SEEK_SET);       \
@@ -34,24 +33,6 @@ static void Lex(FILE *input) {
         }
             #include RULE_FILE
         #undef RULE
-        // */
-        
-        /*
-        #define RULE(regex, action) {                   \
-            if (RegExMatchStream(regex, input)) {       \
-                long size = ftell(input) - _old_pos;    \
-                char *text = malloc(size + 1);          \
-                fseek(input, _old_pos, SEEK_SET);       \
-                fread(text, 1, size, input);            \
-                text[size] = 0;                         \
-                action;                                 \
-                free(text);                             \
-                goto FOOTER;                            \
-            }                                           \
-        }
-            #include RULE_FILE
-        #undef RULE
-        */
         
         FOOTER:
         

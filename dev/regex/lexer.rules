@@ -1,13 +1,13 @@
 
 
 RULE("#include", {
-    printf("matched #include [%s]\n", text);
+    // printf("matched #include [%s]\n", text);
 })
 
 RULE("[a-zA-Z_][0-9a-zA-Z_]*", {
-    printf("matched ID [%s]\n", text);
+    // printf("matched ID [%s]\n", text);
 })
 
 RULE(".", {
-    printf("caught [%s]\n", text);
+    // printf("caught [%s]\n", text);
 })

@@ -196,49 +196,6 @@ static NFA Concat(NFA a, NFA b) {
     return nfa;
 }
 
-static void PrinteEdge(Edge *edge, Set *printed);
-
-static void PrintState(State *state, Set *printed) {
-    if (SetContains(printed, state)) {
-        return;
-    }
-    SetAdd(printed, state);
-    SET_EACH(state->out, Edge *, edge, {
-        if (edge->sym != SYM_FAKE) {
-            if (state->final) {
-                printf("%i (f) -> ", state->id);
-            } else {
-                printf("%i -> ", state->id);
-            }
-            PrinteEdge(edge, printed);
-        }
-    });
-}
-
-static void PrinteEdge(Edge *edge, Set *printed) {
-    if (edge->sym == SYM_FAKE) {
-        return;
-    }
-    switch (edge->sym) {
-        case SYM_E:     printf("[epsilon]");    break;
-        case SYM_ANY:   printf("[any]");        break;
-        case SYM_FAKE:  printf("[fake]");       break;
-        default:        printf("%c", edge->sym);
-    }
-    if (edge->target->final) {
-        printf(" -> %i (f)\n", edge->target->id);
-    } else {
-        printf(" -> %i\n", edge->target->id);
-    }
-    PrintState(edge->target, printed);
-}
-
-void PrintNFA(NFA nfa) {
-    Set *printed = NewSet();
-    PrinteEdge(nfa.start, printed);
-    DeleteSet(printed);
-}
-
 static void DumpEdge(Edge *edge, FILE *dot, Set *dumped);
 
 static void DumpState(State *state, FILE *dot, Set *dumped) {
@@ -405,32 +362,12 @@ static void CollectStates(Edge *edge, Set *states, Set *edges) {
     }
 }
 
-Set *Closure(State *state, int sym);
+static Set *Closure(State *state, int sym);
 
 static void DeleteNFA(NFA nfa) {
     Set *states = NewSet();
     Set *edges = NewSet();
     CollectStates(nfa.start, states, edges);
-    
-    // printf("\n");
-    // SET_EACH(states, State *, state, {
-    //     SET_EACH(state->out, Edge *, edge, {
-    //         printf("%i -> ", state->id);
-    //         switch (edge->sym) {
-    //             case SYM_FAKE:  printf("[fake]");           break;
-    //             case SYM_E:     printf("[e]");              break;
-    //             case SYM_ANY:   printf("[any]");            break;
-    //             default:        printf("[%c]", edge->sym);  break;
-    //         }
-    //         Set *c = Closure(state, edge->sym);
-    //         SET_EACH(c, State *, s, {
-    //             printf(" %i", s->id);
-    //         });
-    //         DeleteSet(c);
-    //         printf("\n");
-    //     });
-    // });
-    
     SET_EACH(states, State *, state, {
         DeleteSet(state->out);
         MemFree(state);
@@ -442,7 +379,7 @@ static void DeleteNFA(NFA nfa) {
     DeleteSet(edges);
 }
 
-Set *Closure(State *state, int sym) {
+static Set *Closure(State *state, int sym) {
     ASSERT(sym != SYM_FAKE);
     Set *set = NewSet();
     SET_EACH(state->out, Edge *, edge, {
@@ -488,22 +425,11 @@ Set *Closure(State *state, int sym) {
                 }
                 break;
         }
-
-        // if (edge->sym == SYM_FAKE) {
-        //     // do nothing
-        // } else if (sym == edge->sym) {
-        //     SetAdd(set, edge->target);
-        // } else if (sym == SYM_E || edge->sym == SYM_E) {
-        //     // do nothing
-        // } else if (sym == SYM_ANY || edge->sym == SYM_ANY) {
-        //     SetAdd(set, edge->target);
-        // }
-        
     });
     return set;
 }
 
-Set *EClosure(State *state) {
+static Set *EClosure(State *state) {
     Set *set = NewSet();
     SetAdd(set, state);
     while (1) {
@@ -525,27 +451,6 @@ Set *EClosure(State *state) {
         }
     }
     return set;
-}
-
-void Visit(State *state, Set *visited) {
-    if (SetContains(visited, state)) {
-        return;
-    }
-    SetAdd(visited, state);
-    
-    Set *c = EClosure(state);
-    printf("%i ->", state->id);
-    SET_EACH(c, State *, s, {
-        printf(" %i", s->id);
-    });
-    printf("\n");
-    DeleteSet(c);
-    
-    SET_EACH(state->out, Edge *, edge, {
-        if (edge->sym != SYM_FAKE) {
-            Visit(edge->target, visited);
-        }
-    });
 }
 
 static Set *AllEdges(Set *state_set) {
@@ -594,24 +499,6 @@ static int IsSetFinal(Set *set) {
         }
     });
     return final;
-}
-
-void LogTransition(Set *from, Edge *edge, Set *to) {
-    SET_EACH(from, State *, state, {
-        printf("%i ", state->id);
-    });
-    printf("-> ");
-    switch (edge->sym) {
-        case SYM_E:     printf("[epsilon]");    break;
-        case SYM_ANY:   printf("[any]");        break;
-        case SYM_FAKE:  printf("[fake]");       break;
-        default:        printf("[%c]", edge->sym);
-    }
-    printf(" -> ");
-    SET_EACH(to, State *, state, {
-        printf(" %i", state->id);
-    });
-    printf("\n");
 }
 
 static NFA NFAToDFA(NFA nfa) {
@@ -688,173 +575,6 @@ static NFA NFAToDFA(NFA nfa) {
         .start = entry
     };
     return dfa;
-}
-
-static int MatchDFA(NFA dfa, FILE *input) {
-    
-    #define printf(...)
-    
-    Set *states = NewSet();
-    Set *edges = NewSet();
-    
-    CollectStates(dfa.start, states, edges);
-    
-    // remove initial kludge edge (epsilon)
-    SetRemove(edges, dfa.start);
-    
-    int min = INT_MAX;
-    int max = INT_MIN;
-    printf("\n");
-    SET_EACH(edges, Edge *, edge, {
-        int c = edge->sym;
-        if (c == SYM_ANY) {
-            printf("[any]\n");
-        } else {
-            printf("%c\n", (char) c);
-            min = c < min ? c : min;
-            max = c > max ? c : max;
-        }
-    });
-    
-    const int range = max - min + 1;
-    printf("range: %i\n", range);
-    for (int i = 0; i < range; i++) {
-        UNUSED(i);
-        printf("%c ", (char)(min + i));
-    }
-    printf("\n");
-    
-    Map *lookup = NewMap();
-    int counter = 0;
-    SET_EACH(states, State *, state, {
-        void *value = (void *) (intptr_t) counter;
-        MapPut(lookup, state, value);
-        counter++;
-    });
-    
-    printf("\n");
-    SET_EACH(states, State *, state, {
-        int i = (int) (intptr_t) MapGet(lookup, state);
-        UNUSED(i);
-        printf("%i == %i\n", state->id, i);
-    });
-    
-    const int state_count = SetSize(states);
-    
-    int *final = malloc(state_count * sizeof(int));
-    SET_EACH(states, State *, state, {
-        int i = (int) (intptr_t) MapGet(lookup, state);
-        final[i] = state->final;
-    });
-    
-    int *any = malloc(state_count * sizeof(int));
-    for (int i = 0; i < state_count; i++) {
-        any[i] = -1;
-    }
-    
-    int **trans = malloc(state_count * sizeof(int *));
-    for (int i = 0; i < state_count; i++) {
-        trans[i] = malloc(range * sizeof(int));
-        for (int k = 0; k < range; k++) {
-            trans[i][k] = -1;
-        }
-    }
-    
-    printf("\n");
-    SET_EACH(states, State *, state, {
-        int from = (int) (intptr_t) MapGet(lookup, state);
-        SET_EACH(state->out, Edge *, edge, {
-            int to = (int) (intptr_t) MapGet(lookup, edge->target);
-            printf("%i -> %i\n", from, to);
-            
-            int c = edge->sym;
-            if (c == SYM_ANY) {
-                for (int i = 0; i < range; i++) {
-                    if (trans[from][i] == -1) {
-                        trans[from][i] = to;
-                    }
-                }
-                any[from] = to;
-            } else {
-                trans[from][c - min] = to;
-            }
-        });
-    });
-    
-    int cur = (int) (intptr_t) MapGet(lookup, dfa.start->target);
-    
-    DeleteMap(lookup);
-    DeleteSet(states);
-    DeleteSet(edges);
-    
-    // the actual matching
-    fpos_t pos;
-    fgetpos(input, &pos);
-    int last_final = -1;
-
-    while (1) {
-        
-        if (final[cur]) {
-            fgetpos(input, &pos);
-            last_final = cur;
-        }
-        
-        int c = fgetc(input);
-        if (c != EOF) {
-            
-            int next = -1;
-            if (c < min || max < c) {
-                next = any[cur];
-            } else {
-                next = trans[cur][c - min];
-            }
-            
-            if (next != -1) {
-                cur = next;
-            } else {
-                break;
-            }
-            
-        } else {
-            break;
-        }
-    }
-    
-    fsetpos(input, &pos);
-    return last_final != -1;
-    
-    #undef printf
-}
-
-int RegExMatchStream(const char *regex, FILE *input) {
-    
-    UNUSED(input);
-    
-    // printf("\n");
-    // printf("--- %s\n", regex);
-    Input in = { .regex = regex };
-    NFA nfa = Compile(&in);
-    nfa.end->final = 1;
-    // printf("--- NFA\n");
-    // PrintNFA(nfa);
-    
-    char nfa_name[128];
-    // sprintf(nfa_name, "r-%s.nfa.dot", regex);
-    sprintf(nfa_name, "regex.nfa.dot");
-    DumpNFA(regex, nfa_name, nfa);
-    
-    NFA dfa = NFAToDFA(nfa);
-    DeleteNFA(nfa);
-    
-    char dfa_name[128];
-    // sprintf(dfa_name, "r-%s.dfa.dot", regex);
-    sprintf(dfa_name, "regex.dfa.dot");
-    DumpNFA(regex, dfa_name, dfa);
-    
-    int match = MatchDFA(dfa, input);
-    DeleteNFA(dfa);
-    
-    return match;
 }
 
 struct RegEx {
@@ -965,6 +685,9 @@ static RegEx *RegExFromDFA(NFA dfa) {
 
 RegEx *RegExCompile(const char *regex) {
     
+    UNUSED(DumpNFA);
+    
+    printf("\n");
     printf("regex: %s\n", regex);
     
     Input in = { .regex = regex };
@@ -992,7 +715,7 @@ RegEx *RegExCompile(const char *regex) {
     return cr;
 }
 
-int RegExMatchStreamNew(RegEx *cr, FILE *input) {
+int RegExMatchStream(RegEx *cr, FILE *input) {
 
     int cur = cr->initial;
 
