@@ -856,3 +856,160 @@ int RegExMatchStream(const char *regex, FILE *input) {
     
     return match;
 }
+
+struct RegEx {
+    int min, max;
+    int *final;
+    int *any;
+    int **trans;
+    int initial;
+};
+
+static RegEx *RegExFromDFA(NFA dfa) {
+
+    Set *states = NewSet();
+    Set *edges = NewSet();
+    
+    CollectStates(dfa.start, states, edges);
+    
+    // remove initial kludge edge (epsilon)
+    SetRemove(edges, dfa.start);
+    
+    // find edge range
+    int min = INT_MAX;
+    int max = INT_MIN;
+    SET_EACH(edges, Edge *, edge, {
+        int c = edge->sym;
+        if (c == SYM_ANY) {
+            // do nothing
+        } else {
+            min = c < min ? c : min;
+            max = c > max ? c : max;
+        }
+    });
+    const int range = max - min + 1;
+    
+    // map states to new indices
+    Map *lookup = NewMap();
+    int counter = 0;
+    SET_EACH(states, State *, state, {
+        void *value = (void *) (intptr_t) counter;
+        MapPut(lookup, state, value);
+        counter++;
+    });
+    
+    const int state_count = SetSize(states);
+    
+    // allocate and fill final table
+    int *final = malloc(state_count * sizeof(int));
+    SET_EACH(states, State *, state, {
+        int i = (int) (intptr_t) MapGet(lookup, state);
+        final[i] = state->final;
+    });
+    
+    // allocate and fill "any"" table
+    int *any = malloc(state_count * sizeof(int));
+    for (int i = 0; i < state_count; i++) {
+        any[i] = -1;
+    }
+    
+    // allocate and initialize transition table
+    int **trans = malloc(state_count * sizeof(int *));
+    for (int i = 0; i < state_count; i++) {
+        trans[i] = malloc(range * sizeof(int));
+        for (int k = 0; k < range; k++) {
+            trans[i][k] = -1;
+        }
+    }
+    
+    // fill transition table with proper values
+    SET_EACH(states, State *, state, {
+        int from = (int) (intptr_t) MapGet(lookup, state);
+        SET_EACH(state->out, Edge *, edge, {
+            int to = (int) (intptr_t) MapGet(lookup, edge->target);
+            int c = edge->sym;
+            if (c == SYM_ANY) {
+                for (int i = 0; i < range; i++) {
+                    if (trans[from][i] == -1) {
+                        trans[from][i] = to;
+                    }
+                }
+                any[from] = to;
+            } else {
+                trans[from][c - min] = to;
+            }
+        });
+    });
+    
+    int initial = (int) (intptr_t) MapGet(lookup, dfa.start->target);
+    
+    DeleteMap(lookup);
+    DeleteSet(states);
+    DeleteSet(edges);
+    
+    RegEx *cr = ALLOC(RegEx);
+    
+    cr->min     = min;
+    cr->max     = max;
+    cr->final   = final;
+    cr->any     = any;
+    cr->trans   = trans;
+    cr->initial = initial;
+    
+    return cr;
+}
+
+RegEx *RegExCompile(const char *regex) {
+    
+    Input in = { .regex = regex };
+    NFA nfa = Compile(&in);
+    nfa.end->final = 1;
+    
+    NFA dfa = NFAToDFA(nfa);
+    DeleteNFA(nfa);
+    
+    RegEx *cr = RegExFromDFA(dfa);
+    DeleteNFA(dfa);
+    
+    return cr;
+}
+
+int RegExMatchStreamNew(RegEx *cr, FILE *input) {
+
+    int cur = cr->initial;
+
+    fpos_t pos;
+    fgetpos(input, &pos);
+    int last_final = -1;
+
+    while (1) {
+        
+        if (cr->final[cur]) {
+            fgetpos(input, &pos);
+            last_final = cur;
+        }
+        
+        int c = fgetc(input);
+        if (c != EOF) {
+            
+            int next = -1;
+            if (c < cr->min || cr->max < c) {
+                next = cr->any[cur];
+            } else {
+                next = cr->trans[cur][c - cr->min];
+            }
+            
+            if (next != -1) {
+                cur = next;
+            } else {
+                break;
+            }
+            
+        } else {
+            break;
+        }
+    }
+
+    fsetpos(input, &pos);
+    return last_final != -1;
+}

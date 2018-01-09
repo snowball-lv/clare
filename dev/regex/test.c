@@ -4,6 +4,7 @@
 #include <helpers/Error.h>
 #include <mem/Mem.h>
 #include <assert.h>
+#include <collections/List.h>
 
 
 #define RULE_FILE   "../../dev/regex/lexer.rules"

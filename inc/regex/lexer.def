@@ -2,11 +2,41 @@
 
 
 static void Lex(FILE *input) {
+    
+    List *_regexes = NewList();
+    #define RULE(regex, action) {           \
+        RegEx *cr = RegExCompile(regex);    \
+        ListAdd(_regexes, cr);              \
+    }
+        #include RULE_FILE
+    #undef RULE
+    
     while (1) {
         
         long _old_pos;
         _old_pos = ftell(input);
         
+        // /*
+        int _counter = 0;
+        #define RULE(regex, action) {                   \
+            RegEx *cr = ListGet(_regexes, _counter);    \
+            _counter++;                                 \
+            if (RegExMatchStreamNew(cr, input)) {       \
+                long size = ftell(input) - _old_pos;    \
+                char *text = malloc(size + 1);          \
+                fseek(input, _old_pos, SEEK_SET);       \
+                fread(text, 1, size, input);            \
+                text[size] = 0;                         \
+                action;                                 \
+                free(text);                             \
+                goto FOOTER;                            \
+            }                                           \
+        }
+            #include RULE_FILE
+        #undef RULE
+        // */
+        
+        /*
         #define RULE(regex, action) {                   \
             if (RegExMatchStream(regex, input)) {       \
                 long size = ftell(input) - _old_pos;    \
@@ -21,13 +51,14 @@ static void Lex(FILE *input) {
         }
             #include RULE_FILE
         #undef RULE
+        */
         
         FOOTER:
         
         if (!feof(input)) {
             int c = fgetc(input);
             if (c == EOF) {
-                return;
+                break;
             } else {
                 ungetc(c, input);
             }
@@ -41,4 +72,9 @@ static void Lex(FILE *input) {
             ERROR("No rules matched.\n");
         }
     }
+    
+    LIST_EACH(_regexes, RegEx *, cr, {
+        MemFree(cr);
+    });
+    DeleteList(_regexes);
 }
