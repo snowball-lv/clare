@@ -872,6 +872,10 @@ static RegEx *RegExFromDFA(NFA dfa) {
     
     CollectStates(dfa.start, states, edges);
     
+    printf("--- dfa\n");
+    printf("states: %i\n", SetSize(states));
+    printf("edges: %i\n", SetSize(edges));
+    
     // remove initial kludge edge (epsilon)
     SetRemove(edges, dfa.start);
     
@@ -961,9 +965,23 @@ static RegEx *RegExFromDFA(NFA dfa) {
 
 RegEx *RegExCompile(const char *regex) {
     
+    printf("regex: %s\n", regex);
+    
     Input in = { .regex = regex };
     NFA nfa = Compile(&in);
     nfa.end->final = 1;
+    
+    Set *states = NewSet();
+    Set *edges = NewSet();
+    
+    CollectStates(nfa.start, states, edges);
+    
+    printf("--- nfa\n");
+    printf("states: %i\n", SetSize(states));
+    printf("edges: %i\n", SetSize(edges));
+    
+    DeleteSet(edges);
+    DeleteSet(states);
     
     NFA dfa = NFAToDFA(nfa);
     DeleteNFA(nfa);
