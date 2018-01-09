@@ -412,24 +412,24 @@ static void DeleteNFA(NFA nfa) {
     Set *edges = NewSet();
     CollectStates(nfa.start, states, edges);
     
-    printf("\n");
-    SET_EACH(states, State *, state, {
-        SET_EACH(state->out, Edge *, edge, {
-            printf("%i -> ", state->id);
-            switch (edge->sym) {
-                case SYM_FAKE:  printf("[fake]");           break;
-                case SYM_E:     printf("[e]");              break;
-                case SYM_ANY:   printf("[any]");            break;
-                default:        printf("[%c]", edge->sym);  break;
-            }
-            Set *c = Closure(state, edge->sym);
-            SET_EACH(c, State *, s, {
-                printf(" %i", s->id);
-            });
-            DeleteSet(c);
-            printf("\n");
-        });
-    });
+    // printf("\n");
+    // SET_EACH(states, State *, state, {
+    //     SET_EACH(state->out, Edge *, edge, {
+    //         printf("%i -> ", state->id);
+    //         switch (edge->sym) {
+    //             case SYM_FAKE:  printf("[fake]");           break;
+    //             case SYM_E:     printf("[e]");              break;
+    //             case SYM_ANY:   printf("[any]");            break;
+    //             default:        printf("[%c]", edge->sym);  break;
+    //         }
+    //         Set *c = Closure(state, edge->sym);
+    //         SET_EACH(c, State *, s, {
+    //             printf(" %i", s->id);
+    //         });
+    //         DeleteSet(c);
+    //         printf("\n");
+    //     });
+    // });
     
     SET_EACH(states, State *, state, {
         DeleteSet(state->out);
@@ -626,7 +626,7 @@ static NFA NFAToDFA(NFA nfa) {
     List *state_sets = NewList();
     ListAdd(state_sets, S_set); 
     
-    printf("\n");
+    // printf("\n");
     int i = 0;
     while (i < ListSize(state_sets)) {
         
@@ -649,7 +649,7 @@ static NFA NFAToDFA(NFA nfa) {
             Set *set = DFAEdge(state_set, edge->sym);
             State *dfa_target = GetState(map, set);
             
-            LogTransition(state_set, edge, set);
+            // LogTransition(state_set, edge, set);
             
             if (dfa_target == 0) {
             
@@ -691,19 +691,147 @@ static NFA NFAToDFA(NFA nfa) {
 }
 
 static int MatchDFA(NFA dfa, FILE *input) {
-    UNUSED(dfa);
-    UNUSED(input);
     
-    while (fgetc(input) != EOF);
-    return 1;
+    #define printf(...)
+    
+    Set *states = NewSet();
+    Set *edges = NewSet();
+    
+    CollectStates(dfa.start, states, edges);
+    
+    // remove initial kludge edge (epsilon)
+    SetRemove(edges, dfa.start);
+    
+    int min = INT_MAX;
+    int max = INT_MIN;
+    printf("\n");
+    SET_EACH(edges, Edge *, edge, {
+        int c = edge->sym;
+        if (c == SYM_ANY) {
+            printf("[any]\n");
+        } else {
+            printf("%c\n", (char) c);
+            min = c < min ? c : min;
+            max = c > max ? c : max;
+        }
+    });
+    
+    const int range = max - min + 1;
+    printf("range: %i\n", range);
+    for (int i = 0; i < range; i++) {
+        UNUSED(i);
+        printf("%c ", (char)(min + i));
+    }
+    printf("\n");
+    
+    Map *lookup = NewMap();
+    int counter = 0;
+    SET_EACH(states, State *, state, {
+        void *value = (void *) (intptr_t) counter;
+        MapPut(lookup, state, value);
+        counter++;
+    });
+    
+    printf("\n");
+    SET_EACH(states, State *, state, {
+        int i = (int) (intptr_t) MapGet(lookup, state);
+        UNUSED(i);
+        printf("%i == %i\n", state->id, i);
+    });
+    
+    const int state_count = SetSize(states);
+    
+    int *final = malloc(state_count * sizeof(int));
+    SET_EACH(states, State *, state, {
+        int i = (int) (intptr_t) MapGet(lookup, state);
+        final[i] = state->final;
+    });
+    
+    int *any = malloc(state_count * sizeof(int));
+    for (int i = 0; i < state_count; i++) {
+        any[i] = -1;
+    }
+    
+    int **trans = malloc(state_count * sizeof(int *));
+    for (int i = 0; i < state_count; i++) {
+        trans[i] = malloc(range * sizeof(int));
+        for (int k = 0; k < range; k++) {
+            trans[i][k] = -1;
+        }
+    }
+    
+    printf("\n");
+    SET_EACH(states, State *, state, {
+        int from = (int) (intptr_t) MapGet(lookup, state);
+        SET_EACH(state->out, Edge *, edge, {
+            int to = (int) (intptr_t) MapGet(lookup, edge->target);
+            printf("%i -> %i\n", from, to);
+            
+            int c = edge->sym;
+            if (c == SYM_ANY) {
+                for (int i = 0; i < range; i++) {
+                    if (trans[from][i] == -1) {
+                        trans[from][i] = to;
+                    }
+                }
+                any[from] = to;
+            } else {
+                trans[from][c - min] = to;
+            }
+        });
+    });
+    
+    int cur = (int) (intptr_t) MapGet(lookup, dfa.start->target);
+    
+    DeleteMap(lookup);
+    DeleteSet(states);
+    DeleteSet(edges);
+    
+    // the actual matching
+    fpos_t pos;
+    fgetpos(input, &pos);
+    int last_final = -1;
+
+    while (1) {
+        
+        if (final[cur]) {
+            fgetpos(input, &pos);
+            last_final = cur;
+        }
+        
+        int c = fgetc(input);
+        if (c != EOF) {
+            
+            int next = -1;
+            if (c < min || max < c) {
+                next = any[cur];
+            } else {
+                next = trans[cur][c - min];
+            }
+            
+            if (next != -1) {
+                cur = next;
+            } else {
+                break;
+            }
+            
+        } else {
+            break;
+        }
+    }
+    
+    fsetpos(input, &pos);
+    return last_final != -1;
+    
+    #undef printf
 }
 
 int RegExMatchStream(const char *regex, FILE *input) {
     
     UNUSED(input);
     
-    printf("\n");
-    printf("--- %s\n", regex);
+    // printf("\n");
+    // printf("--- %s\n", regex);
     Input in = { .regex = regex };
     NFA nfa = Compile(&in);
     nfa.end->final = 1;
