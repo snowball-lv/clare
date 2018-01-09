@@ -596,7 +596,7 @@ static int IsSetFinal(Set *set) {
     return final;
 }
 
-static void LogTransition(Set *from, Edge *edge, Set *to) {
+void LogTransition(Set *from, Edge *edge, Set *to) {
     SET_EACH(from, State *, state, {
         printf("%i ", state->id);
     });
@@ -635,7 +635,16 @@ static NFA NFAToDFA(NFA nfa) {
         ASSERT(dfa_state != 0);
         
         Set *all_edges = AllEdges(state_set);
+        Set *syms = NewSet();
+        
         SET_EACH(all_edges, Edge *, edge, {
+            
+            void *key = (void *) (intptr_t) edge->sym;
+            if (SetContains(syms, key)) {
+                continue;
+            } else {
+                SetAdd(syms, key);
+            }
             
             Set *set = DFAEdge(state_set, edge->sym);
             State *dfa_target = GetState(map, set);
@@ -643,10 +652,12 @@ static NFA NFAToDFA(NFA nfa) {
             LogTransition(state_set, edge, set);
             
             if (dfa_target == 0) {
+            
                 dfa_target = EmptyState();
                 dfa_target->final = IsSetFinal(set);
                 MapPut(map, set, dfa_target);
                 ListAdd(state_sets, set);
+                
             } else {
                 DeleteSet(set);
             }
@@ -657,6 +668,7 @@ static NFA NFAToDFA(NFA nfa) {
             SetAdd(dfa_state->out, e);
         });
         
+        DeleteSet(syms);
         DeleteSet(all_edges);
         i++;
     }
@@ -678,6 +690,14 @@ static NFA NFAToDFA(NFA nfa) {
     return dfa;
 }
 
+static int MatchDFA(NFA dfa, FILE *input) {
+    UNUSED(dfa);
+    UNUSED(input);
+    
+    while (fgetc(input) != EOF);
+    return 1;
+}
+
 int RegExMatchStream(const char *regex, FILE *input) {
     
     UNUSED(input);
@@ -687,7 +707,7 @@ int RegExMatchStream(const char *regex, FILE *input) {
     Input in = { .regex = regex };
     NFA nfa = Compile(&in);
     nfa.end->final = 1;
-    printf("--- NFA\n");
+    // printf("--- NFA\n");
     // PrintNFA(nfa);
     
     char nfa_name[128];
@@ -696,17 +716,15 @@ int RegExMatchStream(const char *regex, FILE *input) {
     DumpNFA(regex, nfa_name, nfa);
     
     NFA dfa = NFAToDFA(nfa);
+    DeleteNFA(nfa);
     
     char dfa_name[128];
     // sprintf(dfa_name, "r-%s.dfa.dot", regex);
     sprintf(dfa_name, "regex.dfa.dot");
     DumpNFA(regex, dfa_name, dfa);
     
+    int match = MatchDFA(dfa, input);
     DeleteNFA(dfa);
-    DeleteNFA(nfa);
     
-    while (fgetc(input) != EOF);
-    return 1;
-
-    // return 0;
+    return match;
 }
