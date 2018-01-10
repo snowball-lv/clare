@@ -14,3 +14,5 @@ size_t MemAllocationSize();
 
 void MemEnableRecycling();
 void MemDisableRecycling();
+
+size_t MemMaxSize();
