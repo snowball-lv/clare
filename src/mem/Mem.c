@@ -31,9 +31,9 @@ void *MemAlloc(size_t size) {
     *ptr = size;
 
     allocations++;
-    allocation_size += size;
+    allocation_size += size + sizeof(size_t);
     
-    current_size += size;
+    current_size += size + sizeof(size_t);
     max_size = current_size > max_size ? current_size : max_size;
 
     return ptr + 1;
@@ -43,7 +43,7 @@ void MemFree(void *ptr) {
     size_t *rptr = (size_t *) ptr - 1;
     
     size_t size = *rptr;
-    current_size -= size;
+    current_size = (current_size - size) - sizeof(size_t);
     
     free(rptr);
     Remove(rptr);
