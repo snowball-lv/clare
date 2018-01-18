@@ -9,6 +9,7 @@
 #include <collections/List.h>
 #include <mem/Mem.h>
 
+#define printf(...)
 
 enum {
     #define TOK(name)   T_ ## name,

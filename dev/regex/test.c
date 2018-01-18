@@ -20,10 +20,10 @@ int main(int argc, char **argv) {
     Lex(file);
     fclose(file);
     
-    printf("\n");
-    printf("allocations: %zu\n", MemAllocations());
-    printf("allocation size: %zu\n", MemAllocationSize());
-    printf("max size: %zu\n", MemMaxSize());
+    // printf("\n");
+    // printf("allocations: %zu\n", MemAllocations());
+    // printf("allocation size: %zu\n", MemAllocationSize());
+    // printf("max size: %zu\n", MemMaxSize());
     
     assert(MemEmpty());
     return 0;
