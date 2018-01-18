@@ -3,13 +3,6 @@
 require "fileutils"
 
 
-NAME = "clare"
-
-SRCS = FileList["cli/**/*.c"]
-DEPS = SRCS.pathmap("deps/%X.deps")
-OBJS = SRCS.pathmap("out/%X.o")
-BIN = "bin/#{NAME}"
-
 CFLAGS = [
     "-c",
     "-I inc",
@@ -25,20 +18,29 @@ LFLAGS = [
     "-l clare"
 ]
 
-SRCS.zip(DEPS, OBJS).each do |src, dep, obj|
+FileList["cli/*"].each do |dir|
+
+    name = File.basename(dir)
+    srcs = FileList["cli/#{name}/**/*.c"]
+    deps = srcs.pathmap("deps/%X.deps")
+    objs = srcs.pathmap("out/%X.o")
+    bin = "bin/#{name}"
     
-    raise "Missing dependency file: #{dep}" unless File.exist?(dep)
-    deps = File.read(dep).split(/\s+/)
-    
-    directory(File.dirname(obj))
-    file(obj => deps + [File.dirname(obj)]) do
-        sh "gcc #{CFLAGS.join(" ")} #{src} -o #{obj}"
+    srcs.zip(deps, objs).each do |src, dep, obj|
+        
+        raise "Missing dependency file: #{dep}" unless File.exist?(dep)
+        deps = File.read(dep).split(/\s+/)
+        
+        directory(File.dirname(obj))
+        file(obj => deps + [File.dirname(obj)]) do
+            sh "gcc #{CFLAGS.join(" ")} #{src} -o #{obj}"
+        end
     end
+    
+    directory File.dirname(bin)
+    file bin => objs + [File.dirname(bin)] do
+        sh "gcc #{LFLAGS.join(" ")} #{objs.join(" ")} -o #{bin}"
+    end
+    
+    task :default => bin
 end
-
-directory File.dirname(BIN)
-file BIN => OBJS + [File.dirname(BIN)] do
-    sh "gcc #{LFLAGS.join(" ")} #{OBJS.join(" ")} -o #{BIN}"
-end
-
-task :default => BIN
