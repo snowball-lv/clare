@@ -1,7 +1,7 @@
-#include <color/RIG.h>
+#include <clare/color/RIG.h>
 
-#include <mem/Mem.h>
-#include <collections/Graph.h>
+#include <clare/mem/Mem.h>
+#include <clare/collections/Graph.h>
 
 #include <assert.h>
 

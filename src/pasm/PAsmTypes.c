@@ -1,7 +1,7 @@
-#include <pasm/PAsmTypes.h>
+#include <clare/pasm/PAsmTypes.h>
 
 
-#include <mem/Mem.h>
+#include <clare/mem/Mem.h>
 
 
 PAsmFunction *NewPAsmFunction() {

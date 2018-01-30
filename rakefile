@@ -6,14 +6,34 @@ require "fileutils"
 task :default do
     sh "rake -f rakefile-deps"
     sh "rake -f rakefile-so"
-    sh "rake -f rakefile-test"
-    sh "rake -f rakefile-cli"
-    sh "rake -f rakefile-test-cli"
+    # sh "rake -f rakefile-test"
+    # sh "rake -f rakefile-cli"
+    # sh "rake -f rakefile-test-cli"
+    
+    # build frontends
+    Dir["frontends/*"].each do |dir|
+        puts
+        puts "--- #{dir}:"
+        Dir.chdir(dir) do
+            sh "rake"
+        end
+    end
 end
 
 task :clean do
+    
     FileUtils.rm_rf("out")
     FileUtils.rm_rf("bin")
     FileUtils.rm_rf("deps")
     FileUtils.rm_rf(Dir["*.exe.stackdump"])
+    
+    # clean frontends
+    Dir["frontends/*"].each do |dir|
+        puts
+        puts "--- #{dir}:"
+        Dir.chdir(dir) do
+            sh "rake clean"
+        end
+    end
+    
 end

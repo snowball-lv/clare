@@ -1,8 +1,8 @@
-#include <collections/Graph.h>
+#include <clare/collections/Graph.h>
 
-#include <mem/Mem.h>
-#include <collections/Map.h>
-#include <collections/Set.h>
+#include <clare/mem/Mem.h>
+#include <clare/collections/Map.h>
+#include <clare/collections/Set.h>
 
 #include <assert.h>
 

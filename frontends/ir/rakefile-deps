@@ -4,14 +4,12 @@ require "fileutils"
 
 
 SRCS = FileList[
-    "src/**/*.c",
-    "dev/**/*.c",
-    "cli/**/*.c"
+    "src/**/*.c"
 ]
 DEPS = SRCS.pathmap("deps/%X.deps")
 
 CFLAGS = [
-    "-I inc/clare",
+    "-I inc",
 ]
 
 SRCS.zip(DEPS).each do |src, dep|

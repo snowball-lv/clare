@@ -1,4 +1,4 @@
-#include <helpers/Strings.h>
+#include <clare/helpers/Strings.h>
 
 #include <stddef.h>
 #include <stdarg.h>
@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdio.h>
 
-#include <mem/Mem.h>
+#include <clare/mem/Mem.h>
 
 const char *ToString(const char *format, ...) {
     va_list args;

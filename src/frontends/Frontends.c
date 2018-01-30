@@ -1,11 +1,11 @@
-#include <frontends/Frontends.h>
-#include <helpers/Unused.h>
+#include <clare/frontends/Frontends.h>
+#include <clare/helpers/Unused.h>
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <frontends/clare-ir/clare-ir.h>
+#include <clare/frontends/clare-ir/clare-ir.h>
 
 Frontend *GetFrontend(const char *name) {
     

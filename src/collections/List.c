@@ -1,7 +1,7 @@
-#include <collections/List.h>
+#include <clare/collections/List.h>
 
-#include <mem/Mem.h>
-#include <helpers/Unused.h>
+#include <clare/mem/Mem.h>
+#include <clare/helpers/Unused.h>
 
 #include <assert.h>
 #include <stdarg.h>

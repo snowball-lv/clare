@@ -1,11 +1,11 @@
-#include <backends/Backends.h>
-#include <helpers/Unused.h>
+#include <clare/backends/Backends.h>
+#include <clare/helpers/Unused.h>
 
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-#include <backends/i386/i386.h>
+#include <clare/backends/i386/i386.h>
 
 Backend *GetBackend(const char *name) {
     

@@ -1,9 +1,9 @@
-#include <frontends/clare-ir/clare-ir.h>
+#include <clare/frontends/clare-ir/clare-ir.h>
 
-#include <helpers/Unused.h>
-#include <helpers/Error.h>
-#include <ir/IR.h>
-#include <collections/Map.h>
+#include <clare/helpers/Unused.h>
+#include <clare/helpers/Error.h>
+#include <clare/ir/IR.h>
+#include <clare/collections/Map.h>
 
 #include <ctype.h>
 #include <string.h>

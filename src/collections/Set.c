@@ -1,7 +1,7 @@
-#include <collections/Set.h>
+#include <clare/collections/Set.h>
 
-#include <mem/Mem.h>
-#include <collections/List.h>
+#include <clare/mem/Mem.h>
+#include <clare/collections/List.h>
 
 struct Set {
     List *list;

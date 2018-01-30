@@ -1,13 +1,13 @@
-#include <regex/RegEx.h>
+#include <clare/regex/RegEx.h>
 
-#include <helpers/Unused.h>
-#include <helpers/Error.h>
+#include <clare/helpers/Unused.h>
+#include <clare/helpers/Error.h>
 #include <stdlib.h>
 #include <limits.h>
-#include <collections/Set.h>
-#include <collections/Map.h>
-#include <collections/List.h>
-#include <mem/Mem.h>
+#include <clare/collections/Set.h>
+#include <clare/collections/Map.h>
+#include <clare/collections/List.h>
+#include <clare/mem/Mem.h>
 
 #define printf(...)
 

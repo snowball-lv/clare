@@ -1,13 +1,13 @@
-#include <pasm/PAsm.h>
+#include <clare/pasm/PAsm.h>
 
-#include <helpers/Unused.h>
-#include <helpers/Error.h>
-#include <collections/List.h>
-#include <collections/Graph.h>
-#include <collections/Map.h>
-#include <color/RIG.h>
-#include <color/Coloring.h>
-#include <backend/Backend.h>
+#include <clare/helpers/Unused.h>
+#include <clare/helpers/Error.h>
+#include <clare/collections/List.h>
+#include <clare/collections/Graph.h>
+#include <clare/collections/Map.h>
+#include <clare/color/RIG.h>
+#include <clare/color/Coloring.h>
+#include <clare/backend/Backend.h>
 
 #include <string.h>
 #include <stdio.h>

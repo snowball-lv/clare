@@ -1,9 +1,9 @@
-#include <ir/IR.h>
+#include <clare/ir/IR.h>
 
-#include <helpers/Unused.h>
-#include <helpers/Error.h>
-#include <collections/Set.h>
-#include <collections/Map.h>
+#include <clare/helpers/Unused.h>
+#include <clare/helpers/Error.h>
+#include <clare/collections/Set.h>
+#include <clare/collections/Map.h>
 
 #include <assert.h>
 #include <stdio.h>
@@ -62,7 +62,7 @@ static Node *_ ## name params {                     \
     init;                                           \
     return self;                                    \
 }
-    #include <ir/nodes.def>
+#include <clare/ir/nodes.def>
 #undef NODE
 
 _Nodes IR = {
@@ -70,14 +70,14 @@ _Nodes IR = {
     .dummy = 0,    
     
     #define NODE(name, params, init)    .name = _ ## name,
-        #include <ir/nodes.def>
+#include <clare/ir/nodes.def>
     #undef NODE
 };
 
 const char *NodeName(Node *node) {
     switch (node->type) {
         #define NODE(name, params, init) case NT(name): return #name;
-            #include <ir/nodes.def>
+#include <clare/ir/nodes.def>
         #undef NODE
     }
     assert(0 && "Unknown node type");
@@ -162,8 +162,8 @@ void IRFunctionSetBody(IRFunction *func, Node *body) {
 }
 
 #define MANGLE(name)    IRPrinter ## name
-#define RULE_FILE       <ir/printer.rules>
-    #include <ir/muncher.def>
+#define RULE_FILE       <clare/ir/printer.rules>
+#include <clare/ir/muncher.def>
 #undef RULE_FILE
 #undef MANGLE
 

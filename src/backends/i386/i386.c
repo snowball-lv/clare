@@ -1,9 +1,9 @@
-#include <backends/i386/i386.h>
+#include <clare/backends/i386/i386.h>
 
-#include <helpers/Unused.h>
-#include <helpers/Error.h>
-#include <pasm/PAsm.h>
-#include <helpers/Unused.h>
+#include <clare/helpers/Unused.h>
+#include <clare/helpers/Error.h>
+#include <clare/pasm/PAsm.h>
+#include <clare/helpers/Unused.h>
 
 #include <stdio.h>
 #include <assert.h>
@@ -108,12 +108,12 @@ static void _Deinit() {
 }
 
 #define MANGLE(name)    i386_text_ ## name
-#define RULE_FILE       <backends/i386/i386.text.rules>
+#define RULE_FILE       <clare/backends/i386/i386.text.rules>
 #define RET_TYPE        PAsmVReg *
 #define RET_DEFAULT     0
 #define STATE_T         MunchState *
 #define EMIT(op)        ListAdd(state->ops, op)
-    #include <ir/muncher.def>
+#include <clare/ir/muncher.def>
 #undef EMIT
 #undef STATE_T
 #undef RET_DEFAULT

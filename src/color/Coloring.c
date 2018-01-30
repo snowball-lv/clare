@@ -1,8 +1,8 @@
-#include <color/Coloring.h>
+#include <clare/color/Coloring.h>
 
-#include <mem/Mem.h>
-#include <collections/Set.h>
-#include <color/RIG.h>
+#include <clare/mem/Mem.h>
+#include <clare/collections/Set.h>
+#include <clare/color/RIG.h>
 
 #include <assert.h>
 #include <limits.h>

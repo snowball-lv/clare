@@ -1,4 +1,4 @@
-#include <dummy/dummy.h>
+#include <clare/dummy/dummy.h>
 
 #include <stdio.h>
 #include <string.h>

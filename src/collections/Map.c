@@ -1,9 +1,9 @@
-#include <collections/Map.h>
+#include <clare/collections/Map.h>
 
-#include <mem/Mem.h>
-#include <helpers/Error.h>
-#include <collections/List.h>
-#include <collections/Set.h>
+#include <clare/mem/Mem.h>
+#include <clare/helpers/Error.h>
+#include <clare/collections/List.h>
+#include <clare/collections/Set.h>
 
 #include <assert.h>
 #include <string.h>
