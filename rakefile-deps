@@ -11,7 +11,7 @@ SRCS = FileList[
 DEPS = SRCS.pathmap("deps/%X.deps")
 
 CFLAGS = [
-    "-I inc/clare",
+    "-I inc",
 ]
 
 SRCS.zip(DEPS).each do |src, dep|

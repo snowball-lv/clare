@@ -18,12 +18,15 @@ CFLAGS = [
     "-Wextra",
     "-Wpedantic",
     "-Werror",
-    "-I ../../inc"
+    "-I ../../inc",
+    "-I ../../backends/i386/inc"
 ]
 
 LFLAGS = [
     "-L ../../bin",
-    "-l clare"
+    "-l clare",
+    "-L ../../backends/i386/bin",
+    "-l i386"
 ]
 
 SRCS.zip(DEPS, OBJS).each do |src, dep, obj|

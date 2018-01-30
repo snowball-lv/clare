@@ -1,4 +1,4 @@
-#include <clare/frontends/clare-ir/clare-ir.h>
+#include <clare-ir.h>
 
 #include <clare/helpers/Unused.h>
 #include <clare/helpers/Error.h>

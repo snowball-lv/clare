@@ -1,4 +1,4 @@
-#include <clare/backends/i386/i386.h>
+#include <i386.h>
 
 #include <clare/helpers/Unused.h>
 #include <clare/helpers/Error.h>
@@ -108,12 +108,12 @@ static void _Deinit() {
 }
 
 #define MANGLE(name)    i386_text_ ## name
-#define RULE_FILE       <clare/backends/i386/i386.text.rules>
+#define RULE_FILE       <i386.text.rules>
 #define RET_TYPE        PAsmVReg *
 #define RET_DEFAULT     0
 #define STATE_T         MunchState *
 #define EMIT(op)        ListAdd(state->ops, op)
-#include <clare/ir/muncher.def>
+    #include <clare/ir/muncher.def>
 #undef EMIT
 #undef STATE_T
 #undef RET_DEFAULT

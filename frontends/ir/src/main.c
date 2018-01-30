@@ -11,8 +11,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include <clare/frontends/Frontends.h>
-#include <clare/backends/Backends.h>
+#include <clare/frontend/Frontend.h>
+#include <clare/backend/Backend.h>
+#include <clare-ir.h>
+#include <i386.h>
 
 
 static void run_compiler(Args *args);
@@ -66,6 +68,20 @@ static void compile_file(   FILE *src,
                             Frontend *frontend, 
                             Backend *backend,
                             FILE *out);
+
+static Frontend *GetFrontend(const char *name) {
+    if (strcmp(name, "clare-ir") == 0) {
+        return &clare_IR_Frontend;
+    }
+    return 0;
+}
+
+static Backend *GetBackend(const char *name) {
+    if (strcmp(name, "i386") == 0) {
+        return &i386_Backend;
+    }
+    return 0;
+}
 
 static void run_compiler(Args *args) {
     
