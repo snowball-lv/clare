@@ -9,8 +9,6 @@ task :default do
     sh "rake -f rakefile-test"
     sh "rake -f rakefile-frontends"
     sh "rake -f rakefile-copy"
-    # sh "rake -f rakefile-cli"
-    # sh "rake -f rakefile-test-cli"
 end
 
 task :clean do
