@@ -1,20 +1,22 @@
 
 
 
-FileList["frontends/*"].each do |fdir|
-    fname = File.basename(fdir)
-    FileList["frontends/#{fname}/bin/*"].each do |entry|
-        
-        name = File.basename(entry)
-        src = File.join("frontends", fname, "bin", name)
-        dst = File.join("bin", name)
-        
-        file(dst => src) do
-        puts "#{src} ---> #{dst}"
-            FileUtils.copy(src, dst)
+["backends", "frontends"].each do |e|
+    FileList["#{e}/*"].each do |proj_dir|
+        proj_name = File.basename(proj_dir)
+        FileList["#{e}/#{proj_name}/bin/*"].each do |entry|
+            
+            name = File.basename(entry)
+            src = File.join("#{e}", proj_name, "bin", name)
+            dst = File.join("bin", name)
+            
+            file(dst => src) do
+            puts "#{src} ---> #{dst}"
+                FileUtils.copy(src, dst)
+            end
+            task :default => dst
+            
         end
-        task :default => dst
-        
     end
 end
 

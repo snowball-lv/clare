@@ -1,0 +1,32 @@
+
+
+require "fileutils"
+
+
+task :default do
+    
+    # build backends & frontends
+    ["backends", "frontends"].each do |e|
+        Dir["#{e}/*"].each do |dir|
+            puts
+            puts "--- #{dir}:"
+            Dir.chdir(dir) do
+                sh "rake"
+            end
+        end
+    end
+end
+
+task :clean do
+    
+    # clean backends & frontends
+    ["backends", "frontends"].each do |e|
+        Dir["#{e}/*"].each do |dir|
+            puts
+            puts "--- #{dir}:"
+            Dir.chdir(dir) do
+                sh "rake clean"
+            end
+        end
+    end
+end

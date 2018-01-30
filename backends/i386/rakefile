@@ -6,19 +6,11 @@ require "fileutils"
 task :default do
     sh "rake -f rakefile-deps"
     sh "rake -f rakefile-so"
-    sh "rake -f rakefile-test"
-    sh "rake -f rakefile-ends"
-    puts
-    sh "rake -f rakefile-copy"
 end
 
 task :clean do
-    
     FileUtils.rm_rf("out")
     FileUtils.rm_rf("bin")
     FileUtils.rm_rf("deps")
     FileUtils.rm_rf(Dir["*.exe.stackdump"])
-    
-    # clean frontends
-    sh "rake -f rakefile-ends clean"
 end
