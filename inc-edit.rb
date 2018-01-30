@@ -3,6 +3,9 @@
 require "fileutils"
 
 
+raise "You don't want to do this"
+
+
 Dir["dev/**/*.c"].each do |path|
     
     puts
