@@ -22,7 +22,8 @@ CFLAGS = [
 ]
 
 LFLAGS = [
-    # "-shared"
+    "-L ../../bin",
+    "-l clare"
 ]
 
 SRCS.zip(DEPS, OBJS).each do |src, dep, obj|

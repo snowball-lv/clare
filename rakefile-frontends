@@ -1,0 +1,31 @@
+
+
+require "fileutils"
+
+
+task :default do
+    
+    # build frontends
+    Dir["frontends/*"].each do |dir|
+        puts
+        puts "--- #{dir}:"
+        Dir.chdir(dir) do
+            sh "rake"
+        end
+    end
+    
+    # copy frontend bins to /bin
+    FileUtils.copy(Dir["frontends/*/bin/*"], "bin/")
+end
+
+task :clean do
+    
+    # clean frontends
+    Dir["frontends/*"].each do |dir|
+        puts
+        puts "--- #{dir}:"
+        Dir.chdir(dir) do
+            sh "rake clean"
+        end
+    end
+end
