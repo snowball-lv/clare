@@ -1,8 +1,8 @@
 #include <assert.h>
 
-#include <mem/Mem.h>
-#include <collections/List.h>
-#include <helpers/Unused.h>
+#include <clare/mem/Mem.h>
+#include <clare/collections/List.h>
+#include <clare/helpers/Unused.h>
 
 int main() {
     assert(MemEmpty());

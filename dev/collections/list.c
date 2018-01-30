@@ -1,7 +1,7 @@
 #include <assert.h>
 
-#include <mem/Mem.h>
-#include <collections/List.h>
+#include <clare/mem/Mem.h>
+#include <clare/collections/List.h>
 
 int main() {
 

@@ -1,6 +1,6 @@
 #include <assert.h>
 
-#include <mem/Mem.h>
+#include <clare/mem/Mem.h>
 
 int main() {
     assert(MemEmpty());

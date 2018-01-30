@@ -1,11 +1,11 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include <mem/Mem.h>
-#include <color/RIG.h>
-#include <color/Coloring.h>
-#include <collections/Set.h>
-#include <collections/Map.h>
+#include <clare/mem/Mem.h>
+#include <clare/color/RIG.h>
+#include <clare/color/Coloring.h>
+#include <clare/collections/Set.h>
+#include <clare/collections/Map.h>
 
 int main() {
 

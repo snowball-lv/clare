@@ -1,14 +1,14 @@
-#include <helpers/Unused.h>
-#include <regex/RegEx.h>
+#include <clare/helpers/Unused.h>
+#include <clare/regex/RegEx.h>
 #include <stdio.h>
-#include <helpers/Error.h>
-#include <mem/Mem.h>
+#include <clare/helpers/Error.h>
+#include <clare/mem/Mem.h>
 #include <assert.h>
-#include <collections/List.h>
+#include <clare/collections/List.h>
 
 
-#define RULE_FILE   "../../dev/regex/lexer.rules"
-    #include <regex/lexer.def>
+#define RULE_FILE   "../../../dev/regex/lexer.rules"
+#include <clare/regex/lexer.def>
 #undef RULE_FILE
 
 int main(int argc, char **argv) {

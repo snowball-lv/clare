@@ -3,7 +3,7 @@
 require "fileutils"
 
 
-Dir["inc/**/*.h", "src/**/*.c"].each do |path|
+Dir["dev/**/*.c"].each do |path|
     
     puts
     puts path

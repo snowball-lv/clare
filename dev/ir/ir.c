@@ -1,8 +1,8 @@
 #include <assert.h>
 
-#include <mem/Mem.h>
-#include <helpers/Types.h>
-#include <helpers/Unused.h>
+#include <clare/mem/Mem.h>
+#include <clare/helpers/Types.h>
+#include <clare/helpers/Unused.h>
 
 #include <stdio.h>
 #include <stdint.h>
