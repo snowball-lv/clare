@@ -13,9 +13,6 @@ task :default do
             sh "rake"
         end
     end
-    
-    # copy frontend bins to /bin
-    FileUtils.copy(Dir["frontends/*/bin/*"], "bin/")
 end
 
 task :clean do
