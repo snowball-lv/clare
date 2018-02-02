@@ -9,17 +9,23 @@ static int _lexer_line_counter = 1;
 
 %option noyywrap 
 
-ID      [a-zA-Z_][0-9a-zA-Z_]*
+ID          [a-zA-Z_][0-9a-zA-Z_]*
+INTEGER     [0-9]+
 
 %%
 
 [\r\t ]         ; // ignore
 :               { return COLON; }
+\+              { return PLUS; }
+\(              { return L_PAREN; }
+\)              { return R_PAREN; }
 function        { return FUNCTION; }
 params          { return PARAMS; }
 body            { return BODY; }
 end             { return END; }
+return          { return RETURN; }
 int             { return TYPE_INT; }
+{INTEGER}       { yylval.ival = atoi(yytext); return INT; }
 {ID}            { yylval.str = copy_string(yytext); return ID; }
 \n              { _lexer_line_counter++; }
 .               { printf("Caught: [%s]\n", yytext); exit(-1); }

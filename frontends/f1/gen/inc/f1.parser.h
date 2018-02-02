@@ -51,7 +51,12 @@ extern int yydebug;
     END = 261,
     TYPE_INT = 262,
     PARAMS = 263,
-    BODY = 264
+    BODY = 264,
+    RETURN = 265,
+    PLUS = 266,
+    L_PAREN = 267,
+    R_PAREN = 268,
+    INT = 269
   };
 #endif
 
@@ -63,8 +68,9 @@ union YYSTYPE
 #line 11 "f1.y" /* yacc.c:1909  */
 
     const char *str;
+    int ival;
 
-#line 68 "gen/inc/f1.parser.h" /* yacc.c:1909  */
+#line 74 "gen/inc/f1.parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

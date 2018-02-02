@@ -6,12 +6,12 @@ params
     x: int
     y: int
 body
-    return x + y
+    return x + (y)
 end
 
 
 function main : int
 body
-    return sum(1, 2)
+    return 0x
 end
 

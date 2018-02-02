@@ -10,6 +10,7 @@ extern FILE *yyin;
 
 %union {
     const char *str;
+    int ival;
 }
 
 %token FUNCTION
@@ -19,6 +20,10 @@ extern FILE *yyin;
 %token TYPE_INT
 %token PARAMS
 %token BODY
+%token RETURN
+%token PLUS
+%token L_PAREN R_PAREN
+%token INT
 
 %%
 module
@@ -45,7 +50,31 @@ param_decls
     ;
     
 function_body
-    : BODY
+    : BODY stm_list
+    ;
+    
+stm_list
+    : stm stm_list
+    | // nothing
+    ;
+    
+stm
+    : RETURN exp
+    ;
+    
+exp
+    : exp PLUS term
+    | term
+    ;
+    
+term
+    : factor
+    ;
+    
+factor
+    : ID
+    | L_PAREN exp R_PAREN
+    | INT
     ;
     
 type
