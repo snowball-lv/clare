@@ -1,0 +1,24 @@
+
+
+LEXER_SPEC = "f1.l"
+PARSER_SPEC = "f1.y"
+
+LEXER_C = "gen/src/f1.lexer.c"
+PARSER_H = "gen/inc/f1.parser.h"
+PARSER_C = "gen/src/f1.parser.c"
+
+GEN_H = File.dirname(PARSER_H)
+GEN_C = File.dirname(PARSER_C)
+
+directory GEN_H
+directory GEN_C
+
+file PARSER_H => [PARSER_SPEC, GEN_H, GEN_C] do
+    sh "bison -d -o #{PARSER_C} --defines=#{PARSER_H} #{PARSER_SPEC}"
+end
+
+file LEXER_C => [LEXER_SPEC, PARSER_H, GEN_C] do
+    sh "flex -o #{LEXER_C} #{LEXER_SPEC}"
+end
+
+task :default => LEXER_C

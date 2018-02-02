@@ -4,6 +4,7 @@ require "fileutils"
 
 
 task :default do
+    sh "rake -f rakefile-flex-bison"
     sh "rake -f rakefile-deps"
     sh "rake -f rakefile-bin"
 end
@@ -12,5 +13,6 @@ task :clean do
     FileUtils.rm_rf("out")
     FileUtils.rm_rf("bin")
     FileUtils.rm_rf("deps")
+    FileUtils.rm_rf("gen")
     FileUtils.rm_rf(Dir["*.exe.stackdump"])
 end

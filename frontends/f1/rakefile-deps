@@ -4,12 +4,14 @@ require "fileutils"
 
 
 SRCS = FileList[
-    "src/**/*.c"
+    "src/**/*.c",
+    "gen/**/*.c",
 ]
 DEPS = SRCS.pathmap("deps/%X.deps")
 
 CFLAGS = [
     "-I inc",
+    "-I gen/inc",
     "-I ../../inc"
 ]
 

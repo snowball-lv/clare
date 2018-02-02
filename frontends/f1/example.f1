@@ -1,0 +1,17 @@
+	
+
+
+function sum : int
+params
+    x: int
+    y: int
+body
+    return x + y
+end
+
+
+function main : int
+body
+    return sum(1, 2)
+end
+

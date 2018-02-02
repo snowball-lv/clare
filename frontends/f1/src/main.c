@@ -3,13 +3,9 @@
 
 #include <clare/helpers/Unused.h>
 #include <clare/helpers/Error.h>
-#include <clare/collections/List.h>
-#include <clare/regex/RegEx.h>
-#include <clare/mem/Mem.h>
 
-#define RULE_FILE   <lexer.rules>
-    #include <clare/regex/lexer.def>
-#undef RULE_FILE
+#include <f1.parser.h>
+extern FILE *yyin;
 
 int main(int argc, char **argv) {
     UNUSED(argc);
@@ -22,7 +18,10 @@ int main(int argc, char **argv) {
         FILE *file = fopen(path, "r");
         ASSERT(file != 0);
         
-        Lex(file);
+        yyin = file;
+        do {
+            yyparse();
+        } while (!feof(yyin));
         
         fclose(file);
     }

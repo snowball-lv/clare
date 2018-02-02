@@ -5,7 +5,7 @@ require "fileutils"
 
 NAME = "clare-f1"
 
-SRCS = FileList["src/**/*.c"]
+SRCS = FileList["src/**/*.c", "gen/**/*.c"]
 DEPS = SRCS.pathmap("deps/%X.deps")
 OBJS = SRCS.pathmap("out/%X.o")
 BIN = "bin/#{NAME}"
@@ -13,6 +13,7 @@ BIN = "bin/#{NAME}"
 CFLAGS = [
     "-c",
     "-I inc",
+    "-I gen/inc",
     "-O2",
     "-Wall",
     "-Wextra",
