@@ -1,0 +1,58 @@
+	
+
+
+RULE(":", {
+    printf("Token: COLON - [%s]\n", text);
+})
+
+RULE("+", {
+    printf("Token: PLUS - [%s]\n", text);
+})
+
+RULE("(", {
+    printf("Token: L_PAREN - [%s]\n", text);
+})
+
+RULE(")", {
+    printf("Token: R_PAREN - [%s]\n", text);
+})
+
+RULE(",", {
+    printf("Token: COMMA - [%s]\n", text);
+})
+
+RULE("function", {
+    printf("Token: FUNCTION - [%s]\n", text);
+})
+
+RULE("end", {
+    printf("Token: END - [%s]\n", text);
+})
+
+RULE("body", {
+    printf("Token: BODY - [%s]\n", text);
+})
+
+RULE("params", {
+    printf("Token: PARAMS - [%s]\n", text);
+})
+
+RULE("int", {
+    printf("Token: TYPE_INT - [%s]\n", text);
+})
+
+RULE("[0-9][0-9]*", {
+    printf("Token: INTEGER - [%s]\n", text);
+})
+
+RULE("[a-zA-Z_][0-9a-zA-Z_]*", {
+    printf("Token: ID - [%s]\n", text);
+})
+
+RULE("[\r\n \t]", {
+    // ignore
+})
+
+RULE(".", {
+    ERROR("Illegal character: [%c][%i]\n", text[0], text[0]);
+})

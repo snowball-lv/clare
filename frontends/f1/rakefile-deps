@@ -10,6 +10,7 @@ DEPS = SRCS.pathmap("deps/%X.deps")
 
 CFLAGS = [
     "-I inc",
+    "-I ../../inc"
 ]
 
 SRCS.zip(DEPS).each do |src, dep|
