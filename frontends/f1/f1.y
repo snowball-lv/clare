@@ -26,10 +26,20 @@ extern const char *_current_file_name;
 %token BODY
 %token RETURN
 %token ADD SUB MUL DIV
+%token ASG
 %token L_PAREN R_PAREN
 %token L_BRACKET R_BRACKET
 %token INT STR
 %token COMMA
+%token UMINUS
+
+%left ADD SUB
+%left MUL DIV
+%right L_BRACKET
+%left R_BRACKET
+%left UMINUS
+
+%start module
 
 %%
 module
@@ -67,27 +77,25 @@ stm_list
 stm
     : RETURN exp
     | fcall
+    | var_decl
+    ;
+    
+var_decl
+    : ID COLON type ASG exp
     ;
     
 exp
-    : exp ADD term
-	| exp SUB term
-    | term
-    | STR
-    | exp L_BRACKET exp R_BRACKET
-    ;
-    
-term
-    : term MUL factor
-    | term DIV factor
-    | factor
-    ;
-    
-factor
-    : ID
-    | L_PAREN exp R_PAREN
+    : L_PAREN exp R_PAREN
+    | ID
     | INT
+    | STR
     | fcall
+    | exp ADD exp
+    | exp SUB exp
+    | exp MUL exp
+    | exp DIV exp
+    | exp L_BRACKET exp R_BRACKET
+    | SUB exp                       %prec UMINUS
     ;
     
 fcall

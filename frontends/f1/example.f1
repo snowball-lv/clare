@@ -1,13 +1,7 @@
 	
 
 
-function sum : int
-params
-    x: int
-    y: int
-body
-    return x + ((y) - z ) * (v / w)
-end
+
 
 
 function main : int
@@ -15,7 +9,7 @@ params
     argc: int
     argv: string[]
 body
-    printf("%s\n", argv[0])
-    return sum(1, 2)
+    x: int = a + b - c * d / e + (f)
+    return -1 -2
 end
 

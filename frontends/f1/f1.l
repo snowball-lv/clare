@@ -41,6 +41,7 @@ STRING      \"(\\.|[^\\\"])*\"
 \)              { return R_PAREN; }
 \[              { return L_BRACKET; }
 \]              { return R_BRACKET; }
+=               { return ASG; }
 function        { return FUNCTION; }
 params          { return PARAMS; }
 body            { return BODY; }
