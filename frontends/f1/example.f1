@@ -9,7 +9,11 @@ params
     argc: int
     argv: string[]
 body
-    x: int = a + b - c * d / e + (f)
+    i: int = 0
+    while i < argc do
+        printf("%d: %s\n", i, argv[i])
+        i = i + 1
+    end
     return -1 -2
 end
 

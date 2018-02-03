@@ -66,7 +66,10 @@ extern int yydebug;
     INT = 276,
     STR = 277,
     COMMA = 278,
-    UMINUS = 279
+    UMINUS = 279,
+    WHILE = 280,
+    DO = 281,
+    LT = 282
   };
 #endif
 
@@ -80,7 +83,7 @@ union YYSTYPE
     const char *str;
     int ival;
 
-#line 84 "gen/inc/f1.parser.h" /* yacc.c:1909  */
+#line 87 "gen/inc/f1.parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

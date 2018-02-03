@@ -32,9 +32,13 @@ extern const char *_current_file_name;
 %token INT STR
 %token COMMA
 %token UMINUS
+%token WHILE
+%token DO
+%token LT
 
 %left ADD SUB
 %left MUL DIV
+%left LT
 %right L_BRACKET
 %left R_BRACKET
 %left UMINUS
@@ -78,6 +82,8 @@ stm
     : RETURN exp
     | fcall
     | var_decl
+    | WHILE exp DO stm_list END
+    | exp ASG exp
     ;
     
 var_decl
@@ -94,6 +100,7 @@ exp
     | exp SUB exp
     | exp MUL exp
     | exp DIV exp
+    | exp LT exp
     | exp L_BRACKET exp R_BRACKET
     | SUB exp                       %prec UMINUS
     ;
