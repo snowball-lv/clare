@@ -4,19 +4,37 @@
 #include <clare/helpers/Unused.h>
 
 static const  char *copy_string(const char *str);
-static int _lexer_line_counter = 1;
+static int _last_line = 0;
+static int _column = 0;
+
+#define YY_USER_ACTION {            \
+    if (yylineno != _last_line) {   \
+        _column = 1;                \
+        _last_line = yylineno;      \
+    }                               \
+    yylloc.first_line = yylineno;   \
+    yylloc.last_line = yylineno;    \
+    yylloc.first_column = _column;  \
+    _column = _column + yyleng;     \
+    yylloc.last_column = _column;   \
+} 
+
 %}
 
-%option noyywrap 
+%option noyywrap
+%option yylineno
 
 ID          [a-zA-Z_][0-9a-zA-Z_]*
 INTEGER     [0-9]+
 
 %%
 
-[\r\t ]         ; // ignore
+[\n\r\t ]         ; // ignore
 :               { return COLON; }
-\+              { return PLUS; }
+\+              { return ADD; }
+-               { return SUB; }
+\*              { return MUL; }
+\/              { return DIV; }
 \(              { return L_PAREN; }
 \)              { return R_PAREN; }
 function        { return FUNCTION; }
@@ -27,7 +45,6 @@ return          { return RETURN; }
 int             { return TYPE_INT; }
 {INTEGER}       { yylval.ival = atoi(yytext); return INT; }
 {ID}            { yylval.str = copy_string(yytext); return ID; }
-\n              { _lexer_line_counter++; }
 .               { printf("Caught: [%s]\n", yytext); exit(-1); }
 
 %%
@@ -41,8 +58,4 @@ static const char *copy_string(const char *str) {
     char *copy = malloc(strlen(str) + 1);
     strcpy(copy, str);
     return copy;
-}
-
-int LexerLineNum() {
-    return _lexer_line_counter;
 }

@@ -6,12 +6,12 @@ params
     x: int
     y: int
 body
-    return x + (y)
+    return x + ((y) - 0z ) * (v / w)
 end
 
 
 function main : int
 body
-    return 0x
+    return 0
 end
 

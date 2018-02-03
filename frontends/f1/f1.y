@@ -1,13 +1,17 @@
 
 %{
+    
 #include <stdio.h>
 #include <stdlib.h>
+
 extern int yylex();
 void yyerror (char const *msg);
-extern int LexerLineNum();
 extern FILE *yyin;
+extern const char *_current_file_name;
+
 %}
 
+%locations
 %union {
     const char *str;
     int ival;
@@ -21,7 +25,7 @@ extern FILE *yyin;
 %token PARAMS
 %token BODY
 %token RETURN
-%token PLUS
+%token ADD SUB MUL DIV
 %token L_PAREN R_PAREN
 %token INT
 
@@ -63,12 +67,15 @@ stm
     ;
     
 exp
-    : exp PLUS term
+    : exp ADD term
+	| exp SUB term
     | term
     ;
     
 term
-    : factor
+    : term MUL factor
+    | term DIV factor
+    | factor
     ;
     
 factor
@@ -83,36 +90,58 @@ type
 %%
 
 void yyerror (char const *msg) {
-    printf("Parse error: %s\n", msg);
-    int line = LexerLineNum();
-    printf("Line: %d\n", line);
+    
+    printf(
+        "%d:%d - %d:%d\n", 
+        yylloc.first_line, yylloc.first_column,
+        yylloc.last_line, yylloc.last_column);
+    
+    printf("%s\n", msg);
     
     fpos_t pos;
     fgetpos(yyin, &pos);
-    rewind(yyin);
-    int counter = 0;
     
-    while (!feof(yyin)) {
-        if (counter == line - 1) {
-            // right line
-            while (!feof(yyin)) {
-                int c = fgetc(yyin);
-                printf("%c", c);
-                if (c == '\n') {
-                    break;
-                }
-            }
-            break;
-        } else {
-            while (!feof(yyin)) {
-                int c = fgetc(yyin);
-                if (c == '\n') {
-                    counter++;
-                    break;
-                }
-            }
+    int line = 1;
+    rewind(yyin);
+    
+    while (line != yylloc.first_line) {
+        int c = fgetc(yyin);
+        if (c == '\n') {
+            line++;
         }
     }
+    
+    int in_error = 0;
+    int column = 1;
+    while (line <= yylloc.last_line) {
+        
+        int c = fgetc(yyin);
+        if (c == '\n') {
+            line++;
+            column = 0;
+        } else {
+            column++;
+        }
+        
+        if (!in_error) {
+            if (line == yylloc.first_line && column >= yylloc.first_column) {
+                in_error = 1;
+                printf("\x1b[31m");
+            }
+        }
+        
+        if (in_error) {
+            if (line == yylloc.last_line && column >= yylloc.last_column) {
+                in_error = 0;
+                printf("\x1b[39;49m");
+            }
+        }
+        
+        putchar(c);
+    }
+    
+    // printf("\x1b[31m");
+    // printf("\x1b[39;49m");
     
     fsetpos(yyin, &pos);
     

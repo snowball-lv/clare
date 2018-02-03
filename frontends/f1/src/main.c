@@ -6,6 +6,7 @@
 
 #include <f1.parser.h>
 extern FILE *yyin;
+const char *_current_file_name;
 
 int main(int argc, char **argv) {
     UNUSED(argc);
@@ -18,6 +19,7 @@ int main(int argc, char **argv) {
         FILE *file = fopen(path, "r");
         ASSERT(file != 0);
         
+        _current_file_name = path;
         yyin = file;
         do {
             yyparse();

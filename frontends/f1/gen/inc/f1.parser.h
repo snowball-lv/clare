@@ -53,10 +53,13 @@ extern int yydebug;
     PARAMS = 263,
     BODY = 264,
     RETURN = 265,
-    PLUS = 266,
-    L_PAREN = 267,
-    R_PAREN = 268,
-    INT = 269
+    ADD = 266,
+    SUB = 267,
+    MUL = 268,
+    DIV = 269,
+    L_PAREN = 270,
+    R_PAREN = 271,
+    INT = 272
   };
 #endif
 
@@ -65,12 +68,12 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 11 "f1.y" /* yacc.c:1909  */
+#line 15 "f1.y" /* yacc.c:1909  */
 
     const char *str;
     int ival;
 
-#line 74 "gen/inc/f1.parser.h" /* yacc.c:1909  */
+#line 77 "gen/inc/f1.parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -78,9 +81,23 @@ typedef union YYSTYPE YYSTYPE;
 # define YYSTYPE_IS_DECLARED 1
 #endif
 
+/* Location type.  */
+#if ! defined YYLTYPE && ! defined YYLTYPE_IS_DECLARED
+typedef struct YYLTYPE YYLTYPE;
+struct YYLTYPE
+{
+  int first_line;
+  int first_column;
+  int last_line;
+  int last_column;
+};
+# define YYLTYPE_IS_DECLARED 1
+# define YYLTYPE_IS_TRIVIAL 1
+#endif
+
 
 extern YYSTYPE yylval;
-
+extern YYLTYPE yylloc;
 int yyparse (void);
 
 #endif /* !YY_YY_GEN_INC_F1_PARSER_H_INCLUDED  */
