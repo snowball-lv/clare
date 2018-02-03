@@ -50,16 +50,21 @@ extern int yydebug;
     COLON = 260,
     END = 261,
     TYPE_INT = 262,
-    PARAMS = 263,
-    BODY = 264,
-    RETURN = 265,
-    ADD = 266,
-    SUB = 267,
-    MUL = 268,
-    DIV = 269,
-    L_PAREN = 270,
-    R_PAREN = 271,
-    INT = 272
+    TYPE_STR = 263,
+    PARAMS = 264,
+    BODY = 265,
+    RETURN = 266,
+    ADD = 267,
+    SUB = 268,
+    MUL = 269,
+    DIV = 270,
+    L_PAREN = 271,
+    R_PAREN = 272,
+    L_BRACKET = 273,
+    R_BRACKET = 274,
+    INT = 275,
+    STR = 276,
+    COMMA = 277
   };
 #endif
 
@@ -73,7 +78,7 @@ union YYSTYPE
     const char *str;
     int ival;
 
-#line 77 "gen/inc/f1.parser.h" /* yacc.c:1909  */
+#line 82 "gen/inc/f1.parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

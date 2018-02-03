@@ -26,26 +26,32 @@ static int _column = 0;
 
 ID          [a-zA-Z_][0-9a-zA-Z_]*
 INTEGER     [0-9]+
+STRING      \"(\\.|[^\\\"])*\"
 
 %%
 
-[\n\r\t ]         ; // ignore
+[\n\r\t ]       ; // ignore
 :               { return COLON; }
+,               { return COMMA; }
 \+              { return ADD; }
 -               { return SUB; }
 \*              { return MUL; }
 \/              { return DIV; }
 \(              { return L_PAREN; }
 \)              { return R_PAREN; }
+\[              { return L_BRACKET; }
+\]              { return R_BRACKET; }
 function        { return FUNCTION; }
 params          { return PARAMS; }
 body            { return BODY; }
 end             { return END; }
 return          { return RETURN; }
 int             { return TYPE_INT; }
+string          { return TYPE_STR; }
 {INTEGER}       { yylval.ival = atoi(yytext); return INT; }
+{STRING}        { yylval.str = copy_string(yytext); return STR; }
 {ID}            { yylval.str = copy_string(yytext); return ID; }
-.               { printf("Caught: [%s]\n", yytext); exit(-1); }
+.               { printf("Caught: [%s]\n", yytext); return -1; }
 
 %%
 

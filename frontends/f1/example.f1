@@ -6,12 +6,16 @@ params
     x: int
     y: int
 body
-    return x + ((y) - 0z ) * (v / w)
+    return x + ((y) - z ) * (v / w)
 end
 
 
 function main : int
+params
+    argc: int
+    argv: string[]
 body
-    return 0
+    printf("%s\n", argv[0])
+    return sum(1, 2)
 end
 

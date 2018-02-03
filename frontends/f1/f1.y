@@ -21,13 +21,15 @@ extern const char *_current_file_name;
 %token ID
 %token COLON
 %token END
-%token TYPE_INT
+%token TYPE_INT TYPE_STR
 %token PARAMS
 %token BODY
 %token RETURN
 %token ADD SUB MUL DIV
 %token L_PAREN R_PAREN
-%token INT
+%token L_BRACKET R_BRACKET
+%token INT STR
+%token COMMA
 
 %%
 module
@@ -64,12 +66,15 @@ stm_list
     
 stm
     : RETURN exp
+    | fcall
     ;
     
 exp
     : exp ADD term
 	| exp SUB term
     | term
+    | STR
+    | exp L_BRACKET exp R_BRACKET
     ;
     
 term
@@ -82,10 +87,23 @@ factor
     : ID
     | L_PAREN exp R_PAREN
     | INT
+    | fcall
+    ;
+    
+fcall
+    : ID L_PAREN fcall_args R_PAREN
+    ;
+
+fcall_args
+    : exp
+    | exp COMMA fcall_args
+    | // nothing
     ;
     
 type
     : TYPE_INT
+    | TYPE_STR
+    | type L_BRACKET R_BRACKET
     ;
 %%
 
