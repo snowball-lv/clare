@@ -4,13 +4,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <AST.h>
+#include <clare/helpers/Unused.h>
 
 extern int yylex();
-void yyerror (char const *msg);
 extern FILE *yyin;
-extern const char *_current_file_name;
+void yyerror (AST **ast, char const *msg);
 
 %}
+
+%code requires {
+    #include <AST.h>
+}
 
 %locations
 %union {
@@ -18,41 +22,40 @@ extern const char *_current_file_name;
     int ival;
 }
 
-%token FUNCTION
+%parse-param { AST **ast }
+
+%token FUNCTION PARAMS BODY END
+%token WHILE DO
+%token RETURN
+%token TYPE_INT TYPE_STR
 %token ID
 %token COLON
-%token END
-%token TYPE_INT TYPE_STR
-%token PARAMS
-%token BODY
-%token RETURN
-%token ADD SUB MUL DIV
 %token ASG
 %token L_PAREN R_PAREN
 %token L_BRACKET R_BRACKET
 %token INT STR
 %token COMMA
 %token UMINUS
-%token WHILE
-%token DO
+%token ADD SUB MUL DIV
 %token LT
 
-%left ADD SUB
-%left MUL DIV
-%left LT
-%right L_BRACKET
-%left UMINUS
+%left   LT
+%left   ADD SUB
+%left   MUL DIV
+%right  UMINUS
+%left   L_BRACKET L_PAREN
 
 %start module
 
 %%
 module
     : flist
+    | // nothing
     ;
     
 flist
-    : function flist
-    | // nothing
+    : flist function
+    | function
     ;
     
 function
@@ -65,21 +68,27 @@ function_content
     
 function_params
     : PARAMS param_decls
+    | PARAMS
     | // nothing
     ;
     
 param_decls
-    : ID COLON type param_decls
-    | // nothing
+    : param_decls param_decl
+    | param_decl
+    ;
+    
+param_decl
+    : ID COLON type
     ;
     
 function_body
     : BODY stm_list
+    | BODY
     ;
     
 stm_list
-    : stm stm_list
-    | // nothing
+    : stm_list stm
+    | stm
     ;
     
 stm
@@ -111,12 +120,12 @@ exp
     
 fcall
     : ID L_PAREN fcall_args R_PAREN
+    | ID L_PAREN R_PAREN
     ;
 
 fcall_args
-    : exp
-    | exp COMMA fcall_args
-    | // nothing
+    : fcall_args COMMA exp
+    | exp
     ;
     
 type
@@ -126,7 +135,9 @@ type
     ;
 %%
 
-void yyerror (char const *msg) {
+void yyerror (AST **ast, char const *msg) {
+    UNUSED(ast);
+    UNUSED(msg);
     
     printf(
         "%d:%d - %d:%d\n", 

@@ -8,7 +8,6 @@
 
 #include <f1.parser.h>
 extern FILE *yyin;
-const char *_current_file_name;
 
 static AST *ParseFile(const char *path);
 
@@ -31,12 +30,13 @@ static AST *ParseFile(const char *path) {
     FILE *file = fopen(path, "r");
     ASSERT(file != 0);
 
-    _current_file_name = path;
+    AST *ast = 0;
+
     yyin = file;
     do {
-        yyparse();
+        yyparse(&ast);
     } while (!feof(yyin));
 
     fclose(file);
-    return 0;
+    return ast;
 }

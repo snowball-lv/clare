@@ -39,6 +39,12 @@
 #if YYDEBUG
 extern int yydebug;
 #endif
+/* "%code requires" blocks.  */
+#line 15 "f1.y" /* yacc.c:1909  */
+
+    #include <AST.h>
+
+#line 48 "gen/inc/f1.parser.h" /* yacc.c:1909  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -46,29 +52,29 @@ extern int yydebug;
   enum yytokentype
   {
     FUNCTION = 258,
-    ID = 259,
-    COLON = 260,
+    PARAMS = 259,
+    BODY = 260,
     END = 261,
-    TYPE_INT = 262,
-    TYPE_STR = 263,
-    PARAMS = 264,
-    BODY = 265,
-    RETURN = 266,
-    ADD = 267,
-    SUB = 268,
-    MUL = 269,
-    DIV = 270,
-    ASG = 271,
-    L_PAREN = 272,
-    R_PAREN = 273,
-    L_BRACKET = 274,
-    R_BRACKET = 275,
-    INT = 276,
-    STR = 277,
-    COMMA = 278,
-    UMINUS = 279,
-    WHILE = 280,
-    DO = 281,
+    WHILE = 262,
+    DO = 263,
+    RETURN = 264,
+    TYPE_INT = 265,
+    TYPE_STR = 266,
+    ID = 267,
+    COLON = 268,
+    ASG = 269,
+    L_PAREN = 270,
+    R_PAREN = 271,
+    L_BRACKET = 272,
+    R_BRACKET = 273,
+    INT = 274,
+    STR = 275,
+    COMMA = 276,
+    UMINUS = 277,
+    ADD = 278,
+    SUB = 279,
+    MUL = 280,
+    DIV = 281,
     LT = 282
   };
 #endif
@@ -78,12 +84,12 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 16 "f1.y" /* yacc.c:1909  */
+#line 20 "f1.y" /* yacc.c:1909  */
 
     const char *str;
     int ival;
 
-#line 87 "gen/inc/f1.parser.h" /* yacc.c:1909  */
+#line 93 "gen/inc/f1.parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -108,6 +114,6 @@ struct YYLTYPE
 
 extern YYSTYPE yylval;
 extern YYLTYPE yylloc;
-int yyparse (void);
+int yyparse (AST **ast);
 
 #endif /* !YY_YY_GEN_INC_F1_PARSER_H_INCLUDED  */
