@@ -3,6 +3,7 @@
     
 #include <stdio.h>
 #include <stdlib.h>
+#include <AST.h>
 
 extern int yylex();
 void yyerror (char const *msg);
@@ -40,14 +41,17 @@ extern const char *_current_file_name;
 %left MUL DIV
 %left LT
 %right L_BRACKET
-%left R_BRACKET
 %left UMINUS
 
 %start module
 
 %%
 module
-    : function module
+    : flist
+    ;
+    
+flist
+    : function flist
     | // nothing
     ;
     
@@ -80,7 +84,7 @@ stm_list
     
 stm
     : RETURN exp
-    | fcall
+    | exp
     | var_decl
     | WHILE exp DO stm_list END
     | exp ASG exp

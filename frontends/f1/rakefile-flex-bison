@@ -14,7 +14,7 @@ directory GEN_H
 directory GEN_C
 
 file PARSER_H => [PARSER_SPEC, GEN_H, GEN_C] do
-    sh "bison -d -o #{PARSER_C} --defines=#{PARSER_H} #{PARSER_SPEC}"
+    sh "bison -v -d -o #{PARSER_C} --defines=#{PARSER_H} #{PARSER_SPEC}"
 end
 
 file LEXER_C => [LEXER_SPEC, PARSER_H, GEN_C] do
