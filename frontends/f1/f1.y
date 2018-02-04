@@ -39,6 +39,8 @@ void yyerror (AST **ast, char const *msg);
 %token ADD SUB MUL DIV
 %token LT
 
+%precedence SIMPLE
+
 %left   LT
 %left   ADD SUB
 %left   MUL DIV
@@ -92,20 +94,20 @@ stm_list
     ;
     
 stm
-    : RETURN exp
-    | exp
+    : RETURN exp                    %prec SIMPLE
+    | exp                           %prec SIMPLE
     | var_decl
     | WHILE exp DO stm_list END
-    | exp ASG exp
+    | exp ASG exp                   %prec SIMPLE
     ;
     
 var_decl
-    : ID COLON type ASG exp
+    : ID COLON type ASG exp         %prec SIMPLE
     ;
     
 exp
     : L_PAREN exp R_PAREN
-    | ID
+    | ID                            %prec SIMPLE
     | INT
     | STR
     | fcall

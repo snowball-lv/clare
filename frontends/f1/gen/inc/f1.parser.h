@@ -75,7 +75,8 @@ extern int yydebug;
     SUB = 279,
     MUL = 280,
     DIV = 281,
-    LT = 282
+    LT = 282,
+    SIMPLE = 283
   };
 #endif
 
@@ -89,7 +90,7 @@ union YYSTYPE
     const char *str;
     int ival;
 
-#line 93 "gen/inc/f1.parser.h" /* yacc.c:1909  */
+#line 94 "gen/inc/f1.parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;
