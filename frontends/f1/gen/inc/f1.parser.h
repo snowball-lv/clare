@@ -40,7 +40,7 @@
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 15 "f1.y" /* yacc.c:1909  */
+#line 16 "f1.y" /* yacc.c:1909  */
 
     #include <AST.h>
 
@@ -85,12 +85,14 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 20 "f1.y" /* yacc.c:1909  */
+#line 21 "f1.y" /* yacc.c:1909  */
 
     const char *str;
     int ival;
+    List *list;
+    AST *ast;
 
-#line 94 "gen/inc/f1.parser.h" /* yacc.c:1909  */
+#line 96 "gen/inc/f1.parser.h" /* yacc.c:1909  */
 };
 
 typedef union YYSTYPE YYSTYPE;

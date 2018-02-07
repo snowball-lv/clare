@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <AST.h>
 #include <clare/helpers/Unused.h>
+#include <clare/collections/List.h>
 
 extern int yylex();
 extern FILE *yyin;
@@ -20,6 +21,8 @@ void yyerror (AST **ast, char const *msg);
 %union {
     const char *str;
     int ival;
+    List *list;
+    AST *ast;
 }
 
 %parse-param { AST **ast }
@@ -47,21 +50,26 @@ void yyerror (AST **ast, char const *msg);
 %right  UMINUS
 %left   L_BRACKET L_PAREN
 
+%type <list> flist
+%type <ast> function
+
 %start module
 
 %%
 module
-    : flist
-    | // nothing
+    : flist         { *ast = ASTMod($1); }
+    | %empty        { *ast = ASTMod(NewList()); }
     ;
     
 flist
-    : flist function
-    | function
+    : flist function    { $$ = $1; ListAdd($$, $2);  }
+    | function          { $$ = NewList(); ListAdd($$, $1); }
     ;
     
 function
-    : FUNCTION ID COLON type function_content END
+    : FUNCTION ID COLON type function_content END { 
+        $$ = 0;
+    }
     ;
     
 function_content
@@ -71,7 +79,7 @@ function_content
 function_params
     : PARAMS param_decls
     | PARAMS
-    | // nothing
+    | %empty
     ;
     
 param_decls

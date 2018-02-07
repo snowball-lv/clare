@@ -69,13 +69,14 @@
 #include <stdlib.h>
 #include <AST.h>
 #include <clare/helpers/Unused.h>
+#include <clare/collections/List.h>
 
 extern int yylex();
 extern FILE *yyin;
 void yyerror (AST **ast, char const *msg);
 
 
-#line 79 "gen/src/f1.parser.c" /* yacc.c:339  */
+#line 80 "gen/src/f1.parser.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -105,11 +106,11 @@ void yyerror (AST **ast, char const *msg);
 extern int yydebug;
 #endif
 /* "%code requires" blocks.  */
-#line 15 "f1.y" /* yacc.c:355  */
+#line 16 "f1.y" /* yacc.c:355  */
 
     #include <AST.h>
 
-#line 113 "gen/src/f1.parser.c" /* yacc.c:355  */
+#line 114 "gen/src/f1.parser.c" /* yacc.c:355  */
 
 /* Token type.  */
 #ifndef YYTOKENTYPE
@@ -150,12 +151,14 @@ extern int yydebug;
 
 union YYSTYPE
 {
-#line 20 "f1.y" /* yacc.c:355  */
+#line 21 "f1.y" /* yacc.c:355  */
 
     const char *str;
     int ival;
+    List *list;
+    AST *ast;
 
-#line 159 "gen/src/f1.parser.c" /* yacc.c:355  */
+#line 162 "gen/src/f1.parser.c" /* yacc.c:355  */
 };
 
 typedef union YYSTYPE YYSTYPE;
@@ -186,7 +189,7 @@ int yyparse (AST **ast);
 
 /* Copy the second part of user declarations.  */
 
-#line 190 "gen/src/f1.parser.c" /* yacc.c:358  */
+#line 193 "gen/src/f1.parser.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -488,11 +491,11 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    54,    54,    55,    59,    60,    64,    68,    72,    73,
-      74,    78,    79,    83,    87,    88,    92,    93,    97,    98,
-      99,   100,   101,   105,   109,   110,   111,   112,   113,   114,
-     115,   116,   117,   118,   119,   120,   124,   125,   129,   130,
-     134,   135,   136
+       0,    60,    60,    61,    65,    66,    70,    76,    80,    81,
+      82,    86,    87,    91,    95,    96,   100,   101,   105,   106,
+     107,   108,   109,   113,   117,   118,   119,   120,   121,   122,
+     123,   124,   125,   126,   127,   128,   132,   133,   137,   138,
+     142,   143,   144
 };
 #endif
 
@@ -1414,8 +1417,40 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-      
-#line 1419 "gen/src/f1.parser.c" /* yacc.c:1646  */
+        case 2:
+#line 60 "f1.y" /* yacc.c:1646  */
+    { *ast = ASTMod((yyvsp[0].list)); }
+#line 1424 "gen/src/f1.parser.c" /* yacc.c:1646  */
+    break;
+
+  case 3:
+#line 61 "f1.y" /* yacc.c:1646  */
+    { *ast = ASTMod(NewList()); }
+#line 1430 "gen/src/f1.parser.c" /* yacc.c:1646  */
+    break;
+
+  case 4:
+#line 65 "f1.y" /* yacc.c:1646  */
+    { (yyval.list) = (yyvsp[-1].list); ListAdd((yyval.list), (yyvsp[0].ast));  }
+#line 1436 "gen/src/f1.parser.c" /* yacc.c:1646  */
+    break;
+
+  case 5:
+#line 66 "f1.y" /* yacc.c:1646  */
+    { (yyval.list) = NewList(); ListAdd((yyval.list), (yyvsp[0].ast)); }
+#line 1442 "gen/src/f1.parser.c" /* yacc.c:1646  */
+    break;
+
+  case 6:
+#line 70 "f1.y" /* yacc.c:1646  */
+    { 
+        (yyval.ast) = 0;
+    }
+#line 1450 "gen/src/f1.parser.c" /* yacc.c:1646  */
+    break;
+
+
+#line 1454 "gen/src/f1.parser.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1650,7 +1685,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 138 "f1.y" /* yacc.c:1906  */
+#line 146 "f1.y" /* yacc.c:1906  */
 
 
 void yyerror (AST **ast, char const *msg) {

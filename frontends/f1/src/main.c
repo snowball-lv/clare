@@ -31,11 +31,11 @@ static AST *ParseFile(const char *path) {
     ASSERT(file != 0);
 
     AST *ast = 0;
-
     yyin = file;
-    do {
-        yyparse(&ast);
-    } while (!feof(yyin));
+    if (!yyparse(&ast)) {
+        // success
+        // TODO
+    }
 
     fclose(file);
     return ast;

@@ -1,3 +1,5 @@
 #include <AST.h>
+#include <clare/helpers/Unused.h>
 
-int dummy;
+AST *ASTNull() { return 0; }
+AST *ASTMod(List *flist) { UNUSED(flist); return 0; }
