@@ -22,17 +22,13 @@ static void run_compiler(Args *args);
 int main(int argc, char **argv) {
     assert(MemEmpty());
     
-    Args args = { 0 };
+    Args args = {
+        .frontend = "clare-ir"
+    };
     
     for (int i = 1; i < argc; i++) {
         
-        if (strcmp("-f", argv[i]) == 0) {
-            
-            args.frontend = argv[i + 1];
-            i++;
-            continue;
-            
-        } else if (strcmp("-b", argv[i]) == 0) {
+        if (strcmp("-b", argv[i]) == 0) {
             
             args.backend = argv[i + 1];
             i++;
